@@ -24,10 +24,12 @@ class AppLocalizations {
       'lang_hindi': 'Hindi',
       'lang_marathi': 'Marathi',
 
-      // Farmer Profile (Step 1)
+      // Farmer Profile & Account (Step 1)
       'step_1_of_2': 'Step 1 of 2',
-      'your_farmer_profile': 'Your Farmer Profile',
+      'your_farmer_profile': 'Account Details',
       'profile_subtitle': 'Tell us a bit about yourself so we can personalise your dashboard.',
+      'account_details': 'Account Details',
+      'account_subtitle': 'Manage your farm account credentials and profile.',
       'farmer_name': 'Farmer Name',
       'farmer_name_hint': 'e.g., Ramesh Patel',
       'village': 'Village',
@@ -39,6 +41,12 @@ class AppLocalizations {
       'select_state': 'Select State',
       'select_district': 'Select District',
       'next_add_farm': 'Next: Add Farm',
+      'password': 'Password',
+      'password_hint': 'Enter password',
+      'sign_in': 'Sign In',
+      'create_account': 'Create Account',
+      'already_have_account': 'Already have an account? Sign In',
+      'dont_have_account': "Don't have an account? Create One",
 
       // Add Farm (Step 2)
       'step_2_of_2': 'Step 2 of 2',
@@ -91,10 +99,12 @@ class AppLocalizations {
       'lang_hindi': 'हिन्दी',
       'lang_marathi': 'मराठी',
 
-      // Farmer Profile (Step 1)
+      // Farmer Profile & Account (Step 1)
       'step_1_of_2': 'चरण 1 / 2',
-      'your_farmer_profile': 'आपकी किसान प्रोफ़ाइल',
+      'your_farmer_profile': 'खाता विवरण',
       'profile_subtitle': 'अपने बारे में थोड़ा बताएं ताकि हम आपका डैशबोर्ड अनुकूलित कर सकें।',
+      'account_details': 'खाता विवरण',
+      'account_subtitle': 'अपने फार्म खाते की जानकारी और प्रोफाइल प्रबंधित करें।',
       'farmer_name': 'किसान का नाम',
       'farmer_name_hint': 'उदा., रमेश पटेल',
       'village': 'गांव',
@@ -106,6 +116,12 @@ class AppLocalizations {
       'select_state': 'राज्य चुनें',
       'select_district': 'जिला चुनें',
       'next_add_farm': 'अगला: खेत जोड़ें',
+      'password': 'पासवर्ड',
+      'password_hint': 'पासवर्ड दर्ज करें',
+      'sign_in': 'साइन इन करें',
+      'create_account': 'खाता बनाएं',
+      'already_have_account': 'क्या आपके पास पहले से खाता है? साइन इन करें',
+      'dont_have_account': 'खाता नहीं है? नया बनाएं',
 
       // Add Farm (Step 2)
       'step_2_of_2': 'चरण 2 / 2',
@@ -158,10 +174,12 @@ class AppLocalizations {
       'lang_hindi': 'हिन्दी',
       'lang_marathi': 'मराठी',
 
-      // Farmer Profile (Step 1)
+      // Farmer Profile & Account (Step 1)
       'step_1_of_2': 'पायरी 1 / 2',
-      'your_farmer_profile': 'तुमची शेतकरी प्रोफाइल',
+      'your_farmer_profile': 'खाते तपशील',
       'profile_subtitle': 'तुमचे डॅशबोर्ड वैयक्तिकृत करण्यासाठी स्वतःबद्दल थोडे सांगा.',
+      'account_details': 'खाते तपशील',
+      'account_subtitle': 'तुमच्या फार्म खात्याची माहिती आणि प्रोफाइल व्यवस्थापित करा.',
       'farmer_name': 'शेतकऱ्याचे नाव',
       'farmer_name_hint': 'उदा., रमेश पाटील',
       'village': 'गाव',
@@ -173,6 +191,12 @@ class AppLocalizations {
       'select_state': 'राज्य निवडा',
       'select_district': 'जिल्हा निवडा',
       'next_add_farm': 'पुढे: शेत जोडा',
+      'password': 'पासवर्ड',
+      'password_hint': 'पासवर्ड टाका',
+      'sign_in': 'साइन इन करा',
+      'create_account': 'खाते तयार करा',
+      'already_have_account': 'आधीपासून खाते आहे? साइन इन करा',
+      'dont_have_account': 'खाते नाही? नवीन तयार करा',
 
       // Add Farm (Step 2)
       'step_2_of_2': 'पायरी 2 / 2',
@@ -268,4 +292,12 @@ class AppLocalizations {
   String get navPest => get('nav_pest');
   String get navWallet => get('nav_wallet');
   String get navProfile => get('nav_profile');
+  String get accountDetails => get('account_details');
+  String get accountSubtitle => get('account_subtitle');
+  String get password => get('password');
+  String get passwordHint => get('password_hint');
+  String get signIn => get('sign_in');
+  String get createAccount => get('create_account');
+  String get alreadyHaveAccount => get('already_have_account');
+  String get dontHaveAccount => get('dont_have_account');
 }

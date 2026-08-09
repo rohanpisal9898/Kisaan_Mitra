@@ -4,9 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import 'add_farm_screen.dart';
+import 'dashboard_screen.dart';
 
-/// Farmer Profile screen (Step 1 of 2).
-/// Collects: Farmer Name, Phone Number (for login/account), Village.
+/// Account Details / Sign In screen (Step 1 of 2).
+/// Collects: Farmer Name, Phone Number, Password, Village (for registration) or Phone + Password (for Sign In).
 class FarmerProfileScreen extends StatefulWidget {
   final String language;
 
@@ -20,7 +21,11 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   late AppLocalizations _l10n;
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _villageController = TextEditingController();
+
+  bool _isSignInMode = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -40,15 +45,17 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
             children: [
               const SizedBox(height: 16),
 
-              // Back + Step indicator
+              // Back + Step indicator (only in Register mode)
               Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: const Icon(Icons.arrow_back_ios, size: 20),
                   ),
-                  const SizedBox(width: 12),
-                  _buildStepIndicator(),
+                  if (!_isSignInMode) ...[
+                    const SizedBox(width: 12),
+                    _buildStepIndicator(),
+                  ],
                 ],
               ),
 
@@ -62,14 +69,18 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                   color: AppColors.chipBg,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.person, color: AppColors.primary, size: 28),
+                child: Icon(
+                  _isSignInMode ? Icons.lock_outline : Icons.person,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
               ),
 
               const SizedBox(height: 16),
 
-              // Title
+              // Title & Subtitle
               Text(
-                _l10n.yourFarmerProfile,
+                _isSignInMode ? _l10n.signIn : _l10n.accountDetails,
                 style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
@@ -78,7 +89,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                _l10n.profileSubtitle,
+                _isSignInMode
+                    ? 'Welcome back! Sign in to access your farm dashboard.'
+                    : _l10n.profileSubtitle,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -94,17 +107,18 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Farmer Name
-                      _buildLabel(_l10n.farmerName),
-                      const SizedBox(height: 8),
-                      _buildTextField(
-                        controller: _nameController,
-                        hint: _l10n.farmerNameHint,
-                        icon: Icons.person_outline,
-                        keyboardType: TextInputType.name,
-                      ),
-
-                      const SizedBox(height: 20),
+                      if (!_isSignInMode) ...[
+                        // Farmer Name
+                        _buildLabel(_l10n.farmerName),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _nameController,
+                          hint: _l10n.farmerNameHint,
+                          icon: Icons.person_outline,
+                          keyboardType: TextInputType.name,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
 
                       // Phone Number (10 digits only)
                       _buildLabel(_l10n.phoneNumber),
@@ -122,39 +136,82 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Village
-                      _buildLabel(_l10n.village),
+                      // Password Field
+                      _buildLabel(_l10n.password),
                       const SizedBox(height: 8),
-                      _buildTextField(
-                        controller: _villageController,
-                        hint: _l10n.villageHint,
-                        icon: Icons.home_outlined,
-                        keyboardType: TextInputType.text,
+                      _buildPasswordField(),
+
+                      if (!_isSignInMode) ...[
+                        const SizedBox(height: 20),
+                        // Village
+                        _buildLabel(_l10n.village),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _villageController,
+                          hint: _l10n.villageHint,
+                          icon: Icons.home_outlined,
+                          keyboardType: TextInputType.text,
+                        ),
+                      ],
+
+                      const SizedBox(height: 24),
+
+                      // Toggle between Sign In & Create Account
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isSignInMode = !_isSignInMode;
+                            });
+                          },
+                          child: Text(
+                            _isSignInMode
+                                ? _l10n.dontHaveAccount
+                                : _l10n.alreadyHaveAccount,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
 
-              // Next button
+              // Action Button (Next: Add Farm or Sign In)
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _canProceed()
                       ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => AddFarmScreen(
-                                language: widget.language,
-                                farmerName: _nameController.text.trim(),
-                                phoneNumber: _phoneController.text.trim(),
-                                village: _villageController.text.trim(),
+                          if (_isSignInMode) {
+                            // Direct sign in to Dashboard
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => DashboardScreen(
+                                  language: widget.language,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            // Proceed to Step 2: Add Farm
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => AddFarmScreen(
+                                  language: widget.language,
+                                  farmerName: _nameController.text.trim(),
+                                  phoneNumber: _phoneController.text.trim(),
+                                  village: _villageController.text.trim(),
+                                ),
+                              ),
+                            );
+                          }
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -169,14 +226,17 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _l10n.nextAddFarm,
+                        _isSignInMode ? _l10n.signIn : _l10n.nextAddFarm,
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 18),
+                      Icon(
+                        _isSignInMode ? Icons.login : Icons.arrow_forward,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -191,8 +251,13 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   }
 
   bool _canProceed() {
+    if (_isSignInMode) {
+      return _phoneController.text.trim().length == 10 &&
+          _passwordController.text.trim().isNotEmpty;
+    }
     return _nameController.text.trim().isNotEmpty &&
-        _phoneController.text.trim().length == 10;
+        _phoneController.text.trim().length == 10 &&
+        _passwordController.text.trim().isNotEmpty;
   }
 
   Widget _buildStepIndicator() {
@@ -243,10 +308,39 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     );
   }
 
+  Widget _buildPasswordField() {
+    return TextField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        hintText: _l10n.passwordHint,
+        prefixIcon: const Icon(
+          Icons.lock_outline,
+          color: AppColors.textSecondary,
+          size: 20,
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            color: AppColors.textSecondary,
+            size: 20,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
     _villageController.dispose();
     super.dispose();
   }
