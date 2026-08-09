@@ -2,10 +2,34 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.database import get_database
-from app.models.user import UserRegisterRequest, UserResponse, UserUpdateRequest
+from app.models.user import UserRegisterRequest, UserLoginRequest, UserResponse, UserUpdateRequest
 from app.services.user_service import user_service
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
+
+
+@router.post("/login", response_model=UserResponse)
+async def login_user(
+    login_data: UserLoginRequest,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    """
+    Authenticate user with phone_number and password.
+    """
+    user, status = await user_service.login_user(
+        db, login_data.phone_number, login_data.password
+    )
+    if status == "ACCOUNT_NOT_FOUND":
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this phone number. Please register first.",
+        )
+    elif status == "INVALID_PASSWORD":
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect password. Please try again.",
+        )
+    return user
 
 
 @router.post("/register", response_model=UserResponse)

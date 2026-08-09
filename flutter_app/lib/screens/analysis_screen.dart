@@ -14,6 +14,7 @@ class AnalysisScreen extends StatefulWidget {
   final String language;
   final String farmerName;
   final String phoneNumber;
+  final String password;
   final String village;
   final String state;
   final String district;
@@ -30,6 +31,7 @@ class AnalysisScreen extends StatefulWidget {
     required this.language,
     required this.farmerName,
     required this.phoneNumber,
+    this.password = '123456',
     required this.village,
     required this.state,
     required this.district,
@@ -94,6 +96,7 @@ class _AnalysisScreenState extends State<AnalysisScreen>
     try {
       await ApiService.registerUser(
         phoneNumber: widget.phoneNumber,
+        password: widget.password,
         farmerName: widget.farmerName,
         village: widget.village,
         language: widget.language,

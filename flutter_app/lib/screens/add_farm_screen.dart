@@ -14,6 +14,7 @@ class AddFarmScreen extends StatefulWidget {
   final String language;
   final String farmerName;
   final String phoneNumber;
+  final String password;
   final String village;
 
   const AddFarmScreen({
@@ -21,6 +22,7 @@ class AddFarmScreen extends StatefulWidget {
     required this.language,
     required this.farmerName,
     required this.phoneNumber,
+    this.password = '123456',
     required this.village,
   });
 
@@ -321,6 +323,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                                 language: widget.language,
                                 farmerName: widget.farmerName,
                                 phoneNumber: widget.phoneNumber,
+                                password: widget.password,
                                 village: widget.village,
                                 state: _selectedState!,
                                 district: _selectedDistrict!,

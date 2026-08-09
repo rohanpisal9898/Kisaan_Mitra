@@ -6,6 +6,7 @@ from typing import Optional, List
 class UserRegisterRequest(BaseModel):
     """Request model for user registration (Step 1 + Step 2 combined)."""
     phone_number: str = Field(..., description="User's phone number (unique identifier)")
+    password: str = Field("123456", description="User password for account protection")
     farmer_name: str = Field(..., description="Farmer's name")
     village: str = Field("", description="Village name")
     language: str = Field("en", description="Preferred language: en, hi, mr")
@@ -22,6 +23,12 @@ class UserRegisterRequest(BaseModel):
     farm_area_unit: str = Field("acres", description="Unit: acres or hectares")
     sowing_date: date = Field(..., description="Date when crop was sown")
     farm_location: str = Field("", description="Farm location / landmark description")
+
+
+class UserLoginRequest(BaseModel):
+    """Request model for user login/authentication."""
+    phone_number: str = Field(..., description="User phone number")
+    password: str = Field(..., description="User password")
 
 
 class UserResponse(BaseModel):

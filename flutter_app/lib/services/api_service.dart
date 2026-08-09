@@ -69,10 +69,47 @@ class ApiService {
 
   // ─── User APIs ─────────────────────────────────────────
 
+  /// Log in an existing user with phone_number & password.
+  /// POST /api/v1/users/login
+  static Future<Map<String, dynamic>> loginUser({
+    required String phoneNumber,
+    required String password,
+  }) async {
+    final body = {
+      'phone_number': phoneNumber,
+      'password': password,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/v1/users/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else if (response.statusCode == 404) {
+      throw Exception('ACCOUNT_NOT_FOUND');
+    } else if (response.statusCode == 401) {
+      throw Exception('INVALID_PASSWORD');
+    } else {
+      try {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['detail'] ?? 'Login failed');
+      } catch (e) {
+        if (e is Exception && !e.toString().contains('FormatException')) {
+          rethrow;
+        }
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    }
+  }
+
   /// Register a new user (onboarding complete).
   /// POST /api/v1/users/register
   static Future<Map<String, dynamic>> registerUser({
     required String phoneNumber,
+    String password = '123456',
     required String farmerName,
     required String village,
     required String language,
@@ -88,6 +125,7 @@ class ApiService {
   }) async {
     final body = {
       'phone_number': phoneNumber,
+      'password': password,
       'farmer_name': farmerName,
       'village': village,
       'language': language,

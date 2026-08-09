@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../services/api_service.dart';
 import 'add_farm_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -26,11 +27,74 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
   bool _isSignInMode = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _l10n = AppLocalizations(widget.language);
+  }
+
+  Future<void> _handleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+
+    try {
+      final user = await ApiService.loginUser(
+        phoneNumber: phone,
+        password: password,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Welcome back, ${user['farmer_name'] ?? 'Farmer'}!'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => DashboardScreen(
+            language: widget.language,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
+      String errorMsg = 'Could not sign in. Please try again.';
+      final errStr = e.toString();
+
+      if (errStr.contains('ACCOUNT_NOT_FOUND')) {
+        errorMsg = 'No account found with this phone number. Please create an account first.';
+      } else if (errStr.contains('INVALID_PASSWORD')) {
+        errorMsg = 'Incorrect password. Please check your password and try again.';
+      } else if (errStr.contains('SocketException') || errStr.contains('Failed host lookup') || errStr.contains('ClientException')) {
+        errorMsg = 'Unable to connect to server. Please check your network or backend server.';
+      } else {
+        errorMsg = errStr.replaceAll('Exception: ', '');
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override
@@ -188,17 +252,10 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _canProceed()
+                  onPressed: _canProceed() && !_isLoading
                       ? () {
                           if (_isSignInMode) {
-                            // Direct sign in to Dashboard
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => DashboardScreen(
-                                  language: widget.language,
-                                ),
-                              ),
-                            );
+                            _handleSignIn();
                           } else {
                             // Proceed to Step 2: Add Farm
                             Navigator.of(context).push(
@@ -207,6 +264,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                                   language: widget.language,
                                   farmerName: _nameController.text.trim(),
                                   phoneNumber: _phoneController.text.trim(),
+                                  password: _passwordController.text.trim(),
                                   village: _villageController.text.trim(),
                                 ),
                               ),
@@ -222,23 +280,32 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _isSignInMode ? _l10n.signIn : _l10n.nextAddFarm,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _isSignInMode ? _l10n.signIn : _l10n.nextAddFarm,
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _isSignInMode ? Icons.login : Icons.arrow_forward,
+                              size: 18,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        _isSignInMode ? Icons.login : Icons.arrow_forward,
-                        size: 18,
-                      ),
-                    ],
-                  ),
                 ),
               ),
 

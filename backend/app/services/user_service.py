@@ -33,6 +33,7 @@ class UserService:
         # Prepare user document
         user_doc = {
             "phone_number": user_data.phone_number,
+            "password": user_data.password,
             "farmer_name": user_data.farmer_name,
             "village": user_data.village,
             "language": user_data.language,
@@ -61,6 +62,27 @@ class UserService:
         # Fetch the user document
         user = await db.users.find_one({"phone_number": user_data.phone_number})
         return self._to_user_response(user)
+
+    async def login_user(
+        self,
+        db: AsyncIOMotorDatabase,
+        phone_number: str,
+        password: str,
+    ) -> tuple[Optional[UserResponse], str]:
+        """
+        Authenticate user with phone_number and password.
+        Returns (UserResponse, status_code_string).
+        """
+        user = await db.users.find_one({"phone_number": phone_number})
+        if not user:
+            return None, "ACCOUNT_NOT_FOUND"
+
+        saved_password = user.get("password")
+        # If password is set on user document, verify match
+        if saved_password and saved_password != password:
+            return None, "INVALID_PASSWORD"
+
+        return self._to_user_response(user), "SUCCESS"
 
     async def get_user(
         self,
