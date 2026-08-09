@@ -97,6 +97,54 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     }
   }
 
+  Future<void> _handleNextAddFarm() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final phone = _phoneController.text.trim();
+
+    try {
+      final existingUser = await ApiService.getUser(phone);
+      if (existingUser != null) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'An account with this phone number already exists. Please sign in instead.',
+            ),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+    } catch (e) {
+      // If network error occurs during lookup, proceed and let final registration handle it
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddFarmScreen(
+          language: widget.language,
+          farmerName: _nameController.text.trim(),
+          phoneNumber: _phoneController.text.trim(),
+          password: _passwordController.text.trim(),
+          village: _villageController.text.trim(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,18 +305,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                           if (_isSignInMode) {
                             _handleSignIn();
                           } else {
-                            // Proceed to Step 2: Add Farm
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => AddFarmScreen(
-                                  language: widget.language,
-                                  farmerName: _nameController.text.trim(),
-                                  phoneNumber: _phoneController.text.trim(),
-                                  password: _passwordController.text.trim(),
-                                  village: _villageController.text.trim(),
-                                ),
-                              ),
-                            );
+                            _handleNextAddFarm();
                           }
                         }
                       : null,

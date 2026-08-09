@@ -47,6 +47,13 @@ async def register_user(
     try:
         user = await user_service.register_user(db, user_data)
         return user
+    except ValueError as ve:
+        if str(ve) == "ACCOUNT_ALREADY_EXISTS":
+            raise HTTPException(
+                status_code=400,
+                detail="An account with this phone number already exists. Please sign in instead.",
+            )
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 

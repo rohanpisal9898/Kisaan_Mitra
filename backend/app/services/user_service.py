@@ -30,6 +30,11 @@ class UserService:
                 lat = coords["latitude"]
                 lon = coords["longitude"]
 
+        # Check if user with phone number already exists
+        existing = await db.users.find_one({"phone_number": user_data.phone_number})
+        if existing:
+            raise ValueError("ACCOUNT_ALREADY_EXISTS")
+
         # Prepare user document
         user_doc = {
             "phone_number": user_data.phone_number,
@@ -46,18 +51,12 @@ class UserService:
             "farm_area_unit": user_data.farm_area_unit,
             "sowing_date": user_data.sowing_date.isoformat(),
             "farm_location": user_data.farm_location,
+            "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
         }
 
-        # Upsert user (update if exists, insert if new)
-        await db.users.update_one(
-            {"phone_number": user_data.phone_number},
-            {
-                "$set": user_doc,
-                "$setOnInsert": {"created_at": datetime.utcnow()},
-            },
-            upsert=True,
-        )
+        # Insert new user document
+        await db.users.insert_one(user_doc)
 
         # Fetch the user document
         user = await db.users.find_one({"phone_number": user_data.phone_number})
