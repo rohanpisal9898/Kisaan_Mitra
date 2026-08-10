@@ -51,11 +51,20 @@ async def health():
     return {"status": "healthy"}
 
 
+import os
+from fastapi.staticfiles import StaticFiles
+
+# Mount static uploads directory for serving scan photos
+uploads_dir = os.path.join(os.getcwd(), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
 # Import and include routers
-from app.routers import locations, users
+from app.routers import locations, users, pest_detection
 
 app.include_router(locations.router)
 app.include_router(users.router)
+app.include_router(pest_detection.router)
 
 
 if __name__ == "__main__":

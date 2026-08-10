@@ -27,6 +27,7 @@ async def connect_to_mongo():
         [("State", 1), ("District", 1)], unique=True
     )
     await database.predictions.create_index("expires_at", expireAfterSeconds=0)
+    await database.pest_scans.create_index("scan_id", unique=True)
     print("[OK] Connected to MongoDB Atlas")
 
 

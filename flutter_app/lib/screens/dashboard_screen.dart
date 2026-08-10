@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import 'profile_screen.dart';
+import 'pest_detection_screen.dart';
 
 /// Dashboard screen - main app screen after onboarding.
 /// Placeholder for now, will be expanded with weather, yield, tasks, etc.
@@ -30,9 +31,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.bgLight,
-      body: _currentIndex == 3
-          ? const ProfileScreen()
-          : SafeArea(
+      body: _currentIndex == 1
+          ? const PestDetectionScreen()
+          : _currentIndex == 3
+              ? const ProfileScreen()
+              : SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
@@ -193,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
 
-      // Bottom navigation
+      // Restore original KISAAN MITRA bottom navigation
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.bgCard,

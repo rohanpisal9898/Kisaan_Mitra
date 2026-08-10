@@ -188,6 +188,40 @@ class ApiService {
     }
   }
 
+  // ─── Pest Detection APIs ─────────────────────────────────
+
+  /// Upload pest scan image (camera or gallery) to FastAPI backend & MongoDB.
+  /// POST /api/v1/pest-detection/scan
+  static Future<Map<String, dynamic>> uploadPestImage({
+    required dynamic imageFile, // XFile from image_picker
+    required String source,     // "camera" or "gallery"
+    String? userId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/v1/pest-detection/scan');
+    final bytes = await imageFile.readAsBytes();
+    final base64Image = base64Encode(bytes);
+    final filename = imageFile.name ?? 'pest_scan.jpg';
+
+    final body = {
+      'image_base64': base64Image,
+      'source': source,
+      'user_id': userId ?? 'guest',
+      'filename': filename,
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to upload scan image: ${response.body}');
+    }
+  }
+
   // ─── Health Check ──────────────────────────────────────
 
   /// Check if backend is running.

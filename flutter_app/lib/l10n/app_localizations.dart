@@ -100,6 +100,28 @@ class AppLocalizations {
       'nav_wallet': 'Wallet',
       'nav_profile': 'Profile',
       'welcome': 'Welcome back,',
+
+      // Pest Detection Page 1
+      'pest_detection_title': 'Pest Detection',
+      'pest_hero_title': 'Something wrong\nwith your crop?',
+      'pest_hero_subtitle': 'Take a photo of the affected plant and we\'ll help identify the possible pest or problem.',
+      'take_photo': 'Take Photo',
+      'use_camera': 'Use camera',
+      'choose_photo': 'Choose Photo',
+      'from_gallery': 'From gallery',
+      'quick_easy_private': 'Quick • Easy • Private',
+      'not_sure_what_to_scan': 'Not sure what to scan?',
+      'look_for_signs': 'Look for signs like these',
+      'symptom_holes': 'Holes /\neaten leaves',
+      'symptom_insects': 'Insects',
+      'symptom_spots': 'Spots /\ndiscoloration',
+      'symptom_curling': 'Curling /\ndistortion',
+      'symptom_webbing': 'Webbing',
+      'symptom_sudden_damage': 'Sudden\ndamage',
+      'nav_my_crop': 'My Crop',
+      'nav_scan': 'Scan',
+      'nav_advisory': 'Advisory',
+      'nav_more': 'More',
     },
 
     'hi': {
@@ -185,6 +207,28 @@ class AppLocalizations {
       'nav_wallet': 'वॉलेट',
       'nav_profile': 'प्रोफाइल',
       'welcome': 'स्वागत है,',
+
+      // Pest Detection Page 1
+      'pest_detection_title': 'कीट पहचान',
+      'pest_hero_title': 'आपकी फसल में\nकुछ समस्या है?',
+      'pest_hero_subtitle': 'प्रभावित पौधे की फोटो लें और हम संभावित कीट या समस्या की पहचान करने में मदद करेंगे।',
+      'take_photo': 'फोटो लें',
+      'use_camera': 'कैमरा उपयोग करें',
+      'choose_photo': 'फोटो चुनें',
+      'from_gallery': 'गैलरी से',
+      'quick_easy_private': 'त्वरित • आसान • निजी',
+      'not_sure_what_to_scan': 'क्या स्कैन करें समझ नहीं आ रहा?',
+      'look_for_signs': 'इस तरह के लक्षण देखें',
+      'symptom_holes': 'छेद /\nखाई हुई पत्तियाँ',
+      'symptom_insects': 'कीड़े',
+      'symptom_spots': 'धब्बे /\nरंग बदलना',
+      'symptom_curling': 'मुड़ना /\nविकृति',
+      'symptom_webbing': 'जाला (वेबिंग)',
+      'symptom_sudden_damage': 'अचानक\nनुकसान',
+      'nav_my_crop': 'मेरी फसल',
+      'nav_scan': 'स्कैन',
+      'nav_advisory': 'सलाह',
+      'nav_more': 'अधिक',
     },
 
     'mr': {
@@ -270,6 +314,28 @@ class AppLocalizations {
       'nav_wallet': 'वॉलेट',
       'nav_profile': 'प्रोफाइल',
       'welcome': 'स्वागत आहे,',
+
+      // Pest Detection Page 1
+      'pest_detection_title': 'कीड ओळख',
+      'pest_hero_title': 'तुमच्या पिकात\nकाही समस्या आहे का?',
+      'pest_hero_subtitle': 'बाधित रोपाचा फोटो घ्या आणि आम्ही संभाव्य कीड किंवा समस्येची ओळख पटवण्यास मदत करू.',
+      'take_photo': 'फोटो घ्या',
+      'use_camera': 'कॅमेरा वापरा',
+      'choose_photo': 'फोटो निवडा',
+      'from_gallery': 'गॅलरीमधून',
+      'quick_easy_private': 'जलद • सोपे • खाजगी',
+      'not_sure_what_to_scan': 'काय स्कॅन करावे हे समजत नाही?',
+      'look_for_signs': 'यासारखी लक्षणे शोधा',
+      'symptom_holes': 'छिद्रे /\nखाल्लेली पाने',
+      'symptom_insects': 'कीटक',
+      'symptom_spots': 'डाग /\nरंग बदलणे',
+      'symptom_curling': 'वळणे /\nविकृती',
+      'symptom_webbing': 'जाळे (वेबिंग)',
+      'symptom_sudden_damage': 'अचानक\nनुकसान',
+      'nav_my_crop': 'माझे पीक',
+      'nav_scan': 'स्कॅन',
+      'nav_advisory': 'सल्ला',
+      'nav_more': 'अधिक',
     },
   };
 
@@ -345,6 +411,28 @@ class AppLocalizations {
   String get nameLabel => get('name_label');
   String get farmerRole => get('farmer_role');
   String get notAvailable => get('not_available');
+
+  // Pest Detection getters
+  String get pestDetectionTitle => get('pest_detection_title');
+  String get pestHeroTitle => get('pest_hero_title');
+  String get pestHeroSubtitle => get('pest_hero_subtitle');
+  String get takePhoto => get('take_photo');
+  String get useCamera => get('use_camera');
+  String get choosePhoto => get('choose_photo');
+  String get fromGallery => get('from_gallery');
+  String get quickEasyPrivate => get('quick_easy_private');
+  String get notSureWhatToScan => get('not_sure_what_to_scan');
+  String get lookForSigns => get('look_for_signs');
+  String get symptomHoles => get('symptom_holes');
+  String get symptomInsects => get('symptom_insects');
+  String get symptomSpots => get('symptom_spots');
+  String get symptomCurling => get('symptom_curling');
+  String get symptomWebbing => get('symptom_webbing');
+  String get symptomSuddenDamage => get('symptom_sudden_damage');
+  String get navMyCrop => get('nav_my_crop');
+  String get navScan => get('nav_scan');
+  String get navAdvisory => get('nav_advisory');
+  String get navMore => get('nav_more');
 }
 
 class _AppLocalizationsDelegate
