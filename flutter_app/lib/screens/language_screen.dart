@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../main.dart';
 import 'farmer_profile_screen.dart';
 
 /// Language selection screen.
@@ -190,6 +191,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     await prefs.setString('language', _selectedLanguage);
 
                     if (!mounted) return;
+                    KisaanMitraApp.setLocale(context, Locale(_selectedLanguage));
+
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => FarmerProfileScreen(

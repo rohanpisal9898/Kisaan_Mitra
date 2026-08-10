@@ -169,6 +169,25 @@ class ApiService {
     }
   }
 
+  /// Update user details.
+  /// PUT /api/v1/users/{phone_number}
+  static Future<Map<String, dynamic>?> updateUser(
+    String phoneNumber,
+    Map<String, dynamic> updateData,
+  ) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/v1/users/${Uri.encodeComponent(phoneNumber)}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(updateData),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to update user: ${response.body}');
+    }
+  }
+
   // ─── Health Check ──────────────────────────────────────
 
   /// Check if backend is running.

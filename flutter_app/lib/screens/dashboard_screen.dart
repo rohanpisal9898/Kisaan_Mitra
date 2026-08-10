@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import 'profile_screen.dart';
 
 /// Dashboard screen - main app screen after onboarding.
 /// Placeholder for now, will be expanded with weather, yield, tasks, etc.
@@ -26,9 +27,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.bgLight,
-      body: SafeArea(
+      body: _currentIndex == 3
+          ? const ProfileScreen()
+          : SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(

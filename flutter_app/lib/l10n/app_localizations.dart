@@ -1,4 +1,4 @@
-library;
+import 'package:flutter/material.dart';
 
 /// Localization support for Kisaan Mitra.
 /// 3 languages: English (en), Hindi (hi), Marathi (mr).
@@ -7,6 +7,14 @@ class AppLocalizations {
   final String languageCode;
 
   AppLocalizations(this.languageCode);
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
+        AppLocalizations(Localizations.localeOf(context).languageCode);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
@@ -71,6 +79,15 @@ class AppLocalizations {
       'reading_soil': 'Reading Soil Information',
       'predicting_yield': 'Predicting Expected Yield',
 
+      // Profile Screen
+      'profile_title': 'Profile',
+      'farmer_details': 'Farmer Details',
+      'farm_information': 'Farm Information',
+      'language_card': 'Language',
+      'name_label': 'Name',
+      'farmer_role': 'Farmer',
+      'not_available': 'Not available',
+
       // Common
       'loading': 'Loading...',
       'error': 'Error',
@@ -82,6 +99,7 @@ class AppLocalizations {
       'nav_pest': 'Pest',
       'nav_wallet': 'Wallet',
       'nav_profile': 'Profile',
+      'welcome': 'Welcome back,',
     },
 
     'hi': {
@@ -146,6 +164,15 @@ class AppLocalizations {
       'reading_soil': 'मिट्टी की जानकारी पढ़ रहा है',
       'predicting_yield': 'अपेक्षित उपज का अनुमान',
 
+      // Profile Screen
+      'profile_title': 'प्रोफाइल',
+      'farmer_details': 'किसान विवरण',
+      'farm_information': 'खेत की जानकारी',
+      'language_card': 'भाषा',
+      'name_label': 'नाम',
+      'farmer_role': 'किसान',
+      'not_available': 'उपलब्ध नहीं',
+
       // Common
       'loading': 'लोड हो रहा है...',
       'error': 'त्रुटि',
@@ -157,6 +184,7 @@ class AppLocalizations {
       'nav_pest': 'कीट',
       'nav_wallet': 'वॉलेट',
       'nav_profile': 'प्रोफाइल',
+      'welcome': 'स्वागत है,',
     },
 
     'mr': {
@@ -221,6 +249,15 @@ class AppLocalizations {
       'reading_soil': 'माती माहिती वाचत आहे',
       'predicting_yield': 'अपेक्षित उत्पादन अंदाज',
 
+      // Profile Screen
+      'profile_title': 'प्रोफाइल',
+      'farmer_details': 'शेतकरी तपशील',
+      'farm_information': 'शेताची माहिती',
+      'language_card': 'भाषा',
+      'name_label': 'नाव',
+      'farmer_role': 'शेतकरी',
+      'not_available': 'उपलब्ध नाही',
+
       // Common
       'loading': 'लोड होत आहे...',
       'error': 'त्रुटी',
@@ -232,6 +269,7 @@ class AppLocalizations {
       'nav_pest': 'कीड',
       'nav_wallet': 'वॉलेट',
       'nav_profile': 'प्रोफाइल',
+      'welcome': 'स्वागत आहे,',
     },
   };
 
@@ -300,4 +338,28 @@ class AppLocalizations {
   String get createAccount => get('create_account');
   String get alreadyHaveAccount => get('already_have_account');
   String get dontHaveAccount => get('dont_have_account');
+  String get profileTitle => get('profile_title');
+  String get farmerDetails => get('farmer_details');
+  String get farmInformation => get('farm_information');
+  String get languageCard => get('language_card');
+  String get nameLabel => get('name_label');
+  String get farmerRole => get('farmer_role');
+  String get notAvailable => get('not_available');
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) =>
+      ['en', 'hi', 'mr'].contains(locale.languageCode);
+
+  @override
+  Future<AppLocalizations> load(Locale locale) async {
+    return AppLocalizations(locale.languageCode);
+  }
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
 }

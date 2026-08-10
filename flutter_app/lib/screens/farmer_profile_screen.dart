@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
+import '../main.dart';
 import 'add_farm_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -48,6 +50,15 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
         phoneNumber: phone,
         password: password,
       );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_phone', phone);
+      if (user['language'] != null && user['language'].toString().isNotEmpty) {
+        await prefs.setString('language', user['language']);
+        if (mounted) {
+          KisaanMitraApp.setLocale(context, Locale(user['language']));
+        }
+      }
 
       if (!mounted) return;
       setState(() {

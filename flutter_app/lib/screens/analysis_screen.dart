@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
@@ -113,6 +114,14 @@ class _AnalysisScreenState extends State<AnalysisScreen>
     } catch (e) {
       // Registration failure is non-blocking for the UI
       debugPrint('Registration error (non-blocking): $e');
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_phone', widget.phoneNumber);
+      await prefs.setString('language', widget.language);
+    } catch (e) {
+      debugPrint('Error saving prefs: $e');
     }
 
     if (!mounted) return;
