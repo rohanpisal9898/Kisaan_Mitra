@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from typing import Dict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.database import get_database
 from app.models.user import UserRegisterRequest, UserLoginRequest, UserResponse, UserUpdateRequest
 from app.services.user_service import user_service
+from app.services.wallet_service import wallet_service
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 
@@ -11,10 +12,12 @@ router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 @router.post("/login", response_model=UserResponse)
 async def login_user(
     login_data: UserLoginRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """
     Authenticate user with phone_number and password.
+    Schedules an asynchronous background task to refresh Gemini market insight into MongoDB.
     """
     user, status = await user_service.login_user(
         db, login_data.phone_number, login_data.password
@@ -29,23 +32,29 @@ async def login_user(
             status_code=401,
             detail="Incorrect password. Please try again.",
         )
+
+    # Asynchronous login-triggered Gemini market insight refresh
+    background_tasks.add_task(
+        wallet_service.refresh_gemini_market_insight_async, db, user.phone_number
+    )
     return user
 
 
 @router.post("/register", response_model=UserResponse)
 async def register_user(
     user_data: UserRegisterRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """
     Register a new user or update existing user.
-
-    Called after the farmer completes onboarding (Step 1 + Step 2).
-
-    **Phone number is the unique identifier.**
+    Schedules an asynchronous background task to refresh Gemini market insight into MongoDB.
     """
     try:
         user = await user_service.register_user(db, user_data)
+        background_tasks.add_task(
+            wallet_service.refresh_gemini_market_insight_async, db, user.phone_number
+        )
         return user
     except ValueError as ve:
         if str(ve) == "ACCOUNT_ALREADY_EXISTS":

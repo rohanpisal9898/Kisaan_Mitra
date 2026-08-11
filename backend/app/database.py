@@ -28,7 +28,20 @@ async def connect_to_mongo():
     )
     await database.predictions.create_index("expires_at", expireAfterSeconds=0)
     await database.pest_scans.create_index("scan_id", unique=True)
-    print("[OK] Connected to MongoDB Atlas")
+
+    # Production Financial Shield Indexes
+    await database.crop_costs.create_index(
+        [("crop", 1), ("state", 1), ("season", 1)], unique=True
+    )
+    await database.mandi_prices.create_index(
+        [("crop", 1), ("state", 1), ("season", 1)], unique=True
+    )
+    await database.msp_prices.create_index(
+        [("crop", 1), ("season", 1), ("marketing_year", 1)], unique=True
+    )
+    await database.user_expenses.create_index("phone_number", unique=True)
+    await database.market_insights.create_index("phone_number", unique=True)
+    print("[OK] Connected to MongoDB Atlas & Verified Indexes")
 
 
 async def close_mongo_connection():
