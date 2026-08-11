@@ -1,0 +1,946 @@
+State,Crop,Season,Floor_Price,Modal_Price,Ceiling_Price,Unit
+ANDAMAN AND NICOBAR ISLAND,Castor seed,Kharif,5705,6155,6816,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Castor seed,Rabi,5462,5893,6526,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Castor seed,Zaid,6071,6550,7254,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Groundnut,Kharif,5966,6429,7104,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Groundnut,Rabi,6555,7064,7805,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Groundnut,Zaid,7585,8174,9032,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Linseed,Kharif,5407,5821,6417,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Linseed,Rabi,5099,5489,6051,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Linseed,Zaid,5762,6203,6838,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Niger seed,Kharif,8044,8672,9591,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Niger seed,Rabi,7958,8580,9489,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Niger seed,Zaid,9367,10099,11169,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Rapeseed &Mustard,Kharif,5443,5857,6451,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Rapeseed &Mustard,Rabi,5423,5835,6427,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Rapeseed &Mustard,Zaid,5693,6126,6747,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Safflower,Kharif,5574,6001,6616,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Safflower,Rabi,5721,6159,6790,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Safflower,Zaid,6470,6965,7678,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sesamum,Kharif,8588,9285,10329,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sesamum,Rabi,8951,9677,10765,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sesamum,Zaid,10013,10825,12042,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Soyabean,Kharif,4724,5086,5607,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Soyabean,Rabi,4852,5223,5758,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Soyabean,Zaid,5337,5745,6333,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sunflower,Kharif,7069,7615,8406,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sunflower,Rabi,6782,7306,8065,Rs/Quintal
+ANDAMAN AND NICOBAR ISLAND,Sunflower,Zaid,7708,8303,9166,Rs/Quintal
+ANDHRA PRADESH,Castor seed,Kharif,5465,5896,6529,Rs/Quintal
+ANDHRA PRADESH,Castor seed,Rabi,5623,6066,6718,Rs/Quintal
+ANDHRA PRADESH,Castor seed,Zaid,6450,6958,7705,Rs/Quintal
+ANDHRA PRADESH,Groundnut,Kharif,6541,7049,7789,Rs/Quintal
+ANDHRA PRADESH,Groundnut,Rabi,6827,7357,8129,Rs/Quintal
+ANDHRA PRADESH,Groundnut,Zaid,7761,8364,9242,Rs/Quintal
+ANDHRA PRADESH,Linseed,Kharif,5334,5742,6330,Rs/Quintal
+ANDHRA PRADESH,Linseed,Rabi,5534,5957,6567,Rs/Quintal
+ANDHRA PRADESH,Linseed,Zaid,6292,6773,7467,Rs/Quintal
+ANDHRA PRADESH,Niger seed,Kharif,8006,8631,9545,Rs/Quintal
+ANDHRA PRADESH,Niger seed,Rabi,8515,9180,10153,Rs/Quintal
+ANDHRA PRADESH,Niger seed,Zaid,9979,10758,11898,Rs/Quintal
+ANDHRA PRADESH,Rapeseed &Mustard,Kharif,5559,5982,6589,Rs/Quintal
+ANDHRA PRADESH,Rapeseed &Mustard,Rabi,5846,6291,6929,Rs/Quintal
+ANDHRA PRADESH,Rapeseed &Mustard,Zaid,6091,6554,7219,Rs/Quintal
+ANDHRA PRADESH,Safflower,Kharif,5924,6377,7030,Rs/Quintal
+ANDHRA PRADESH,Safflower,Rabi,5631,6062,6683,Rs/Quintal
+ANDHRA PRADESH,Safflower,Zaid,6890,7417,8177,Rs/Quintal
+ANDHRA PRADESH,Sesamum,Kharif,9114,9854,10962,Rs/Quintal
+ANDHRA PRADESH,Sesamum,Rabi,9094,9832,10938,Rs/Quintal
+ANDHRA PRADESH,Sesamum,Zaid,10135,10957,12189,Rs/Quintal
+ANDHRA PRADESH,Soyabean,Kharif,4566,4915,5418,Rs/Quintal
+ANDHRA PRADESH,Soyabean,Rabi,4989,5371,5921,Rs/Quintal
+ANDHRA PRADESH,Soyabean,Zaid,5380,5792,6385,Rs/Quintal
+ANDHRA PRADESH,Sunflower,Kharif,6932,7467,8243,Rs/Quintal
+ANDHRA PRADESH,Sunflower,Rabi,7029,7572,8359,Rs/Quintal
+ANDHRA PRADESH,Sunflower,Zaid,7782,8383,9254,Rs/Quintal
+ARUNACHAL PRADESH,Castor seed,Kharif,5595,6036,6684,Rs/Quintal
+ARUNACHAL PRADESH,Castor seed,Rabi,5577,6017,6663,Rs/Quintal
+ARUNACHAL PRADESH,Castor seed,Zaid,6681,7208,7982,Rs/Quintal
+ARUNACHAL PRADESH,Groundnut,Kharif,6275,6762,7472,Rs/Quintal
+ARUNACHAL PRADESH,Groundnut,Rabi,6522,7029,7767,Rs/Quintal
+ARUNACHAL PRADESH,Groundnut,Zaid,7363,7935,8768,Rs/Quintal
+ARUNACHAL PRADESH,Linseed,Kharif,5023,5407,5961,Rs/Quintal
+ARUNACHAL PRADESH,Linseed,Rabi,5345,5754,6343,Rs/Quintal
+ARUNACHAL PRADESH,Linseed,Zaid,5840,6287,6931,Rs/Quintal
+ARUNACHAL PRADESH,Niger seed,Kharif,8012,8638,9553,Rs/Quintal
+ARUNACHAL PRADESH,Niger seed,Rabi,7828,8440,9334,Rs/Quintal
+ARUNACHAL PRADESH,Niger seed,Zaid,9086,9796,10834,Rs/Quintal
+ARUNACHAL PRADESH,Rapeseed &Mustard,Kharif,5441,5855,6449,Rs/Quintal
+ARUNACHAL PRADESH,Rapeseed &Mustard,Rabi,5102,5490,6047,Rs/Quintal
+ARUNACHAL PRADESH,Rapeseed &Mustard,Zaid,5746,6183,6810,Rs/Quintal
+ARUNACHAL PRADESH,Safflower,Kharif,5330,5738,6326,Rs/Quintal
+ARUNACHAL PRADESH,Safflower,Rabi,5871,6320,6967,Rs/Quintal
+ARUNACHAL PRADESH,Safflower,Zaid,5997,6456,7117,Rs/Quintal
+ARUNACHAL PRADESH,Sesamum,Kharif,8624,9324,10372,Rs/Quintal
+ARUNACHAL PRADESH,Sesamum,Rabi,8330,9006,10019,Rs/Quintal
+ARUNACHAL PRADESH,Sesamum,Zaid,9367,10127,11266,Rs/Quintal
+ARUNACHAL PRADESH,Soyabean,Kharif,4606,4959,5467,Rs/Quintal
+ARUNACHAL PRADESH,Soyabean,Rabi,4506,4851,5348,Rs/Quintal
+ARUNACHAL PRADESH,Soyabean,Zaid,5375,5786,6379,Rs/Quintal
+ARUNACHAL PRADESH,Sunflower,Kharif,7103,7651,8446,Rs/Quintal
+ARUNACHAL PRADESH,Sunflower,Rabi,7160,7713,8515,Rs/Quintal
+ARUNACHAL PRADESH,Sunflower,Zaid,8051,8672,9573,Rs/Quintal
+ASSAM,Castor seed,Kharif,5249,5663,6271,Rs/Quintal
+ASSAM,Castor seed,Rabi,5713,6163,6825,Rs/Quintal
+ASSAM,Castor seed,Zaid,6198,6687,7405,Rs/Quintal
+ASSAM,Groundnut,Kharif,6172,6651,7349,Rs/Quintal
+ASSAM,Groundnut,Rabi,6517,7023,7760,Rs/Quintal
+ASSAM,Groundnut,Zaid,6801,7329,8098,Rs/Quintal
+ASSAM,Linseed,Kharif,5163,5558,6127,Rs/Quintal
+ASSAM,Linseed,Rabi,5257,5659,6239,Rs/Quintal
+ASSAM,Linseed,Zaid,5689,6124,6751,Rs/Quintal
+ASSAM,Niger seed,Kharif,8224,8866,9805,Rs/Quintal
+ASSAM,Niger seed,Rabi,7805,8415,9306,Rs/Quintal
+ASSAM,Niger seed,Zaid,9156,9871,10917,Rs/Quintal
+ASSAM,Rapeseed &Mustard,Kharif,5265,5665,6239,Rs/Quintal
+ASSAM,Rapeseed &Mustard,Rabi,5126,5516,6075,Rs/Quintal
+ASSAM,Rapeseed &Mustard,Zaid,5709,6143,6766,Rs/Quintal
+ASSAM,Safflower,Kharif,5641,6073,6695,Rs/Quintal
+ASSAM,Safflower,Rabi,5827,6273,6915,Rs/Quintal
+ASSAM,Safflower,Zaid,6319,6803,7500,Rs/Quintal
+ASSAM,Sesamum,Kharif,8389,9070,10090,Rs/Quintal
+ASSAM,Sesamum,Rabi,8482,9170,10201,Rs/Quintal
+ASSAM,Sesamum,Zaid,9944,10751,11960,Rs/Quintal
+ASSAM,Soyabean,Kharif,4596,4948,5455,Rs/Quintal
+ASSAM,Soyabean,Rabi,4731,5093,5615,Rs/Quintal
+ASSAM,Soyabean,Zaid,5102,5492,6054,Rs/Quintal
+ASSAM,Sunflower,Kharif,6753,7274,8030,Rs/Quintal
+ASSAM,Sunflower,Rabi,7001,7542,8326,Rs/Quintal
+ASSAM,Sunflower,Zaid,7304,7868,8686,Rs/Quintal
+BIHAR,Castor seed,Kharif,5242,5655,6262,Rs/Quintal
+BIHAR,Castor seed,Rabi,5871,6334,7014,Rs/Quintal
+BIHAR,Castor seed,Zaid,6340,6840,7575,Rs/Quintal
+BIHAR,Groundnut,Kharif,6189,6670,7370,Rs/Quintal
+BIHAR,Groundnut,Rabi,6211,6693,7395,Rs/Quintal
+BIHAR,Groundnut,Zaid,6968,7509,8297,Rs/Quintal
+BIHAR,Linseed,Kharif,5020,5404,5957,Rs/Quintal
+BIHAR,Linseed,Rabi,5384,5796,6390,Rs/Quintal
+BIHAR,Linseed,Zaid,6218,6694,7380,Rs/Quintal
+BIHAR,Niger seed,Kharif,8314,8963,9913,Rs/Quintal
+BIHAR,Niger seed,Rabi,8671,9348,10338,Rs/Quintal
+BIHAR,Niger seed,Zaid,9310,10037,11100,Rs/Quintal
+BIHAR,Rapeseed &Mustard,Kharif,5017,5399,5946,Rs/Quintal
+BIHAR,Rapeseed &Mustard,Rabi,5423,5836,6428,Rs/Quintal
+BIHAR,Rapeseed &Mustard,Zaid,6213,6685,7363,Rs/Quintal
+BIHAR,Safflower,Kharif,5668,6102,6727,Rs/Quintal
+BIHAR,Safflower,Rabi,5457,5875,6477,Rs/Quintal
+BIHAR,Safflower,Zaid,6113,6581,7255,Rs/Quintal
+BIHAR,Sesamum,Kharif,8174,8837,9831,Rs/Quintal
+BIHAR,Sesamum,Rabi,8661,9364,10417,Rs/Quintal
+BIHAR,Sesamum,Zaid,9685,10471,11648,Rs/Quintal
+BIHAR,Soyabean,Kharif,4701,5061,5579,Rs/Quintal
+BIHAR,Soyabean,Rabi,4852,5223,5758,Rs/Quintal
+BIHAR,Soyabean,Zaid,5026,5411,5965,Rs/Quintal
+BIHAR,Sunflower,Kharif,6739,7259,8013,Rs/Quintal
+BIHAR,Sunflower,Rabi,6544,7049,7782,Rs/Quintal
+BIHAR,Sunflower,Zaid,7490,8068,8907,Rs/Quintal
+CHANDIGARH,Castor seed,Kharif,5526,5962,6602,Rs/Quintal
+CHANDIGARH,Castor seed,Rabi,5904,6370,7054,Rs/Quintal
+CHANDIGARH,Castor seed,Zaid,6704,7232,8009,Rs/Quintal
+CHANDIGARH,Groundnut,Kharif,6568,7078,7821,Rs/Quintal
+CHANDIGARH,Groundnut,Rabi,6218,6701,7404,Rs/Quintal
+CHANDIGARH,Groundnut,Zaid,7562,8149,9004,Rs/Quintal
+CHANDIGARH,Linseed,Kharif,5279,5683,6265,Rs/Quintal
+CHANDIGARH,Linseed,Rabi,5028,5413,5967,Rs/Quintal
+CHANDIGARH,Linseed,Zaid,5914,6366,7018,Rs/Quintal
+CHANDIGARH,Niger seed,Kharif,8052,8681,9601,Rs/Quintal
+CHANDIGARH,Niger seed,Rabi,8016,8642,9558,Rs/Quintal
+CHANDIGARH,Niger seed,Zaid,8927,9624,10644,Rs/Quintal
+CHANDIGARH,Rapeseed &Mustard,Kharif,5378,5787,6374,Rs/Quintal
+CHANDIGARH,Rapeseed &Mustard,Rabi,5116,5505,6063,Rs/Quintal
+CHANDIGARH,Rapeseed &Mustard,Zaid,5813,6255,6889,Rs/Quintal
+CHANDIGARH,Safflower,Kharif,5622,6052,6672,Rs/Quintal
+CHANDIGARH,Safflower,Rabi,5540,5964,6575,Rs/Quintal
+CHANDIGARH,Safflower,Zaid,6465,6960,7673,Rs/Quintal
+CHANDIGARH,Sesamum,Kharif,8168,8831,9824,Rs/Quintal
+CHANDIGARH,Sesamum,Rabi,8823,9539,10612,Rs/Quintal
+CHANDIGARH,Sesamum,Zaid,9970,10779,11991,Rs/Quintal
+CHANDIGARH,Soyabean,Kharif,4723,5085,5606,Rs/Quintal
+CHANDIGARH,Soyabean,Rabi,4535,4882,5382,Rs/Quintal
+CHANDIGARH,Soyabean,Zaid,5364,5775,6366,Rs/Quintal
+CHANDIGARH,Sunflower,Kharif,7056,7601,8391,Rs/Quintal
+CHANDIGARH,Sunflower,Rabi,6892,7424,8196,Rs/Quintal
+CHANDIGARH,Sunflower,Zaid,7623,8211,9064,Rs/Quintal
+CHHATTISGARH,Castor seed,Kharif,5367,5790,6412,Rs/Quintal
+CHHATTISGARH,Castor seed,Rabi,5761,6215,6883,Rs/Quintal
+CHHATTISGARH,Castor seed,Zaid,6142,6626,7338,Rs/Quintal
+CHHATTISGARH,Groundnut,Kharif,6552,7061,7802,Rs/Quintal
+CHHATTISGARH,Groundnut,Rabi,6299,6788,7500,Rs/Quintal
+CHHATTISGARH,Groundnut,Zaid,7423,7999,8838,Rs/Quintal
+CHHATTISGARH,Linseed,Kharif,5383,5795,6388,Rs/Quintal
+CHHATTISGARH,Linseed,Rabi,5253,5655,6234,Rs/Quintal
+CHHATTISGARH,Linseed,Zaid,5941,6396,7051,Rs/Quintal
+CHHATTISGARH,Niger seed,Kharif,8092,8724,9648,Rs/Quintal
+CHHATTISGARH,Niger seed,Rabi,7812,8422,9314,Rs/Quintal
+CHHATTISGARH,Niger seed,Zaid,9734,10494,11606,Rs/Quintal
+CHHATTISGARH,Rapeseed &Mustard,Kharif,5498,5916,6516,Rs/Quintal
+CHHATTISGARH,Rapeseed &Mustard,Rabi,5365,5773,6358,Rs/Quintal
+CHHATTISGARH,Rapeseed &Mustard,Zaid,5979,6434,7087,Rs/Quintal
+CHHATTISGARH,Safflower,Kharif,5491,5911,6516,Rs/Quintal
+CHHATTISGARH,Safflower,Rabi,5556,5981,6594,Rs/Quintal
+CHHATTISGARH,Safflower,Zaid,6056,6519,7187,Rs/Quintal
+CHHATTISGARH,Sesamum,Kharif,8248,8917,9920,Rs/Quintal
+CHHATTISGARH,Sesamum,Rabi,8818,9534,10606,Rs/Quintal
+CHHATTISGARH,Sesamum,Zaid,10290,11125,12376,Rs/Quintal
+CHHATTISGARH,Soyabean,Kharif,4552,4900,5402,Rs/Quintal
+CHHATTISGARH,Soyabean,Rabi,4425,4764,5252,Rs/Quintal
+CHHATTISGARH,Soyabean,Zaid,5001,5384,5935,Rs/Quintal
+CHHATTISGARH,Sunflower,Kharif,6744,7265,8020,Rs/Quintal
+CHHATTISGARH,Sunflower,Rabi,7082,7629,8422,Rs/Quintal
+CHHATTISGARH,Sunflower,Zaid,7439,8013,8846,Rs/Quintal
+DADRA AND NAGAR HAVELI,Castor seed,Kharif,5722,6173,6836,Rs/Quintal
+DADRA AND NAGAR HAVELI,Castor seed,Rabi,5610,6052,6702,Rs/Quintal
+DADRA AND NAGAR HAVELI,Castor seed,Zaid,6082,6562,7267,Rs/Quintal
+DADRA AND NAGAR HAVELI,Groundnut,Kharif,6522,7029,7767,Rs/Quintal
+DADRA AND NAGAR HAVELI,Groundnut,Rabi,6705,7226,7984,Rs/Quintal
+DADRA AND NAGAR HAVELI,Groundnut,Zaid,6861,7394,8170,Rs/Quintal
+DADRA AND NAGAR HAVELI,Linseed,Kharif,5156,5551,6119,Rs/Quintal
+DADRA AND NAGAR HAVELI,Linseed,Rabi,5453,5870,6471,Rs/Quintal
+DADRA AND NAGAR HAVELI,Linseed,Zaid,5731,6170,6802,Rs/Quintal
+DADRA AND NAGAR HAVELI,Niger seed,Kharif,8055,8684,9604,Rs/Quintal
+DADRA AND NAGAR HAVELI,Niger seed,Rabi,7950,8571,9479,Rs/Quintal
+DADRA AND NAGAR HAVELI,Niger seed,Zaid,9334,10063,11129,Rs/Quintal
+DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Kharif,5210,5606,6175,Rs/Quintal
+DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Rabi,5459,5874,6470,Rs/Quintal
+DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Zaid,5720,6155,6779,Rs/Quintal
+DADRA AND NAGAR HAVELI,Safflower,Kharif,5487,5907,6512,Rs/Quintal
+DADRA AND NAGAR HAVELI,Safflower,Rabi,5865,6314,6961,Rs/Quintal
+DADRA AND NAGAR HAVELI,Safflower,Zaid,6563,7065,7789,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sesamum,Kharif,8161,8823,9815,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sesamum,Rabi,8310,8984,9994,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sesamum,Zaid,10031,10845,12065,Rs/Quintal
+DADRA AND NAGAR HAVELI,Soyabean,Kharif,4770,5135,5661,Rs/Quintal
+DADRA AND NAGAR HAVELI,Soyabean,Rabi,4631,4986,5497,Rs/Quintal
+DADRA AND NAGAR HAVELI,Soyabean,Zaid,5020,5404,5957,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sunflower,Kharif,6742,7263,8018,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sunflower,Rabi,6998,7538,8321,Rs/Quintal
+DADRA AND NAGAR HAVELI,Sunflower,Zaid,8134,8762,9673,Rs/Quintal
+DELHI,Castor seed,Kharif,5702,6152,6813,Rs/Quintal
+DELHI,Castor seed,Rabi,5510,5944,6582,Rs/Quintal
+DELHI,Castor seed,Zaid,6396,6900,7641,Rs/Quintal
+DELHI,Groundnut,Kharif,6517,7023,7760,Rs/Quintal
+DELHI,Groundnut,Rabi,6212,6694,7396,Rs/Quintal
+DELHI,Groundnut,Zaid,6853,7385,8160,Rs/Quintal
+DELHI,Linseed,Kharif,4952,5331,5877,Rs/Quintal
+DELHI,Linseed,Rabi,5332,5740,6328,Rs/Quintal
+DELHI,Linseed,Zaid,5863,6312,6958,Rs/Quintal
+DELHI,Niger seed,Kharif,8005,8630,9544,Rs/Quintal
+DELHI,Niger seed,Rabi,7789,8397,9287,Rs/Quintal
+DELHI,Niger seed,Zaid,9479,10219,11302,Rs/Quintal
+DELHI,Rapeseed &Mustard,Kharif,5184,5578,6144,Rs/Quintal
+DELHI,Rapeseed &Mustard,Rabi,5174,5568,6133,Rs/Quintal
+DELHI,Rapeseed &Mustard,Zaid,5816,6258,6893,Rs/Quintal
+DELHI,Safflower,Kharif,5335,5743,6331,Rs/Quintal
+DELHI,Safflower,Rabi,5443,5860,6460,Rs/Quintal
+DELHI,Safflower,Zaid,6145,6615,7293,Rs/Quintal
+DELHI,Sesamum,Kharif,8387,9068,10088,Rs/Quintal
+DELHI,Sesamum,Rabi,8615,9314,10361,Rs/Quintal
+DELHI,Sesamum,Zaid,10288,11123,12374,Rs/Quintal
+DELHI,Soyabean,Kharif,4760,5124,5649,Rs/Quintal
+DELHI,Soyabean,Rabi,4762,5126,5651,Rs/Quintal
+DELHI,Soyabean,Zaid,5393,5806,6401,Rs/Quintal
+DELHI,Sunflower,Kharif,6715,7233,7985,Rs/Quintal
+DELHI,Sunflower,Rabi,7013,7554,8339,Rs/Quintal
+DELHI,Sunflower,Zaid,7753,8352,9220,Rs/Quintal
+GOA,Castor seed,Kharif,5677,6125,6783,Rs/Quintal
+GOA,Castor seed,Rabi,5529,5965,6606,Rs/Quintal
+GOA,Castor seed,Zaid,6490,7002,7754,Rs/Quintal
+GOA,Groundnut,Kharif,6470,6972,7704,Rs/Quintal
+GOA,Groundnut,Rabi,6534,7041,7780,Rs/Quintal
+GOA,Groundnut,Zaid,6812,7341,8111,Rs/Quintal
+GOA,Linseed,Kharif,5404,5818,6414,Rs/Quintal
+GOA,Linseed,Rabi,5104,5495,6058,Rs/Quintal
+GOA,Linseed,Zaid,6120,6588,7263,Rs/Quintal
+GOA,Niger seed,Kharif,8068,8698,9619,Rs/Quintal
+GOA,Niger seed,Rabi,8210,8851,9789,Rs/Quintal
+GOA,Niger seed,Zaid,9441,10178,11256,Rs/Quintal
+GOA,Rapeseed &Mustard,Kharif,5397,5807,6396,Rs/Quintal
+GOA,Rapeseed &Mustard,Rabi,5341,5747,6330,Rs/Quintal
+GOA,Rapeseed &Mustard,Zaid,5882,6329,6971,Rs/Quintal
+GOA,Safflower,Kharif,5770,6212,6848,Rs/Quintal
+GOA,Safflower,Rabi,5696,6132,6760,Rs/Quintal
+GOA,Safflower,Zaid,6475,6970,7684,Rs/Quintal
+GOA,Sesamum,Kharif,8770,9482,10548,Rs/Quintal
+GOA,Sesamum,Rabi,9094,9832,10938,Rs/Quintal
+GOA,Sesamum,Zaid,9824,10621,11815,Rs/Quintal
+GOA,Soyabean,Kharif,4452,4793,5284,Rs/Quintal
+GOA,Soyabean,Rabi,4678,5036,5552,Rs/Quintal
+GOA,Soyabean,Zaid,5080,5469,6029,Rs/Quintal
+GOA,Sunflower,Kharif,6874,7405,8175,Rs/Quintal
+GOA,Sunflower,Rabi,6902,7435,8208,Rs/Quintal
+GOA,Sunflower,Zaid,7856,8462,9342,Rs/Quintal
+GUJARAT,Castor seed,Kharif,6118,6600,7309,Rs/Quintal
+GUJARAT,Castor seed,Rabi,6269,6763,7490,Rs/Quintal
+GUJARAT,Castor seed,Zaid,7264,7837,8679,Rs/Quintal
+GUJARAT,Groundnut,Kharif,7463,8043,8887,Rs/Quintal
+GUJARAT,Groundnut,Rabi,7565,8152,9007,Rs/Quintal
+GUJARAT,Groundnut,Zaid,7722,8322,9195,Rs/Quintal
+GUJARAT,Linseed,Kharif,5625,6055,6675,Rs/Quintal
+GUJARAT,Linseed,Rabi,6004,6463,7125,Rs/Quintal
+GUJARAT,Linseed,Zaid,6835,7358,8112,Rs/Quintal
+GUJARAT,Niger seed,Kharif,9564,10311,11403,Rs/Quintal
+GUJARAT,Niger seed,Rabi,9675,10431,11536,Rs/Quintal
+GUJARAT,Niger seed,Zaid,10101,10890,12044,Rs/Quintal
+GUJARAT,Rapeseed &Mustard,Kharif,6181,6651,7326,Rs/Quintal
+GUJARAT,Rapeseed &Mustard,Rabi,6041,6500,7159,Rs/Quintal
+GUJARAT,Rapeseed &Mustard,Zaid,6989,7520,8283,Rs/Quintal
+GUJARAT,Safflower,Kharif,6018,6478,7141,Rs/Quintal
+GUJARAT,Safflower,Rabi,6612,7118,7847,Rs/Quintal
+GUJARAT,Safflower,Zaid,6735,7250,7993,Rs/Quintal
+GUJARAT,Sesamum,Kharif,9752,10543,11729,Rs/Quintal
+GUJARAT,Sesamum,Rabi,9412,10176,11320,Rs/Quintal
+GUJARAT,Sesamum,Zaid,10538,11393,12674,Rs/Quintal
+GUJARAT,Soyabean,Kharif,4917,5293,5835,Rs/Quintal
+GUJARAT,Soyabean,Rabi,5401,5814,6409,Rs/Quintal
+GUJARAT,Soyabean,Zaid,5681,6116,6742,Rs/Quintal
+GUJARAT,Sunflower,Kharif,8016,8635,9533,Rs/Quintal
+GUJARAT,Sunflower,Rabi,8097,8722,9629,Rs/Quintal
+GUJARAT,Sunflower,Zaid,8662,9331,10301,Rs/Quintal
+HARYANA,Castor seed,Kharif,5941,6409,7097,Rs/Quintal
+HARYANA,Castor seed,Rabi,5656,6102,6757,Rs/Quintal
+HARYANA,Castor seed,Zaid,6582,7101,7864,Rs/Quintal
+HARYANA,Groundnut,Kharif,6655,7172,7925,Rs/Quintal
+HARYANA,Groundnut,Rabi,6356,6850,7569,Rs/Quintal
+HARYANA,Groundnut,Zaid,7088,7638,8439,Rs/Quintal
+HARYANA,Linseed,Kharif,5396,5809,6404,Rs/Quintal
+HARYANA,Linseed,Rabi,5298,5703,6287,Rs/Quintal
+HARYANA,Linseed,Zaid,6099,6566,7239,Rs/Quintal
+HARYANA,Niger seed,Kharif,8608,9280,10263,Rs/Quintal
+HARYANA,Niger seed,Rabi,7943,8563,9470,Rs/Quintal
+HARYANA,Niger seed,Zaid,9828,10596,11719,Rs/Quintal
+HARYANA,Rapeseed &Mustard,Kharif,5209,5605,6173,Rs/Quintal
+HARYANA,Rapeseed &Mustard,Rabi,5741,6178,6805,Rs/Quintal
+HARYANA,Rapeseed &Mustard,Zaid,6221,6694,7373,Rs/Quintal
+HARYANA,Safflower,Kharif,5578,6005,6620,Rs/Quintal
+HARYANA,Safflower,Rabi,5728,6166,6798,Rs/Quintal
+HARYANA,Safflower,Zaid,6686,7197,7934,Rs/Quintal
+HARYANA,Sesamum,Kharif,8288,8961,9969,Rs/Quintal
+HARYANA,Sesamum,Rabi,8995,9725,10819,Rs/Quintal
+HARYANA,Sesamum,Zaid,10348,11188,12446,Rs/Quintal
+HARYANA,Soyabean,Kharif,4426,4765,5253,Rs/Quintal
+HARYANA,Soyabean,Rabi,4657,5013,5526,Rs/Quintal
+HARYANA,Soyabean,Zaid,5211,5610,6185,Rs/Quintal
+HARYANA,Sunflower,Kharif,6530,7034,7765,Rs/Quintal
+HARYANA,Sunflower,Rabi,6885,7417,8188,Rs/Quintal
+HARYANA,Sunflower,Zaid,7540,8122,8966,Rs/Quintal
+HIMACHAL PRADESH,Castor seed,Kharif,5581,6021,6668,Rs/Quintal
+HIMACHAL PRADESH,Castor seed,Rabi,5957,6427,7117,Rs/Quintal
+HIMACHAL PRADESH,Castor seed,Zaid,6609,7130,7896,Rs/Quintal
+HIMACHAL PRADESH,Groundnut,Kharif,6148,6626,7321,Rs/Quintal
+HIMACHAL PRADESH,Groundnut,Rabi,6176,6656,7354,Rs/Quintal
+HIMACHAL PRADESH,Groundnut,Zaid,7542,8128,8981,Rs/Quintal
+HIMACHAL PRADESH,Linseed,Kharif,5463,5881,6483,Rs/Quintal
+HIMACHAL PRADESH,Linseed,Rabi,5064,5452,6010,Rs/Quintal
+HIMACHAL PRADESH,Linseed,Zaid,6162,6633,7312,Rs/Quintal
+HIMACHAL PRADESH,Niger seed,Kharif,7634,8230,9102,Rs/Quintal
+HIMACHAL PRADESH,Niger seed,Rabi,8287,8934,9881,Rs/Quintal
+HIMACHAL PRADESH,Niger seed,Zaid,9410,10145,11220,Rs/Quintal
+HIMACHAL PRADESH,Rapeseed &Mustard,Kharif,5231,5629,6200,Rs/Quintal
+HIMACHAL PRADESH,Rapeseed &Mustard,Rabi,5369,5777,6363,Rs/Quintal
+HIMACHAL PRADESH,Rapeseed &Mustard,Zaid,5855,6300,6939,Rs/Quintal
+HIMACHAL PRADESH,Safflower,Kharif,5582,6009,6624,Rs/Quintal
+HIMACHAL PRADESH,Safflower,Rabi,5626,6057,6677,Rs/Quintal
+HIMACHAL PRADESH,Safflower,Zaid,6493,6990,7706,Rs/Quintal
+HIMACHAL PRADESH,Sesamum,Kharif,8849,9567,10643,Rs/Quintal
+HIMACHAL PRADESH,Sesamum,Rabi,8280,8952,9959,Rs/Quintal
+HIMACHAL PRADESH,Sesamum,Zaid,9969,10778,11990,Rs/Quintal
+HIMACHAL PRADESH,Soyabean,Kharif,4739,5102,5624,Rs/Quintal
+HIMACHAL PRADESH,Soyabean,Rabi,4683,5041,5557,Rs/Quintal
+HIMACHAL PRADESH,Soyabean,Zaid,5129,5522,6088,Rs/Quintal
+HIMACHAL PRADESH,Sunflower,Kharif,6774,7297,8055,Rs/Quintal
+HIMACHAL PRADESH,Sunflower,Rabi,6750,7271,8027,Rs/Quintal
+HIMACHAL PRADESH,Sunflower,Zaid,8008,8626,9523,Rs/Quintal
+JAMMU AND KASHMIR,Castor seed,Kharif,5526,5962,6602,Rs/Quintal
+JAMMU AND KASHMIR,Castor seed,Rabi,5892,6357,7040,Rs/Quintal
+JAMMU AND KASHMIR,Castor seed,Zaid,6165,6651,7365,Rs/Quintal
+JAMMU AND KASHMIR,Groundnut,Kharif,6374,6869,7590,Rs/Quintal
+JAMMU AND KASHMIR,Groundnut,Rabi,6593,7105,7851,Rs/Quintal
+JAMMU AND KASHMIR,Groundnut,Zaid,6908,7445,8226,Rs/Quintal
+JAMMU AND KASHMIR,Linseed,Kharif,5192,5589,6161,Rs/Quintal
+JAMMU AND KASHMIR,Linseed,Rabi,5175,5571,6142,Rs/Quintal
+JAMMU AND KASHMIR,Linseed,Zaid,5656,6089,6713,Rs/Quintal
+JAMMU AND KASHMIR,Niger seed,Kharif,7824,8435,9329,Rs/Quintal
+JAMMU AND KASHMIR,Niger seed,Rabi,8198,8838,9774,Rs/Quintal
+JAMMU AND KASHMIR,Niger seed,Zaid,8802,9490,10495,Rs/Quintal
+JAMMU AND KASHMIR,Rapeseed &Mustard,Kharif,5208,5604,6172,Rs/Quintal
+JAMMU AND KASHMIR,Rapeseed &Mustard,Rabi,5163,5556,6119,Rs/Quintal
+JAMMU AND KASHMIR,Rapeseed &Mustard,Zaid,5718,6153,6777,Rs/Quintal
+JAMMU AND KASHMIR,Safflower,Kharif,5554,5979,6591,Rs/Quintal
+JAMMU AND KASHMIR,Safflower,Rabi,5705,6142,6771,Rs/Quintal
+JAMMU AND KASHMIR,Safflower,Zaid,6629,7136,7867,Rs/Quintal
+JAMMU AND KASHMIR,Sesamum,Kharif,8149,8810,9801,Rs/Quintal
+JAMMU AND KASHMIR,Sesamum,Rabi,8349,9027,10042,Rs/Quintal
+JAMMU AND KASHMIR,Sesamum,Zaid,9484,10254,11407,Rs/Quintal
+JAMMU AND KASHMIR,Soyabean,Kharif,4531,4878,5377,Rs/Quintal
+JAMMU AND KASHMIR,Soyabean,Rabi,4617,4970,5479,Rs/Quintal
+JAMMU AND KASHMIR,Soyabean,Zaid,4976,5357,5906,Rs/Quintal
+JAMMU AND KASHMIR,Sunflower,Kharif,6756,7278,8034,Rs/Quintal
+JAMMU AND KASHMIR,Sunflower,Rabi,6785,7309,8069,Rs/Quintal
+JAMMU AND KASHMIR,Sunflower,Zaid,7666,8258,9116,Rs/Quintal
+JHARKHAND,Castor seed,Kharif,5757,6211,6878,Rs/Quintal
+JHARKHAND,Castor seed,Rabi,5349,5771,6391,Rs/Quintal
+JHARKHAND,Castor seed,Zaid,6561,7078,7838,Rs/Quintal
+JHARKHAND,Groundnut,Kharif,6506,7011,7747,Rs/Quintal
+JHARKHAND,Groundnut,Rabi,6677,7196,7951,Rs/Quintal
+JHARKHAND,Groundnut,Zaid,7472,8052,8897,Rs/Quintal
+JHARKHAND,Linseed,Kharif,5472,5891,6494,Rs/Quintal
+JHARKHAND,Linseed,Rabi,5384,5796,6390,Rs/Quintal
+JHARKHAND,Linseed,Zaid,5802,6246,6886,Rs/Quintal
+JHARKHAND,Niger seed,Kharif,7650,8248,9122,Rs/Quintal
+JHARKHAND,Niger seed,Rabi,8220,8862,9801,Rs/Quintal
+JHARKHAND,Niger seed,Zaid,8753,9437,10437,Rs/Quintal
+JHARKHAND,Rapeseed &Mustard,Kharif,5463,5879,6475,Rs/Quintal
+JHARKHAND,Rapeseed &Mustard,Rabi,5146,5537,6099,Rs/Quintal
+JHARKHAND,Rapeseed &Mustard,Zaid,5888,6336,6979,Rs/Quintal
+JHARKHAND,Safflower,Kharif,5667,6101,6726,Rs/Quintal
+JHARKHAND,Safflower,Rabi,5434,5850,6449,Rs/Quintal
+JHARKHAND,Safflower,Zaid,6304,6786,7481,Rs/Quintal
+JHARKHAND,Sesamum,Kharif,8637,9338,10388,Rs/Quintal
+JHARKHAND,Sesamum,Rabi,8378,9058,10077,Rs/Quintal
+JHARKHAND,Sesamum,Zaid,9321,10077,11210,Rs/Quintal
+JHARKHAND,Soyabean,Kharif,4639,4994,5505,Rs/Quintal
+JHARKHAND,Soyabean,Rabi,4502,4847,5343,Rs/Quintal
+JHARKHAND,Soyabean,Zaid,5147,5541,6108,Rs/Quintal
+JHARKHAND,Sunflower,Kharif,7089,7636,8430,Rs/Quintal
+JHARKHAND,Sunflower,Rabi,6966,7504,8284,Rs/Quintal
+JHARKHAND,Sunflower,Zaid,7524,8105,8947,Rs/Quintal
+KARNATAKA,Castor seed,Kharif,6209,6699,7419,Rs/Quintal
+KARNATAKA,Castor seed,Rabi,5864,6326,7006,Rs/Quintal
+KARNATAKA,Castor seed,Zaid,6613,7134,7900,Rs/Quintal
+KARNATAKA,Groundnut,Kharif,6751,7275,8038,Rs/Quintal
+KARNATAKA,Groundnut,Rabi,6868,7401,8178,Rs/Quintal
+KARNATAKA,Groundnut,Zaid,7552,8139,8993,Rs/Quintal
+KARNATAKA,Linseed,Kharif,5811,6256,6897,Rs/Quintal
+KARNATAKA,Linseed,Rabi,5737,6176,6809,Rs/Quintal
+KARNATAKA,Linseed,Zaid,6614,7120,7849,Rs/Quintal
+KARNATAKA,Niger seed,Kharif,8772,9457,10459,Rs/Quintal
+KARNATAKA,Niger seed,Rabi,8485,9148,10117,Rs/Quintal
+KARNATAKA,Niger seed,Zaid,9864,10634,11761,Rs/Quintal
+KARNATAKA,Rapeseed &Mustard,Kharif,5840,6284,6921,Rs/Quintal
+KARNATAKA,Rapeseed &Mustard,Rabi,5824,6267,6903,Rs/Quintal
+KARNATAKA,Rapeseed &Mustard,Zaid,6584,7085,7804,Rs/Quintal
+KARNATAKA,Safflower,Kharif,5893,6344,6994,Rs/Quintal
+KARNATAKA,Safflower,Rabi,6078,6543,7213,Rs/Quintal
+KARNATAKA,Safflower,Zaid,6556,7058,7781,Rs/Quintal
+KARNATAKA,Sesamum,Kharif,9230,9979,11101,Rs/Quintal
+KARNATAKA,Sesamum,Rabi,8920,9644,10728,Rs/Quintal
+KARNATAKA,Sesamum,Zaid,11216,12126,13490,Rs/Quintal
+KARNATAKA,Soyabean,Kharif,4731,5093,5615,Rs/Quintal
+KARNATAKA,Soyabean,Rabi,4959,5339,5886,Rs/Quintal
+KARNATAKA,Soyabean,Zaid,5678,6113,6739,Rs/Quintal
+KARNATAKA,Sunflower,Kharif,7204,7760,8567,Rs/Quintal
+KARNATAKA,Sunflower,Rabi,7531,8112,8955,Rs/Quintal
+KARNATAKA,Sunflower,Zaid,8169,8800,9715,Rs/Quintal
+LADDAK,Castor seed,Kharif,5312,5731,6347,Rs/Quintal
+LADDAK,Castor seed,Rabi,5420,5847,6475,Rs/Quintal
+LADDAK,Castor seed,Zaid,6294,6790,7519,Rs/Quintal
+LADDAK,Groundnut,Kharif,6138,6615,7309,Rs/Quintal
+LADDAK,Groundnut,Rabi,6696,7216,7973,Rs/Quintal
+LADDAK,Groundnut,Zaid,7202,7761,8575,Rs/Quintal
+LADDAK,Linseed,Kharif,5431,5847,6446,Rs/Quintal
+LADDAK,Linseed,Rabi,5373,5784,6376,Rs/Quintal
+LADDAK,Linseed,Zaid,5891,6342,6992,Rs/Quintal
+LADDAK,Niger seed,Kharif,8424,9082,10044,Rs/Quintal
+LADDAK,Niger seed,Rabi,8347,8999,9952,Rs/Quintal
+LADDAK,Niger seed,Zaid,9208,9927,10979,Rs/Quintal
+LADDAK,Rapeseed &Mustard,Kharif,5450,5865,6460,Rs/Quintal
+LADDAK,Rapeseed &Mustard,Rabi,5292,5694,6271,Rs/Quintal
+LADDAK,Rapeseed &Mustard,Zaid,6180,6650,7324,Rs/Quintal
+LADDAK,Safflower,Kharif,5436,5852,6451,Rs/Quintal
+LADDAK,Safflower,Rabi,5456,5873,6474,Rs/Quintal
+LADDAK,Safflower,Zaid,6399,6889,7595,Rs/Quintal
+LADDAK,Sesamum,Kharif,8553,9247,10287,Rs/Quintal
+LADDAK,Sesamum,Rabi,8635,9336,10386,Rs/Quintal
+LADDAK,Sesamum,Zaid,10125,10946,12177,Rs/Quintal
+LADDAK,Soyabean,Kharif,4611,4964,5472,Rs/Quintal
+LADDAK,Soyabean,Rabi,4486,4829,5323,Rs/Quintal
+LADDAK,Soyabean,Zaid,4932,5310,5854,Rs/Quintal
+LADDAK,Sunflower,Kharif,6613,7124,7864,Rs/Quintal
+LADDAK,Sunflower,Rabi,6846,7375,8142,Rs/Quintal
+LADDAK,Sunflower,Zaid,8063,8685,9588,Rs/Quintal
+MADHYA PRADESH,Castor seed,Kharif,5555,5993,6637,Rs/Quintal
+MADHYA PRADESH,Castor seed,Rabi,5562,6000,6645,Rs/Quintal
+MADHYA PRADESH,Castor seed,Zaid,5953,6422,7112,Rs/Quintal
+MADHYA PRADESH,Groundnut,Kharif,6069,6540,7226,Rs/Quintal
+MADHYA PRADESH,Groundnut,Rabi,6282,6770,7480,Rs/Quintal
+MADHYA PRADESH,Groundnut,Zaid,6560,7070,7812,Rs/Quintal
+MADHYA PRADESH,Linseed,Kharif,5134,5527,6093,Rs/Quintal
+MADHYA PRADESH,Linseed,Rabi,4810,5178,5708,Rs/Quintal
+MADHYA PRADESH,Linseed,Zaid,5404,5818,6414,Rs/Quintal
+MADHYA PRADESH,Niger seed,Kharif,7485,8070,8925,Rs/Quintal
+MADHYA PRADESH,Niger seed,Rabi,7974,8597,9508,Rs/Quintal
+MADHYA PRADESH,Niger seed,Zaid,8544,9211,10187,Rs/Quintal
+MADHYA PRADESH,Rapeseed &Mustard,Kharif,4840,5208,5736,Rs/Quintal
+MADHYA PRADESH,Rapeseed &Mustard,Rabi,5262,5662,6236,Rs/Quintal
+MADHYA PRADESH,Rapeseed &Mustard,Zaid,5626,6054,6668,Rs/Quintal
+MADHYA PRADESH,Safflower,Kharif,5444,5861,6461,Rs/Quintal
+MADHYA PRADESH,Safflower,Rabi,5116,5508,6072,Rs/Quintal
+MADHYA PRADESH,Safflower,Zaid,6195,6669,7352,Rs/Quintal
+MADHYA PRADESH,Sesamum,Kharif,7651,8272,9202,Rs/Quintal
+MADHYA PRADESH,Sesamum,Rabi,8559,9253,10293,Rs/Quintal
+MADHYA PRADESH,Sesamum,Zaid,9867,10668,11868,Rs/Quintal
+MADHYA PRADESH,Soyabean,Kharif,4379,4714,5197,Rs/Quintal
+MADHYA PRADESH,Soyabean,Rabi,4213,4535,4999,Rs/Quintal
+MADHYA PRADESH,Soyabean,Zaid,5140,5533,6100,Rs/Quintal
+MADHYA PRADESH,Sunflower,Kharif,6646,7159,7903,Rs/Quintal
+MADHYA PRADESH,Sunflower,Rabi,6649,7162,7906,Rs/Quintal
+MADHYA PRADESH,Sunflower,Zaid,7512,8092,8933,Rs/Quintal
+MAHARASHTRA,Castor seed,Kharif,5703,6153,6814,Rs/Quintal
+MAHARASHTRA,Castor seed,Rabi,5979,6450,7143,Rs/Quintal
+MAHARASHTRA,Castor seed,Zaid,6677,7203,7977,Rs/Quintal
+MAHARASHTRA,Groundnut,Kharif,6957,7497,8284,Rs/Quintal
+MAHARASHTRA,Groundnut,Rabi,7120,7673,8478,Rs/Quintal
+MAHARASHTRA,Groundnut,Zaid,7481,8062,8908,Rs/Quintal
+MAHARASHTRA,Linseed,Kharif,5745,6185,6818,Rs/Quintal
+MAHARASHTRA,Linseed,Rabi,5888,6339,6988,Rs/Quintal
+MAHARASHTRA,Linseed,Zaid,6149,6620,7298,Rs/Quintal
+MAHARASHTRA,Niger seed,Kharif,9031,9736,10768,Rs/Quintal
+MAHARASHTRA,Niger seed,Rabi,8456,9117,10083,Rs/Quintal
+MAHARASHTRA,Niger seed,Zaid,9561,10308,11400,Rs/Quintal
+MAHARASHTRA,Rapeseed &Mustard,Kharif,5368,5776,6362,Rs/Quintal
+MAHARASHTRA,Rapeseed &Mustard,Rabi,5530,5951,6555,Rs/Quintal
+MAHARASHTRA,Rapeseed &Mustard,Zaid,6248,6723,7405,Rs/Quintal
+MAHARASHTRA,Safflower,Kharif,5623,6053,6673,Rs/Quintal
+MAHARASHTRA,Safflower,Rabi,6244,6722,7411,Rs/Quintal
+MAHARASHTRA,Safflower,Zaid,6799,7319,8069,Rs/Quintal
+MAHARASHTRA,Sesamum,Kharif,8788,9501,10569,Rs/Quintal
+MAHARASHTRA,Sesamum,Rabi,8843,9560,10635,Rs/Quintal
+MAHARASHTRA,Sesamum,Zaid,10699,11567,12868,Rs/Quintal
+MAHARASHTRA,Soyabean,Kharif,4660,5017,5531,Rs/Quintal
+MAHARASHTRA,Soyabean,Rabi,5151,5545,6113,Rs/Quintal
+MAHARASHTRA,Soyabean,Zaid,5673,6107,6732,Rs/Quintal
+MAHARASHTRA,Sunflower,Kharif,7487,8065,8903,Rs/Quintal
+MAHARASHTRA,Sunflower,Rabi,7274,7836,8650,Rs/Quintal
+MAHARASHTRA,Sunflower,Zaid,8233,8868,9790,Rs/Quintal
+MANIPUR,Castor seed,Kharif,5548,5985,6628,Rs/Quintal
+MANIPUR,Castor seed,Rabi,5679,6127,6785,Rs/Quintal
+MANIPUR,Castor seed,Zaid,6572,7090,7852,Rs/Quintal
+MANIPUR,Groundnut,Kharif,5971,6435,7110,Rs/Quintal
+MANIPUR,Groundnut,Rabi,6177,6657,7355,Rs/Quintal
+MANIPUR,Groundnut,Zaid,7024,7570,8364,Rs/Quintal
+MANIPUR,Linseed,Kharif,5446,5863,6463,Rs/Quintal
+MANIPUR,Linseed,Rabi,5311,5717,6302,Rs/Quintal
+MANIPUR,Linseed,Zaid,5899,6350,7000,Rs/Quintal
+MANIPUR,Niger seed,Kharif,7686,8286,9164,Rs/Quintal
+MANIPUR,Niger seed,Rabi,8558,9227,10205,Rs/Quintal
+MANIPUR,Niger seed,Zaid,9595,10344,11440,Rs/Quintal
+MANIPUR,Rapeseed &Mustard,Kharif,5125,5515,6074,Rs/Quintal
+MANIPUR,Rapeseed &Mustard,Rabi,5455,5870,6465,Rs/Quintal
+MANIPUR,Rapeseed &Mustard,Zaid,5786,6226,6857,Rs/Quintal
+MANIPUR,Safflower,Kharif,5354,5764,6354,Rs/Quintal
+MANIPUR,Safflower,Rabi,5820,6265,6907,Rs/Quintal
+MANIPUR,Safflower,Zaid,6319,6802,7499,Rs/Quintal
+MANIPUR,Sesamum,Kharif,8249,8918,9921,Rs/Quintal
+MANIPUR,Sesamum,Rabi,8208,8874,9872,Rs/Quintal
+MANIPUR,Sesamum,Zaid,10065,10882,12106,Rs/Quintal
+MANIPUR,Soyabean,Kharif,4527,4873,5372,Rs/Quintal
+MANIPUR,Soyabean,Rabi,4409,4747,5233,Rs/Quintal
+MANIPUR,Soyabean,Zaid,5248,5650,6229,Rs/Quintal
+MANIPUR,Sunflower,Kharif,6827,7354,8118,Rs/Quintal
+MANIPUR,Sunflower,Rabi,6906,7439,8212,Rs/Quintal
+MANIPUR,Sunflower,Zaid,7972,8587,9480,Rs/Quintal
+MEGHALAYA,Castor seed,Kharif,5489,5922,6558,Rs/Quintal
+MEGHALAYA,Castor seed,Rabi,5409,5835,6462,Rs/Quintal
+MEGHALAYA,Castor seed,Zaid,6137,6621,7332,Rs/Quintal
+MEGHALAYA,Groundnut,Kharif,6291,6780,7491,Rs/Quintal
+MEGHALAYA,Groundnut,Rabi,6338,6830,7547,Rs/Quintal
+MEGHALAYA,Groundnut,Zaid,7357,7928,8760,Rs/Quintal
+MEGHALAYA,Linseed,Kharif,5302,5708,6293,Rs/Quintal
+MEGHALAYA,Linseed,Rabi,5578,6005,6620,Rs/Quintal
+MEGHALAYA,Linseed,Zaid,6093,6559,7231,Rs/Quintal
+MEGHALAYA,Niger seed,Kharif,7725,8329,9211,Rs/Quintal
+MEGHALAYA,Niger seed,Rabi,8235,8878,9819,Rs/Quintal
+MEGHALAYA,Niger seed,Zaid,8906,9602,10619,Rs/Quintal
+MEGHALAYA,Rapeseed &Mustard,Kharif,5313,5717,6297,Rs/Quintal
+MEGHALAYA,Rapeseed &Mustard,Rabi,5519,5939,6541,Rs/Quintal
+MEGHALAYA,Rapeseed &Mustard,Zaid,5720,6155,6779,Rs/Quintal
+MEGHALAYA,Safflower,Kharif,5443,5860,6460,Rs/Quintal
+MEGHALAYA,Safflower,Rabi,5721,6159,6790,Rs/Quintal
+MEGHALAYA,Safflower,Zaid,6597,7102,7829,Rs/Quintal
+MEGHALAYA,Sesamum,Kharif,8685,9390,10446,Rs/Quintal
+MEGHALAYA,Sesamum,Rabi,9139,9881,10992,Rs/Quintal
+MEGHALAYA,Sesamum,Zaid,9515,10287,11444,Rs/Quintal
+MEGHALAYA,Soyabean,Kharif,4692,5051,5568,Rs/Quintal
+MEGHALAYA,Soyabean,Rabi,4409,4747,5233,Rs/Quintal
+MEGHALAYA,Soyabean,Zaid,5279,5683,6265,Rs/Quintal
+MEGHALAYA,Sunflower,Kharif,7036,7579,8367,Rs/Quintal
+MEGHALAYA,Sunflower,Rabi,7180,7734,8538,Rs/Quintal
+MEGHALAYA,Sunflower,Zaid,7590,8176,9026,Rs/Quintal
+MIZORAM,Castor seed,Kharif,5674,6121,6779,Rs/Quintal
+MIZORAM,Castor seed,Rabi,5975,6446,7138,Rs/Quintal
+MIZORAM,Castor seed,Zaid,6546,7062,7821,Rs/Quintal
+MIZORAM,Groundnut,Kharif,6119,6594,7286,Rs/Quintal
+MIZORAM,Groundnut,Rabi,6680,7199,7954,Rs/Quintal
+MIZORAM,Groundnut,Zaid,6867,7400,8177,Rs/Quintal
+MIZORAM,Linseed,Kharif,4926,5303,5846,Rs/Quintal
+MIZORAM,Linseed,Rabi,5354,5764,6354,Rs/Quintal
+MIZORAM,Linseed,Zaid,6129,6598,7274,Rs/Quintal
+MIZORAM,Niger seed,Kharif,7870,8485,9384,Rs/Quintal
+MIZORAM,Niger seed,Rabi,8228,8871,9811,Rs/Quintal
+MIZORAM,Niger seed,Zaid,9104,9815,10855,Rs/Quintal
+MIZORAM,Rapeseed &Mustard,Kharif,5239,5638,6210,Rs/Quintal
+MIZORAM,Rapeseed &Mustard,Rabi,5631,6059,6673,Rs/Quintal
+MIZORAM,Rapeseed &Mustard,Zaid,6042,6502,7161,Rs/Quintal
+MIZORAM,Safflower,Kharif,5327,5735,6322,Rs/Quintal
+MIZORAM,Safflower,Rabi,5818,6263,6904,Rs/Quintal
+MIZORAM,Safflower,Zaid,6561,7063,7786,Rs/Quintal
+MIZORAM,Sesamum,Kharif,8459,9145,10173,Rs/Quintal
+MIZORAM,Sesamum,Rabi,9161,9904,11018,Rs/Quintal
+MIZORAM,Sesamum,Zaid,9651,10434,11607,Rs/Quintal
+MIZORAM,Soyabean,Kharif,4732,5094,5616,Rs/Quintal
+MIZORAM,Soyabean,Rabi,4401,4738,5223,Rs/Quintal
+MIZORAM,Soyabean,Zaid,5275,5679,6261,Rs/Quintal
+MIZORAM,Sunflower,Kharif,6703,7220,7970,Rs/Quintal
+MIZORAM,Sunflower,Rabi,6650,7163,7907,Rs/Quintal
+MIZORAM,Sunflower,Zaid,7376,7945,8771,Rs/Quintal
+NAGALAND,Castor seed,Kharif,5510,5944,6582,Rs/Quintal
+NAGALAND,Castor seed,Rabi,5922,6389,7075,Rs/Quintal
+NAGALAND,Castor seed,Zaid,6679,7205,7979,Rs/Quintal
+NAGALAND,Groundnut,Kharif,6050,6520,7204,Rs/Quintal
+NAGALAND,Groundnut,Rabi,6139,6616,7310,Rs/Quintal
+NAGALAND,Groundnut,Zaid,7178,7735,8547,Rs/Quintal
+NAGALAND,Linseed,Kharif,5197,5595,6168,Rs/Quintal
+NAGALAND,Linseed,Rabi,5221,5621,6197,Rs/Quintal
+NAGALAND,Linseed,Zaid,5847,6294,6939,Rs/Quintal
+NAGALAND,Niger seed,Kharif,8452,9112,10077,Rs/Quintal
+NAGALAND,Niger seed,Rabi,7969,8591,9501,Rs/Quintal
+NAGALAND,Niger seed,Zaid,8811,9499,10505,Rs/Quintal
+NAGALAND,Rapeseed &Mustard,Kharif,5151,5543,6105,Rs/Quintal
+NAGALAND,Rapeseed &Mustard,Rabi,5545,5967,6572,Rs/Quintal
+NAGALAND,Rapeseed &Mustard,Zaid,5932,6383,7030,Rs/Quintal
+NAGALAND,Safflower,Kharif,5444,5861,6461,Rs/Quintal
+NAGALAND,Safflower,Rabi,5559,5984,6597,Rs/Quintal
+NAGALAND,Safflower,Zaid,6497,6994,7710,Rs/Quintal
+NAGALAND,Sesamum,Kharif,8749,9459,10523,Rs/Quintal
+NAGALAND,Sesamum,Rabi,8788,9501,10569,Rs/Quintal
+NAGALAND,Sesamum,Zaid,9513,10285,11442,Rs/Quintal
+NAGALAND,Soyabean,Kharif,4632,4987,5498,Rs/Quintal
+NAGALAND,Soyabean,Rabi,4603,4955,5462,Rs/Quintal
+NAGALAND,Soyabean,Zaid,5074,5462,6021,Rs/Quintal
+NAGALAND,Sunflower,Kharif,6659,7173,7918,Rs/Quintal
+NAGALAND,Sunflower,Rabi,6534,7038,7769,Rs/Quintal
+NAGALAND,Sunflower,Zaid,8093,8718,9624,Rs/Quintal
+ODISHA,Castor seed,Kharif,5316,5735,6351,Rs/Quintal
+ODISHA,Castor seed,Rabi,5897,6362,7045,Rs/Quintal
+ODISHA,Castor seed,Zaid,6310,6807,7538,Rs/Quintal
+ODISHA,Groundnut,Kharif,6063,6534,7220,Rs/Quintal
+ODISHA,Groundnut,Rabi,6409,6907,7632,Rs/Quintal
+ODISHA,Groundnut,Zaid,6905,7441,8222,Rs/Quintal
+ODISHA,Linseed,Kharif,5076,5464,6024,Rs/Quintal
+ODISHA,Linseed,Rabi,5333,5741,6329,Rs/Quintal
+ODISHA,Linseed,Zaid,6016,6476,7139,Rs/Quintal
+ODISHA,Niger seed,Kharif,8285,8932,9878,Rs/Quintal
+ODISHA,Niger seed,Rabi,8058,8688,9608,Rs/Quintal
+ODISHA,Niger seed,Zaid,8911,9607,10625,Rs/Quintal
+ODISHA,Rapeseed &Mustard,Kharif,5453,5868,6463,Rs/Quintal
+ODISHA,Rapeseed &Mustard,Rabi,5117,5506,6064,Rs/Quintal
+ODISHA,Rapeseed &Mustard,Zaid,6134,6601,7271,Rs/Quintal
+ODISHA,Safflower,Kharif,5263,5666,6246,Rs/Quintal
+ODISHA,Safflower,Rabi,5585,6012,6628,Rs/Quintal
+ODISHA,Safflower,Zaid,6451,6945,7656,Rs/Quintal
+ODISHA,Sesamum,Kharif,8152,8814,9805,Rs/Quintal
+ODISHA,Sesamum,Rabi,9040,9773,10872,Rs/Quintal
+ODISHA,Sesamum,Zaid,9238,9988,11111,Rs/Quintal
+ODISHA,Soyabean,Kharif,4356,4689,5169,Rs/Quintal
+ODISHA,Soyabean,Rabi,4517,4863,5361,Rs/Quintal
+ODISHA,Soyabean,Zaid,5298,5703,6287,Rs/Quintal
+ODISHA,Sunflower,Kharif,6624,7135,7877,Rs/Quintal
+ODISHA,Sunflower,Rabi,7029,7572,8359,Rs/Quintal
+ODISHA,Sunflower,Zaid,7560,8144,8990,Rs/Quintal
+PUDUCHERRY,Castor seed,Kharif,5347,5769,6389,Rs/Quintal
+PUDUCHERRY,Castor seed,Rabi,5349,5771,6391,Rs/Quintal
+PUDUCHERRY,Castor seed,Zaid,6168,6654,7369,Rs/Quintal
+PUDUCHERRY,Groundnut,Kharif,6057,6527,7212,Rs/Quintal
+PUDUCHERRY,Groundnut,Rabi,6154,6632,7328,Rs/Quintal
+PUDUCHERRY,Groundnut,Zaid,6941,7480,8265,Rs/Quintal
+PUDUCHERRY,Linseed,Kharif,5005,5388,5940,Rs/Quintal
+PUDUCHERRY,Linseed,Rabi,5113,5504,6068,Rs/Quintal
+PUDUCHERRY,Linseed,Zaid,5987,6445,7105,Rs/Quintal
+PUDUCHERRY,Niger seed,Kharif,8402,9058,10018,Rs/Quintal
+PUDUCHERRY,Niger seed,Rabi,8584,9255,10236,Rs/Quintal
+PUDUCHERRY,Niger seed,Zaid,9541,10286,11376,Rs/Quintal
+PUDUCHERRY,Rapeseed &Mustard,Kharif,5448,5862,6456,Rs/Quintal
+PUDUCHERRY,Rapeseed &Mustard,Rabi,5525,5945,6548,Rs/Quintal
+PUDUCHERRY,Rapeseed &Mustard,Zaid,6139,6606,7276,Rs/Quintal
+PUDUCHERRY,Safflower,Kharif,5576,6003,6618,Rs/Quintal
+PUDUCHERRY,Safflower,Rabi,5771,6213,6849,Rs/Quintal
+PUDUCHERRY,Safflower,Zaid,6339,6824,7523,Rs/Quintal
+PUDUCHERRY,Sesamum,Kharif,9029,9762,10860,Rs/Quintal
+PUDUCHERRY,Sesamum,Rabi,9015,9747,10843,Rs/Quintal
+PUDUCHERRY,Sesamum,Zaid,10096,10915,12142,Rs/Quintal
+PUDUCHERRY,Soyabean,Kharif,4430,4769,5257,Rs/Quintal
+PUDUCHERRY,Soyabean,Rabi,4841,5212,5746,Rs/Quintal
+PUDUCHERRY,Soyabean,Zaid,5196,5594,6167,Rs/Quintal
+PUDUCHERRY,Sunflower,Kharif,6943,7479,8256,Rs/Quintal
+PUDUCHERRY,Sunflower,Rabi,6742,7263,8018,Rs/Quintal
+PUDUCHERRY,Sunflower,Zaid,7944,8557,9446,Rs/Quintal
+PUNJAB,Castor seed,Kharif,5885,6349,7031,Rs/Quintal
+PUNJAB,Castor seed,Rabi,6097,6578,7285,Rs/Quintal
+PUNJAB,Castor seed,Zaid,6195,6683,7401,Rs/Quintal
+PUNJAB,Groundnut,Kharif,6651,7168,7920,Rs/Quintal
+PUNJAB,Groundnut,Rabi,6801,7329,8098,Rs/Quintal
+PUNJAB,Groundnut,Zaid,7228,7789,8606,Rs/Quintal
+PUNJAB,Linseed,Kharif,5237,5638,6215,Rs/Quintal
+PUNJAB,Linseed,Rabi,5370,5781,6373,Rs/Quintal
+PUNJAB,Linseed,Zaid,6007,6467,7129,Rs/Quintal
+PUNJAB,Niger seed,Kharif,7783,8391,9280,Rs/Quintal
+PUNJAB,Niger seed,Rabi,8204,8845,9782,Rs/Quintal
+PUNJAB,Niger seed,Zaid,8988,9690,10717,Rs/Quintal
+PUNJAB,Rapeseed &Mustard,Kharif,5467,5883,6480,Rs/Quintal
+PUNJAB,Rapeseed &Mustard,Rabi,5295,5698,6276,Rs/Quintal
+PUNJAB,Rapeseed &Mustard,Zaid,5967,6421,7072,Rs/Quintal
+PUNJAB,Safflower,Kharif,5911,6363,7015,Rs/Quintal
+PUNJAB,Safflower,Rabi,6014,6474,7137,Rs/Quintal
+PUNJAB,Safflower,Zaid,6762,7279,8025,Rs/Quintal
+PUNJAB,Sesamum,Kharif,8532,9224,10261,Rs/Quintal
+PUNJAB,Sesamum,Rabi,9453,10220,11369,Rs/Quintal
+PUNJAB,Sesamum,Zaid,10168,10993,12229,Rs/Quintal
+PUNJAB,Soyabean,Kharif,4673,5031,5546,Rs/Quintal
+PUNJAB,Soyabean,Rabi,4771,5136,5662,Rs/Quintal
+PUNJAB,Soyabean,Zaid,5469,5887,6490,Rs/Quintal
+PUNJAB,Sunflower,Kharif,6633,7145,7888,Rs/Quintal
+PUNJAB,Sunflower,Rabi,6975,7513,8294,Rs/Quintal
+PUNJAB,Sunflower,Zaid,7870,8478,9359,Rs/Quintal
+RAJASTHAN,Castor seed,Kharif,5792,6249,6920,Rs/Quintal
+RAJASTHAN,Castor seed,Rabi,5611,6053,6703,Rs/Quintal
+RAJASTHAN,Castor seed,Zaid,6514,7027,7782,Rs/Quintal
+RAJASTHAN,Groundnut,Kharif,6096,6569,7258,Rs/Quintal
+RAJASTHAN,Groundnut,Rabi,6276,6764,7474,Rs/Quintal
+RAJASTHAN,Groundnut,Zaid,7097,7648,8451,Rs/Quintal
+RAJASTHAN,Linseed,Kharif,5514,5936,6544,Rs/Quintal
+RAJASTHAN,Linseed,Rabi,5418,5833,6430,Rs/Quintal
+RAJASTHAN,Linseed,Zaid,5795,6238,6877,Rs/Quintal
+RAJASTHAN,Niger seed,Kharif,7745,8350,9235,Rs/Quintal
+RAJASTHAN,Niger seed,Rabi,8482,9145,10114,Rs/Quintal
+RAJASTHAN,Niger seed,Zaid,9526,10270,11358,Rs/Quintal
+RAJASTHAN,Rapeseed &Mustard,Kharif,5055,5440,5992,Rs/Quintal
+RAJASTHAN,Rapeseed &Mustard,Rabi,5449,5863,6458,Rs/Quintal
+RAJASTHAN,Rapeseed &Mustard,Zaid,5990,6446,7100,Rs/Quintal
+RAJASTHAN,Safflower,Kharif,5819,6264,6906,Rs/Quintal
+RAJASTHAN,Safflower,Rabi,5613,6043,6662,Rs/Quintal
+RAJASTHAN,Safflower,Zaid,6128,6597,7273,Rs/Quintal
+RAJASTHAN,Sesamum,Kharif,8994,9724,10817,Rs/Quintal
+RAJASTHAN,Sesamum,Rabi,8736,9445,10507,Rs/Quintal
+RAJASTHAN,Sesamum,Zaid,9468,10236,11387,Rs/Quintal
+RAJASTHAN,Soyabean,Kharif,4644,4999,5511,Rs/Quintal
+RAJASTHAN,Soyabean,Rabi,4551,4899,5401,Rs/Quintal
+RAJASTHAN,Soyabean,Zaid,5057,5444,6002,Rs/Quintal
+RAJASTHAN,Sunflower,Kharif,6824,7351,8115,Rs/Quintal
+RAJASTHAN,Sunflower,Rabi,7093,7641,8435,Rs/Quintal
+RAJASTHAN,Sunflower,Zaid,8153,8782,9695,Rs/Quintal
+SIKKIM,Castor seed,Kharif,5492,5925,6561,Rs/Quintal
+SIKKIM,Castor seed,Rabi,5384,5809,6433,Rs/Quintal
+SIKKIM,Castor seed,Zaid,6282,6777,7505,Rs/Quintal
+SIKKIM,Groundnut,Kharif,6589,7101,7846,Rs/Quintal
+SIKKIM,Groundnut,Rabi,6618,7132,7880,Rs/Quintal
+SIKKIM,Groundnut,Zaid,7116,7669,8474,Rs/Quintal
+SIKKIM,Linseed,Kharif,5011,5395,5947,Rs/Quintal
+SIKKIM,Linseed,Rabi,5266,5669,6250,Rs/Quintal
+SIKKIM,Linseed,Zaid,5691,6127,6755,Rs/Quintal
+SIKKIM,Niger seed,Kharif,7750,8355,9240,Rs/Quintal
+SIKKIM,Niger seed,Rabi,8456,9116,10082,Rs/Quintal
+SIKKIM,Niger seed,Zaid,8955,9654,10677,Rs/Quintal
+SIKKIM,Rapeseed &Mustard,Kharif,5266,5667,6242,Rs/Quintal
+SIKKIM,Rapeseed &Mustard,Rabi,5331,5736,6318,Rs/Quintal
+SIKKIM,Rapeseed &Mustard,Zaid,5767,6206,6835,Rs/Quintal
+SIKKIM,Safflower,Kharif,5487,5907,6512,Rs/Quintal
+SIKKIM,Safflower,Rabi,5856,6304,6950,Rs/Quintal
+SIKKIM,Safflower,Zaid,6357,6843,7544,Rs/Quintal
+SIKKIM,Sesamum,Kharif,8332,9008,10021,Rs/Quintal
+SIKKIM,Sesamum,Rabi,9077,9813,10916,Rs/Quintal
+SIKKIM,Sesamum,Zaid,9969,10778,11990,Rs/Quintal
+SIKKIM,Soyabean,Kharif,4708,5068,5587,Rs/Quintal
+SIKKIM,Soyabean,Rabi,4573,4923,5427,Rs/Quintal
+SIKKIM,Soyabean,Zaid,5133,5526,6092,Rs/Quintal
+SIKKIM,Sunflower,Kharif,6749,7270,8026,Rs/Quintal
+SIKKIM,Sunflower,Rabi,7019,7561,8347,Rs/Quintal
+SIKKIM,Sunflower,Zaid,7537,8119,8963,Rs/Quintal
+TAMIL NADU,Castor seed,Kharif,5547,5984,6627,Rs/Quintal
+TAMIL NADU,Castor seed,Rabi,5947,6416,7105,Rs/Quintal
+TAMIL NADU,Castor seed,Zaid,6049,6526,7227,Rs/Quintal
+TAMIL NADU,Groundnut,Kharif,6267,6754,7463,Rs/Quintal
+TAMIL NADU,Groundnut,Rabi,6457,6959,7689,Rs/Quintal
+TAMIL NADU,Groundnut,Zaid,6977,7519,8308,Rs/Quintal
+TAMIL NADU,Linseed,Kharif,5188,5585,6157,Rs/Quintal
+TAMIL NADU,Linseed,Rabi,5408,5822,6418,Rs/Quintal
+TAMIL NADU,Linseed,Zaid,6019,6480,7144,Rs/Quintal
+TAMIL NADU,Niger seed,Kharif,7974,8597,9508,Rs/Quintal
+TAMIL NADU,Niger seed,Rabi,8312,8961,9910,Rs/Quintal
+TAMIL NADU,Niger seed,Zaid,9416,10151,11227,Rs/Quintal
+TAMIL NADU,Rapeseed &Mustard,Kharif,5261,5661,6235,Rs/Quintal
+TAMIL NADU,Rapeseed &Mustard,Rabi,5240,5639,6211,Rs/Quintal
+TAMIL NADU,Rapeseed &Mustard,Zaid,5904,6353,6997,Rs/Quintal
+TAMIL NADU,Safflower,Kharif,5581,6008,6623,Rs/Quintal
+TAMIL NADU,Safflower,Rabi,5817,6262,6903,Rs/Quintal
+TAMIL NADU,Safflower,Zaid,6056,6519,7187,Rs/Quintal
+TAMIL NADU,Sesamum,Kharif,8287,8959,9966,Rs/Quintal
+TAMIL NADU,Sesamum,Rabi,9267,10019,11146,Rs/Quintal
+TAMIL NADU,Sesamum,Zaid,9380,10141,11281,Rs/Quintal
+TAMIL NADU,Soyabean,Kharif,4633,4988,5499,Rs/Quintal
+TAMIL NADU,Soyabean,Rabi,4645,5001,5513,Rs/Quintal
+TAMIL NADU,Soyabean,Zaid,5373,5784,6376,Rs/Quintal
+TAMIL NADU,Sunflower,Kharif,6738,7258,8012,Rs/Quintal
+TAMIL NADU,Sunflower,Rabi,7171,7725,8528,Rs/Quintal
+TAMIL NADU,Sunflower,Zaid,7416,7988,8818,Rs/Quintal
+TELANGANA,Castor seed,Kharif,5588,6029,6677,Rs/Quintal
+TELANGANA,Castor seed,Rabi,6168,6654,7369,Rs/Quintal
+TELANGANA,Castor seed,Zaid,6788,7323,8110,Rs/Quintal
+TELANGANA,Groundnut,Kharif,6212,6695,7397,Rs/Quintal
+TELANGANA,Groundnut,Rabi,6642,7158,7909,Rs/Quintal
+TELANGANA,Groundnut,Zaid,7175,7732,8543,Rs/Quintal
+TELANGANA,Linseed,Kharif,5238,5639,6216,Rs/Quintal
+TELANGANA,Linseed,Rabi,5755,6195,6829,Rs/Quintal
+TELANGANA,Linseed,Zaid,6374,6862,7565,Rs/Quintal
+TELANGANA,Niger seed,Kharif,8479,9141,10109,Rs/Quintal
+TELANGANA,Niger seed,Rabi,8117,8751,9678,Rs/Quintal
+TELANGANA,Niger seed,Zaid,9112,9824,10865,Rs/Quintal
+TELANGANA,Rapeseed &Mustard,Kharif,5492,5910,6509,Rs/Quintal
+TELANGANA,Rapeseed &Mustard,Rabi,5843,6287,6925,Rs/Quintal
+TELANGANA,Rapeseed &Mustard,Zaid,6009,6466,7122,Rs/Quintal
+TELANGANA,Safflower,Kharif,5755,6195,6829,Rs/Quintal
+TELANGANA,Safflower,Rabi,5796,6240,6879,Rs/Quintal
+TELANGANA,Safflower,Zaid,6220,6696,7382,Rs/Quintal
+TELANGANA,Sesamum,Kharif,8468,9155,10184,Rs/Quintal
+TELANGANA,Sesamum,Rabi,9373,10134,11274,Rs/Quintal
+TELANGANA,Sesamum,Zaid,10383,11225,12487,Rs/Quintal
+TELANGANA,Soyabean,Kharif,4553,4901,5403,Rs/Quintal
+TELANGANA,Soyabean,Rabi,4922,5299,5842,Rs/Quintal
+TELANGANA,Soyabean,Zaid,5549,5974,6586,Rs/Quintal
+TELANGANA,Sunflower,Kharif,6961,7498,8277,Rs/Quintal
+TELANGANA,Sunflower,Rabi,7146,7698,8498,Rs/Quintal
+TELANGANA,Sunflower,Zaid,8301,8942,9871,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Castor seed,Kharif,5330,5750,6368,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Castor seed,Rabi,5752,6206,6873,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Castor seed,Zaid,6096,6577,7284,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Groundnut,Kharif,6001,6467,7146,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Groundnut,Rabi,6455,6956,7686,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Groundnut,Zaid,7001,7545,8337,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Linseed,Kharif,5136,5529,6095,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Linseed,Rabi,5053,5440,5997,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Linseed,Zaid,5800,6244,6884,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Niger seed,Kharif,8241,8885,9826,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Niger seed,Rabi,7853,8466,9363,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Niger seed,Zaid,9347,10077,11145,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Kharif,5393,5803,6392,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Rabi,5116,5505,6063,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Rapeseed &Mustard,Zaid,5805,6246,6879,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Safflower,Kharif,5529,5952,6562,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Safflower,Rabi,5444,5861,6461,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Safflower,Zaid,6164,6636,7316,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sesamum,Kharif,9018,9750,10846,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sesamum,Rabi,8919,9643,10727,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sesamum,Zaid,9593,10371,11537,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Soyabean,Kharif,4506,4851,5348,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Soyabean,Rabi,4781,5147,5674,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Soyabean,Zaid,5385,5797,6391,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sunflower,Kharif,6891,7423,8194,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sunflower,Rabi,6590,7099,7837,Rs/Quintal
+THE DADRA AND NAGAR HAVELI,Sunflower,Zaid,7684,8277,9137,Rs/Quintal
+TRIPURA,Castor seed,Kharif,5282,5698,6310,Rs/Quintal
+TRIPURA,Castor seed,Rabi,5942,6410,7099,Rs/Quintal
+TRIPURA,Castor seed,Zaid,6292,6788,7517,Rs/Quintal
+TRIPURA,Groundnut,Kharif,6454,6955,7685,Rs/Quintal
+TRIPURA,Groundnut,Rabi,6365,6859,7579,Rs/Quintal
+TRIPURA,Groundnut,Zaid,6909,7446,8227,Rs/Quintal
+TRIPURA,Linseed,Kharif,5388,5800,6394,Rs/Quintal
+TRIPURA,Linseed,Rabi,5037,5423,5978,Rs/Quintal
+TRIPURA,Linseed,Zaid,5813,6258,6899,Rs/Quintal
+TRIPURA,Niger seed,Kharif,7824,8435,9329,Rs/Quintal
+TRIPURA,Niger seed,Rabi,8048,8677,9596,Rs/Quintal
+TRIPURA,Niger seed,Zaid,8746,9429,10428,Rs/Quintal
+TRIPURA,Rapeseed &Mustard,Kharif,5317,5721,6301,Rs/Quintal
+TRIPURA,Rapeseed &Mustard,Rabi,5185,5579,6145,Rs/Quintal
+TRIPURA,Rapeseed &Mustard,Zaid,6088,6551,7215,Rs/Quintal
+TRIPURA,Safflower,Kharif,5296,5701,6285,Rs/Quintal
+TRIPURA,Safflower,Rabi,5550,5975,6587,Rs/Quintal
+TRIPURA,Safflower,Zaid,6057,6520,7188,Rs/Quintal
+TRIPURA,Sesamum,Kharif,8995,9725,10819,Rs/Quintal
+TRIPURA,Sesamum,Rabi,8702,9408,10466,Rs/Quintal
+TRIPURA,Sesamum,Zaid,9924,10729,11936,Rs/Quintal
+TRIPURA,Soyabean,Kharif,4592,4943,5449,Rs/Quintal
+TRIPURA,Soyabean,Rabi,4815,5184,5715,Rs/Quintal
+TRIPURA,Soyabean,Zaid,5237,5638,6215,Rs/Quintal
+TRIPURA,Sunflower,Kharif,6921,7455,8230,Rs/Quintal
+TRIPURA,Sunflower,Rabi,7152,7704,8505,Rs/Quintal
+TRIPURA,Sunflower,Zaid,7560,8144,8990,Rs/Quintal
+UTTAR PRADESH,Castor seed,Kharif,5875,6338,7019,Rs/Quintal
+UTTAR PRADESH,Castor seed,Rabi,5701,6151,6812,Rs/Quintal
+UTTAR PRADESH,Castor seed,Zaid,6561,7078,7838,Rs/Quintal
+UTTAR PRADESH,Groundnut,Kharif,6087,6560,7248,Rs/Quintal
+UTTAR PRADESH,Groundnut,Rabi,6346,6839,7557,Rs/Quintal
+UTTAR PRADESH,Groundnut,Zaid,7275,7840,8663,Rs/Quintal
+UTTAR PRADESH,Linseed,Kharif,5280,5684,6266,Rs/Quintal
+UTTAR PRADESH,Linseed,Rabi,5475,5894,6498,Rs/Quintal
+UTTAR PRADESH,Linseed,Zaid,5990,6448,7108,Rs/Quintal
+UTTAR PRADESH,Niger seed,Kharif,7943,8563,9470,Rs/Quintal
+UTTAR PRADESH,Niger seed,Rabi,8175,8814,9748,Rs/Quintal
+UTTAR PRADESH,Niger seed,Zaid,8926,9623,10643,Rs/Quintal
+UTTAR PRADESH,Rapeseed &Mustard,Kharif,5193,5588,6155,Rs/Quintal
+UTTAR PRADESH,Rapeseed &Mustard,Rabi,5201,5597,6165,Rs/Quintal
+UTTAR PRADESH,Rapeseed &Mustard,Zaid,5969,6423,7074,Rs/Quintal
+UTTAR PRADESH,Safflower,Kharif,5746,6186,6820,Rs/Quintal
+UTTAR PRADESH,Safflower,Rabi,5356,5766,6357,Rs/Quintal
+UTTAR PRADESH,Safflower,Zaid,6402,6892,7598,Rs/Quintal
+UTTAR PRADESH,Sesamum,Kharif,8038,8690,9667,Rs/Quintal
+UTTAR PRADESH,Sesamum,Rabi,8996,9726,10820,Rs/Quintal
+UTTAR PRADESH,Sesamum,Zaid,9824,10621,11815,Rs/Quintal
+UTTAR PRADESH,Soyabean,Kharif,4595,4947,5454,Rs/Quintal
+UTTAR PRADESH,Soyabean,Rabi,4864,5236,5772,Rs/Quintal
+UTTAR PRADESH,Soyabean,Zaid,5114,5505,6069,Rs/Quintal
+UTTAR PRADESH,Sunflower,Kharif,6405,6900,7617,Rs/Quintal
+UTTAR PRADESH,Sunflower,Rabi,7112,7661,8457,Rs/Quintal
+UTTAR PRADESH,Sunflower,Zaid,7305,7869,8687,Rs/Quintal
+UTTARAKHAND,Castor seed,Kharif,5623,6066,6718,Rs/Quintal
+UTTARAKHAND,Castor seed,Rabi,5608,6050,6700,Rs/Quintal
+UTTARAKHAND,Castor seed,Zaid,6365,6867,7605,Rs/Quintal
+UTTARAKHAND,Groundnut,Kharif,6208,6690,7392,Rs/Quintal
+UTTARAKHAND,Groundnut,Rabi,6173,6652,7350,Rs/Quintal
+UTTARAKHAND,Groundnut,Zaid,7048,7595,8392,Rs/Quintal
+UTTARAKHAND,Linseed,Kharif,5302,5708,6293,Rs/Quintal
+UTTARAKHAND,Linseed,Rabi,5202,5600,6174,Rs/Quintal
+UTTARAKHAND,Linseed,Zaid,5913,6365,7017,Rs/Quintal
+UTTARAKHAND,Niger seed,Kharif,8413,9070,10031,Rs/Quintal
+UTTARAKHAND,Niger seed,Rabi,8473,9135,10103,Rs/Quintal
+UTTARAKHAND,Niger seed,Zaid,9296,10022,11084,Rs/Quintal
+UTTARAKHAND,Rapeseed &Mustard,Kharif,5166,5559,6123,Rs/Quintal
+UTTARAKHAND,Rapeseed &Mustard,Rabi,5388,5798,6386,Rs/Quintal
+UTTARAKHAND,Rapeseed &Mustard,Zaid,5770,6209,6839,Rs/Quintal
+UTTARAKHAND,Safflower,Kharif,5604,6033,6651,Rs/Quintal
+UTTARAKHAND,Safflower,Rabi,5443,5859,6459,Rs/Quintal
+UTTARAKHAND,Safflower,Zaid,6068,6532,7201,Rs/Quintal
+UTTARAKHAND,Sesamum,Kharif,8530,9222,10259,Rs/Quintal
+UTTARAKHAND,Sesamum,Rabi,8723,9431,10491,Rs/Quintal
+UTTARAKHAND,Sesamum,Zaid,10087,10905,12131,Rs/Quintal
+UTTARAKHAND,Soyabean,Kharif,4515,4861,5359,Rs/Quintal
+UTTARAKHAND,Soyabean,Rabi,4631,4985,5495,Rs/Quintal
+UTTARAKHAND,Soyabean,Zaid,5068,5456,6015,Rs/Quintal
+UTTARAKHAND,Sunflower,Kharif,6984,7523,8305,Rs/Quintal
+UTTARAKHAND,Sunflower,Rabi,6824,7351,8115,Rs/Quintal
+UTTARAKHAND,Sunflower,Zaid,7491,8069,8908,Rs/Quintal
+WEST BENGAL,Castor seed,Kharif,6764,7297,8081,Rs/Quintal
+WEST BENGAL,Castor seed,Rabi,6253,6746,7471,Rs/Quintal
+WEST BENGAL,Castor seed,Zaid,7303,7879,8725,Rs/Quintal
+WEST BENGAL,Groundnut,Kharif,7016,7561,8354,Rs/Quintal
+WEST BENGAL,Groundnut,Rabi,7814,8421,9305,Rs/Quintal
+WEST BENGAL,Groundnut,Zaid,8233,8872,9803,Rs/Quintal
+WEST BENGAL,Linseed,Kharif,5719,6157,6788,Rs/Quintal
+WEST BENGAL,Linseed,Rabi,5829,6275,6918,Rs/Quintal
+WEST BENGAL,Linseed,Zaid,6996,7531,8302,Rs/Quintal
+WEST BENGAL,Niger seed,Kharif,9407,10142,11217,Rs/Quintal
+WEST BENGAL,Niger seed,Rabi,9006,9710,10739,Rs/Quintal
+WEST BENGAL,Niger seed,Zaid,10339,11147,12328,Rs/Quintal
+WEST BENGAL,Rapeseed &Mustard,Kharif,6030,6489,7147,Rs/Quintal
+WEST BENGAL,Rapeseed &Mustard,Rabi,6018,6476,7133,Rs/Quintal
+WEST BENGAL,Rapeseed &Mustard,Zaid,7142,7685,8465,Rs/Quintal
+WEST BENGAL,Safflower,Kharif,6451,6945,7656,Rs/Quintal
+WEST BENGAL,Safflower,Rabi,6364,6851,7553,Rs/Quintal
+WEST BENGAL,Safflower,Zaid,7163,7711,8501,Rs/Quintal
+WEST BENGAL,Sesamum,Kharif,9903,10707,11911,Rs/Quintal
+WEST BENGAL,Sesamum,Rabi,10125,10946,12177,Rs/Quintal
+WEST BENGAL,Sesamum,Zaid,11628,12571,13985,Rs/Quintal
+WEST BENGAL,Soyabean,Kharif,5403,5817,6413,Rs/Quintal
+WEST BENGAL,Soyabean,Rabi,5326,5734,6321,Rs/Quintal
+WEST BENGAL,Soyabean,Zaid,5972,6429,7087,Rs/Quintal
+WEST BENGAL,Sunflower,Kharif,8093,8718,9624,Rs/Quintal
+WEST BENGAL,Sunflower,Rabi,7693,8287,9148,Rs/Quintal
+WEST BENGAL,Sunflower,Zaid,9182,9891,10919,Rs/Quintal
