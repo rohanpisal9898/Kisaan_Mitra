@@ -1,205 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_theme.dart';
-import '../l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/sown_dashboard_model.dart';
+import '../services/api_service.dart';
+
+import '../widgets/dashboard_header.dart';
+import '../widgets/weather_card.dart';
+import '../widgets/crop_stage_card.dart';
+import '../widgets/water_status_card.dart';
+import '../widgets/crop_health_card.dart';
+import '../widgets/yield_prediction_card.dart';
+import '../widgets/recommendations_card.dart';
+
 import 'profile_screen.dart';
 import 'pest_detection_screen.dart';
 
-/// Dashboard screen - main app screen after onboarding.
-/// Placeholder for now, will be expanded with weather, yield, tasks, etc.
 class DashboardScreen extends StatefulWidget {
   final String language;
+  final String? phoneNumber;
 
-  const DashboardScreen({super.key, required this.language});
+  const DashboardScreen({
+    super.key,
+    required this.language,
+    this.phoneNumber,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late AppLocalizations _l10n;
   int _currentIndex = 0;
+
+  bool _isLoading = true;
+  String? _errorMessage;
+  SownDashboardModel? _dashboardData;
 
   @override
   void initState() {
     super.initState();
-    _l10n = AppLocalizations(widget.language);
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      String? phone = widget.phoneNumber;
+      if (phone == null || phone.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        phone = prefs.getString('user_phone');
+      }
+
+      final jsonResponse = await ApiService.fetchSownDashboard(
+        phoneNumber: phone,
+        language: widget.language,
+      );
+      final model = SownDashboardModel.fromJson(jsonResponse);
+
+      if (!mounted) return;
+      setState(() {
+        _dashboardData = model;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Failed to load farm dashboard data.';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    _l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: _currentIndex == 1
           ? const PestDetectionScreen()
           : _currentIndex == 3
               ? const ProfileScreen()
               : SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-
-              // Top bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.eco,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        _l10n.appName,
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
+                  child: RefreshIndicator(
+                    onRefresh: _loadDashboardData,
+                    color: const Color(0xFF15803D),
+                    child: _buildDashboardContent(),
                   ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications_outlined),
-                        onPressed: () {},
-                      ),
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundColor: AppColors.chipBg,
-                        child: Icon(
-                          Icons.person,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Welcome card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2D5A1E), Color(0xFF1A3A0F)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '🌾 ${_l10n.get("welcome")}',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your AI farming assistant is ready.',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.75),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 24),
-
-              // Quick actions grid
-              Text(
-                'Quick Actions',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.4,
-                  children: [
-                    _buildQuickAction(
-                      Icons.wb_sunny_outlined,
-                      'Weather',
-                      'Today\'s forecast',
-                      const Color(0xFFFFF7ED),
-                      AppColors.warning,
-                    ),
-                    _buildQuickAction(
-                      Icons.eco_outlined,
-                      'Soil Health',
-                      'NPK analysis',
-                      const Color(0xFFECFCCB),
-                      AppColors.primary,
-                    ),
-                    _buildQuickAction(
-                      Icons.show_chart,
-                      'Yield',
-                      'Prediction',
-                      const Color(0xFFEFF6FF),
-                      AppColors.info,
-                    ),
-                    _buildQuickAction(
-                      Icons.task_alt,
-                      'Tasks',
-                      'Today\'s tasks',
-                      const Color(0xFFF0FDF4),
-                      AppColors.accent,
-                    ),
-                    _buildQuickAction(
-                      Icons.bug_report_outlined,
-                      'Pest Alert',
-                      'Risk status',
-                      const Color(0xFFFEF2F2),
-                      AppColors.error,
-                    ),
-                    _buildQuickAction(
-                      Icons.attach_money,
-                      'Market',
-                      'Mandi prices',
-                      const Color(0xFFFAF5FF),
-                      const Color(0xFF8B5CF6),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      // Restore original KISAAN MITRA bottom navigation
+      // Bottom Navigation Bar
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.bgCard,
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -210,10 +106,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
+          onTap: (index) {
+            setState(() => _currentIndex = index);
+            if (index == 0) {
+              // Reload dashboard data when tapping Home tab
+              _loadDashboardData();
+            }
+          },
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
+          selectedItemColor: const Color(0xFF15803D),
+          unselectedItemColor: const Color(0xFF94A3B8),
           backgroundColor: Colors.transparent,
           elevation: 0,
           selectedLabelStyle: GoogleFonts.inter(
@@ -221,26 +123,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
           unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-          items: [
+          items: const [
             BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined),
-              activeIcon: const Icon(Icons.home),
-              label: _l10n.navHome,
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.bug_report_outlined),
-              activeIcon: const Icon(Icons.bug_report),
-              label: _l10n.navPest,
+              icon: Icon(Icons.bug_report_outlined),
+              activeIcon: Icon(Icons.bug_report),
+              label: 'Pest',
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: const Icon(Icons.account_balance_wallet),
-              label: _l10n.navWallet,
+              icon: Icon(Icons.account_balance_wallet_outlined),
+              activeIcon: Icon(Icons.account_balance_wallet),
+              label: 'Wallet',
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.person_outline),
-              activeIcon: const Icon(Icons.person),
-              label: _l10n.navProfile,
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
             ),
           ],
         ),
@@ -248,52 +150,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickAction(
-    IconData icon,
-    String title,
-    String subtitle,
-    Color bgColor,
-    Color iconColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDashboardContent() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF15803D),
+        ),
+      );
+    }
+
+    if (_errorMessage != null || _dashboardData == null) {
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Icon(
+                Icons.wifi_off_rounded,
+                size: 56,
+                color: Color(0xFF94A3B8),
+              ),
+              const SizedBox(height: 16),
               Text(
-                title,
+                'Unable to connect to backend',
                 style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
                 ),
               ),
+              const SizedBox(height: 8),
               Text(
-                subtitle,
+                'Please check your network or backend server and try again.',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF15803D),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _loadDashboardData,
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: Text(
+                  'Retry',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    final data = _dashboardData!;
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Header (Greeting + Location)
+          DashboardHeaderWidget(
+            farmer: data.farmer,
+            onNotificationTap: () {},
+            onProfileTap: () => setState(() => _currentIndex = 3),
+          ),
+          const SizedBox(height: 20),
+
+          // 2. Weather Card
+          WeatherCardWidget(weather: data.weather),
+          const SizedBox(height: 16),
+
+          // 3. Grid Row: Crop Stage Card & Water Status Card
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CropStageCardWidget(cropStage: data.cropStage),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: WaterStatusCardWidget(water: data.water),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Crop Health Card
+          CropHealthCardWidget(health: data.cropHealth),
+          const SizedBox(height: 16),
+
+          // 5. Expected Yield Prediction Card (CatBoost)
+          YieldPredictionCardWidget(yieldData: data.yieldPrediction),
+          const SizedBox(height: 22),
+
+          // 6. Top Recommendations (Gemini AI / Fallback)
+          RecommendationsCardWidget(recommendations: data.recommendations),
+          const SizedBox(height: 24),
         ],
       ),
     );

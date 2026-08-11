@@ -222,6 +222,30 @@ class ApiService {
     }
   }
 
+  // ─── Dashboard APIs ──────────────────────────────────────
+
+  /// Fetch Sown Dashboard data from FastAPI backend.
+  /// GET /api/v1/dashboard/sown?phone_number={phoneNumber}&language={language}
+  static Future<Map<String, dynamic>> fetchSownDashboard({
+    String? phoneNumber,
+    String language = 'English',
+  }) async {
+    String query = 'language=${Uri.encodeComponent(language)}';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/v1/dashboard/sown?$query'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to fetch sown dashboard data');
+    }
+  }
+
   // ─── Health Check ──────────────────────────────────────
 
   /// Check if backend is running.
@@ -236,3 +260,4 @@ class ApiService {
     }
   }
 }
+

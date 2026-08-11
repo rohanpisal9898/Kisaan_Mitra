@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import connect_to_mongo, close_mongo_connection
+from app.ml.model_loader import model_loader
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -24,6 +25,10 @@ app.add_middleware(
 async def startup_event():
     """Initialize services on startup."""
     await connect_to_mongo()
+    try:
+        model_loader.load_models()
+    except Exception as e:
+        print(f"[WARNING] ML model loading warning: {e}")
     print("=" * 50)
     print("  Kisaan Mitra Backend v2.0 Started")
     print("=" * 50)
@@ -60,14 +65,16 @@ os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Import and include routers
-from app.routers import locations, users, pest_detection
+from app.routers import locations, users, pest_detection, dashboard
 
 app.include_router(locations.router)
 app.include_router(users.router)
 app.include_router(pest_detection.router)
+app.include_router(dashboard.router)
 
 
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

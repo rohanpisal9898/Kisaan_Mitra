@@ -1,0 +1,77 @@
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+
+class FarmerInfo(BaseModel):
+    name: str = "Ramesh"
+    village: str = "Sonepur"
+    district: str = "Nashik"
+    state: str = "Maharashtra"
+
+class CropInfo(BaseModel):
+    id: str = "soybean"
+    name: str = "Soyabean"
+    sowing_date: str = "2026-06-15"
+
+class WeatherInfo(BaseModel):
+    temperature: float = 26.0
+    feels_like: float = 28.0
+    condition: str = "Partly Cloudy"
+    rain_next_24h_mm: float = 18.0
+    rain_description: str = "18 mm rain expected"
+    wind_kmh: float = 5.0
+    available: bool = True
+
+class CropStageInfo(BaseModel):
+    stage_id: str = "flowering"
+    stage_name: str = "Flowering"
+    stage_display: str = "Flowering"
+    stage_icon: str = "🌼"
+    stage_index: int = 2
+    status: str = "on_track"
+    days_after_sowing: int = 60
+    total_duration: int = 104
+    progress_fraction: float = 0.577
+
+class WaterStatusInfo(BaseModel):
+    status: str = "rain_sufficient"
+    status_display: str = "Rain may cover need"
+    irrigation_mm: float = 0.0
+    description: str = "No irrigation needed today"
+    color: str = "blue"
+    kc_status: str = "established"
+
+class CropHealthInfo(BaseModel):
+    status: str = "good"
+    status_display: str = "Good"
+    score: Optional[float] = 86.0
+    description: str = "Your crop is growing normally"
+    satellite_available: bool = True
+    satellite_date: Optional[str] = "2026-08-06"
+    satellite_days_old: Optional[int] = 4
+
+class YieldPredictionInfo(BaseModel):
+    predicted: float = 3.4
+    lower: float = 3.1
+    upper: float = 3.7
+    unit: str = "tonnes_per_hectare"
+    model_used: str = "satellite"
+    confidence_label: str = "90% Confidence Range"
+
+class RecommendationItem(BaseModel):
+    priority: int
+    type: str
+    title: str
+    description: str
+    severity: str = "medium"
+    icon: str = "💡"
+
+class SownDashboardResponse(BaseModel):
+    state: str = "sown"
+    farmer: FarmerInfo
+    crop: CropInfo
+    weather: WeatherInfo
+    crop_stage: CropStageInfo
+    water: WaterStatusInfo
+    crop_health: CropHealthInfo
+    yield_prediction: YieldPredictionInfo
+    recommendations: List[RecommendationItem] = []
