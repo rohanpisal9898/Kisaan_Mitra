@@ -15,6 +15,7 @@ import '../widgets/recommendations_card.dart';
 
 import 'profile_screen.dart';
 import 'pest_detection_screen.dart';
+import 'farmer_wallet_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String language;
@@ -82,15 +83,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: _currentIndex == 1
           ? const PestDetectionScreen()
-          : _currentIndex == 3
-              ? const ProfileScreen()
-              : SafeArea(
-                  child: RefreshIndicator(
-                    onRefresh: _loadDashboardData,
-                    color: const Color(0xFF15803D),
-                    child: _buildDashboardContent(),
-                  ),
-                ),
+          : _currentIndex == 2
+              ? FarmerWalletScreen(phoneNumber: widget.phoneNumber)
+              : _currentIndex == 3
+                  ? const ProfileScreen()
+                  : SafeArea(
+                      child: RefreshIndicator(
+                        onRefresh: _loadDashboardData,
+                        color: const Color(0xFF15803D),
+                        child: _buildDashboardContent(),
+                      ),
+                    ),
 
       // Bottom Navigation Bar
       bottomNavigationBar: Container(

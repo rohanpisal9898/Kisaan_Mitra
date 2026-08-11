@@ -246,6 +246,133 @@ class ApiService {
     }
   }
 
+  // ─── Wallet APIs ───────────────────────────────────────
+
+  /// Fetch Farmer Wallet & Financial Shield summary.
+  /// GET /api/v1/wallet/overview?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> fetchWalletOverview({
+    String? phoneNumber,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/v1/wallet/overview$query'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to fetch wallet overview');
+    }
+  }
+
+  /// Add a new custom expense.
+  /// POST /api/v1/wallet/expenses?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> addExpense({
+    String? phoneNumber,
+    required String category,
+    required String label,
+    required double amount,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final body = {
+      'category': category,
+      'label': label,
+      'amount': amount,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/v1/wallet/expenses$query'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to add expense');
+    }
+  }
+
+  /// Update an existing expense amount.
+  /// PUT /api/v1/wallet/expenses/{expenseId}?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> updateExpense({
+    String? phoneNumber,
+    required String expenseId,
+    required double amount,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final body = {
+      'amount': amount,
+    };
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/v1/wallet/expenses/$expenseId$query'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to update expense');
+    }
+  }
+
+  /// Delete an expense item.
+  /// DELETE /api/v1/wallet/expenses/{expenseId}?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> deleteExpense({
+    String? phoneNumber,
+    required String expenseId,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/v1/wallet/expenses/$expenseId$query'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to delete expense');
+    }
+  }
+
+  /// Manually request a fresh Gemini market insight refresh respecting 5-min cooldown.
+  /// POST /api/v1/wallet/insight/refresh?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> refreshInsight({
+    String? phoneNumber,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/v1/wallet/insight/refresh$query'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to refresh market insight');
+    }
+  }
+
   // ─── Health Check ──────────────────────────────────────
 
   /// Check if backend is running.
@@ -260,4 +387,5 @@ class ApiService {
     }
   }
 }
+
 
