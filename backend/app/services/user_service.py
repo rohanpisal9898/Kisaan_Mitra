@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, Dict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.models.user import UserRegisterRequest, UserResponse
@@ -35,6 +35,14 @@ class UserService:
         if existing:
             raise ValueError("ACCOUNT_ALREADY_EXISTS")
 
+        # Normalize Not Sown Yet
+        crop_val = user_data.current_crop
+        if not crop_val or str(crop_val).strip().lower() in ["not sown yet", "not_sown", "none", "null", ""]:
+            crop_val = None
+            sowing_date_val = None
+        else:
+            sowing_date_val = user_data.sowing_date.isoformat() if user_data.sowing_date else None
+
         # Prepare user document
         user_doc = {
             "phone_number": user_data.phone_number,
@@ -46,10 +54,10 @@ class UserService:
             "district": user_data.district,
             "latitude": lat,
             "longitude": lon,
-            "current_crop": user_data.current_crop,
+            "current_crop": crop_val,
             "farm_area": user_data.farm_area,
             "farm_area_unit": user_data.farm_area_unit,
-            "sowing_date": user_data.sowing_date.isoformat(),
+            "sowing_date": sowing_date_val,
             "farm_location": user_data.farm_location,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
@@ -114,6 +122,13 @@ class UserService:
                 update_data["latitude"] = coords["latitude"]
                 update_data["longitude"] = coords["longitude"]
 
+        # Normalize Not Sown Yet in update_data
+        if "current_crop" in update_data:
+            crop_val = update_data["current_crop"]
+            if not crop_val or str(crop_val).strip().lower() in ["not sown yet", "not_sown", "none", "null", ""]:
+                update_data["current_crop"] = None
+                update_data["sowing_date"] = None
+
         update_data["updated_at"] = datetime.utcnow()
 
         await db.users.update_one(
@@ -126,6 +141,19 @@ class UserService:
 
     def _to_user_response(self, user_doc: Dict) -> UserResponse:
         """Convert MongoDB document to UserResponse."""
+        curr_crop = user_doc.get("current_crop")
+        if curr_crop and str(curr_crop).strip().lower() in ["not sown yet", "not_sown", "none", "null", ""]:
+            curr_crop = None
+
+        s_date = user_doc.get("sowing_date")
+        if not curr_crop:
+            s_date = None
+        elif isinstance(s_date, str):
+            try:
+                s_date = date.fromisoformat(s_date)
+            except Exception:
+                s_date = None
+
         return UserResponse(
             id=str(user_doc["_id"]),
             phone_number=user_doc["phone_number"],
@@ -136,10 +164,10 @@ class UserService:
             district=user_doc.get("district", ""),
             latitude=user_doc.get("latitude"),
             longitude=user_doc.get("longitude"),
-            current_crop=user_doc.get("current_crop", ""),
+            current_crop=curr_crop,
             farm_area=user_doc.get("farm_area", 0),
             farm_area_unit=user_doc.get("farm_area_unit", "acres"),
-            sowing_date=user_doc.get("sowing_date"),
+            sowing_date=s_date,
             farm_location=user_doc.get("farm_location", ""),
             created_at=user_doc.get("created_at"),
             updated_at=user_doc.get("updated_at"),

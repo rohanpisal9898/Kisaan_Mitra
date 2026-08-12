@@ -120,7 +120,7 @@ class ApiService {
     required String currentCrop,
     required double farmArea,
     required String farmAreaUnit,
-    required String sowingDate,
+    String? sowingDate,
     String farmLocation = '',
   }) async {
     final body = {
@@ -222,7 +222,27 @@ class ApiService {
     }
   }
 
-  // ─── Dashboard APIs ──────────────────────────────────────
+  /// Fetch multi-state Dashboard Overview (no_crop, growing, crop_matured) from FastAPI.
+  /// GET /api/v1/dashboard/overview?phone_number={phoneNumber}&language={language}
+  static Future<Map<String, dynamic>> fetchDashboardOverview({
+    String? phoneNumber,
+    String language = 'English',
+  }) async {
+    String query = 'language=${Uri.encodeComponent(language)}';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/v1/dashboard/overview?$query'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to fetch dashboard overview data');
+    }
+  }
 
   /// Fetch Sown Dashboard data from FastAPI backend.
   /// GET /api/v1/dashboard/sown?phone_number={phoneNumber}&language={language}

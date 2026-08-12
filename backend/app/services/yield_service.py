@@ -24,6 +24,18 @@ class YieldService:
         Predict yield for given farm context.
         Uses satellite model if satellite data exists, otherwise fallback nosat model.
         """
+        crop_name = farm_context.get("crop_name") or farm_context.get("current_crop")
+        if not crop_name or str(crop_name).strip().lower() in ["none", "null", "", "not_sown", "not sown yet"]:
+            return {
+                "yield_predicted": 0.0,
+                "yield_lower": 0.0,
+                "yield_upper": 0.0,
+                "unit": "tonnes_per_hectare",
+                "model_used": "nocrop",
+                "available": False,
+                "message": "No active crop sown",
+            }
+
         if settings.use_mock_data:
             return self._mock_prediction(farm_context)
 

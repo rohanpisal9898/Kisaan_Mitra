@@ -19,6 +19,11 @@ class DashboardHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isNoCrop = crop == null ||
+        crop!.name.isEmpty ||
+        crop!.name.trim().toLowerCase() == 'not sown yet' ||
+        crop!.name.trim().toLowerCase() == 'none';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -98,7 +103,7 @@ class DashboardHeaderWidget extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Welcome greeting & location + Active Crop Badge
+        // Welcome greeting & location + Crop Status Badge
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,8 +158,34 @@ class DashboardHeaderWidget extends StatelessWidget {
               ),
             ),
 
-            // Active Crop Badge
-            if (crop != null && crop!.name.isNotEmpty)
+            // Crop Status Badge (NO CROP SOWN vs ACTIVE CROP)
+            if (isNoCrop)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🌱', style: TextStyle(fontSize: 13)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'NO CROP SOWN',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
               Container(
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

@@ -50,7 +50,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   String _selectedCrop = 'Not Sown Yet';
   final _areaController = TextEditingController(text: '0.0');
   String _areaUnit = 'Acres';
-  DateTime _sowingDate = DateTime.now();
+  DateTime? _sowingDate;
 
   // State / District selection from API
   List<String> _states = [];
@@ -297,12 +297,13 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                       const SizedBox(height: 10),
                       _buildFarmAreaRow(),
 
-                      const SizedBox(height: 24),
-
-                      // Sowing Date
-                      _buildLabel(_l10n.sowingDate),
-                      const SizedBox(height: 10),
-                      _buildDatePicker(),
+                      // Sowing Date (only shown if a real crop is selected)
+                      if (_selectedCrop != 'Not Sown Yet') ...[
+                        const SizedBox(height: 24),
+                        _buildLabel(_l10n.sowingDate),
+                        const SizedBox(height: 10),
+                        _buildDatePicker(),
+                      ],
 
                       const SizedBox(height: 32),
                     ],
@@ -333,7 +334,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                                 farmArea:
                                     double.tryParse(_areaController.text) ?? 0.0,
                                 farmAreaUnit: _areaUnit.toLowerCase(),
-                                sowingDate: _sowingDate,
+                                sowingDate: _selectedCrop == 'Not Sown Yet' ? null : _sowingDate,
                                 farmLocation: widget.village,
                               ),
                             ),
@@ -691,7 +692,16 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
-              onTap: () => setState(() => _selectedCrop = crop),
+              onTap: () {
+                setState(() {
+                  _selectedCrop = crop;
+                  if (_selectedCrop == 'Not Sown Yet') {
+                    _sowingDate = null;
+                  } else if (_sowingDate == null) {
+                    _sowingDate = DateTime.now();
+                  }
+                });
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
@@ -812,7 +822,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
-          initialDate: _sowingDate,
+          initialDate: _sowingDate ?? DateTime.now(),
           firstDate: DateTime(2024),
           lastDate: DateTime.now(),
           builder: (context, child) {
@@ -841,7 +851,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
             Icon(Icons.calendar_today, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
             Text(
-              DateFormat('d MMM yyyy').format(_sowingDate),
+              DateFormat('d MMM yyyy').format(_sowingDate ?? DateTime.now()),
               style: GoogleFonts.inter(fontSize: 14),
             ),
           ],

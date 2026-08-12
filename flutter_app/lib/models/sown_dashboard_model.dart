@@ -271,3 +271,64 @@ class SownDashboardModel {
     );
   }
 }
+
+class PreviousCropInfoModel {
+  final String name;
+  final String sowingDate;
+  final String status;
+
+  PreviousCropInfoModel({
+    required this.name,
+    required this.sowingDate,
+    required this.status,
+  });
+
+  factory PreviousCropInfoModel.fromJson(Map<String, dynamic> json) {
+    return PreviousCropInfoModel(
+      name: json['name'] ?? '',
+      sowingDate: json['sowing_date'] ?? '',
+      status: json['status'] ?? 'mature',
+    );
+  }
+}
+
+class DashboardOverviewModel {
+  final String dashboardState; // "no_crop", "crop_matured", "growing"
+  final FarmerInfoModel farmer;
+  final WeatherInfoModel weather;
+  final PreviousCropInfoModel? previousCrop;
+  final SownDashboardModel? sownDashboard;
+  final List<dynamic> topRecommendationsJson;
+
+  DashboardOverviewModel({
+    required this.dashboardState,
+    required this.farmer,
+    required this.weather,
+    this.previousCrop,
+    this.sownDashboard,
+    required this.topRecommendationsJson,
+  });
+
+  factory DashboardOverviewModel.fromJson(Map<String, dynamic> json) {
+    final dState = json['dashboard_state'] ?? (json['state'] == 'sown' ? 'growing' : 'no_crop');
+
+    SownDashboardModel? sown;
+    if (dState == 'growing' || json.containsKey('crop_stage')) {
+      sown = SownDashboardModel.fromJson(json);
+    }
+
+    PreviousCropInfoModel? prev;
+    if (json['previous_crop'] != null) {
+      prev = PreviousCropInfoModel.fromJson(json['previous_crop']);
+    }
+
+    return DashboardOverviewModel(
+      dashboardState: dState,
+      farmer: FarmerInfoModel.fromJson(json['farmer'] ?? {}),
+      weather: WeatherInfoModel.fromJson(json['weather'] ?? {}),
+      previousCrop: prev,
+      sownDashboard: sown,
+      topRecommendationsJson: json['top_recommendations'] as List? ?? [],
+    );
+  }
+}

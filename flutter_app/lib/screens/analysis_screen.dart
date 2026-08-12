@@ -24,7 +24,7 @@ class AnalysisScreen extends StatefulWidget {
   final String crop;
   final double farmArea;
   final String farmAreaUnit;
-  final DateTime sowingDate;
+  final DateTime? sowingDate;
   final String farmLocation;
 
   const AnalysisScreen({
@@ -41,7 +41,7 @@ class AnalysisScreen extends StatefulWidget {
     required this.crop,
     required this.farmArea,
     required this.farmAreaUnit,
-    required this.sowingDate,
+    this.sowingDate,
     required this.farmLocation,
   });
 
@@ -95,6 +95,12 @@ class _AnalysisScreenState extends State<AnalysisScreen>
 
     // Register user in background
     try {
+      final isNotSown = widget.crop == 'Not Sown Yet' || widget.crop.trim().isEmpty;
+      final cropParam = isNotSown ? '' : widget.crop;
+      final sowingDateParam = (isNotSown || widget.sowingDate == null)
+          ? null
+          : DateFormat('yyyy-MM-dd').format(widget.sowingDate!);
+
       await ApiService.registerUser(
         phoneNumber: widget.phoneNumber,
         password: widget.password,
@@ -105,10 +111,10 @@ class _AnalysisScreenState extends State<AnalysisScreen>
         district: widget.district,
         latitude: widget.latitude,
         longitude: widget.longitude,
-        currentCrop: widget.crop,
+        currentCrop: cropParam,
         farmArea: widget.farmArea,
         farmAreaUnit: widget.farmAreaUnit,
-        sowingDate: DateFormat('yyyy-MM-dd').format(widget.sowingDate),
+        sowingDate: sowingDateParam,
         farmLocation: widget.farmLocation,
       );
     } catch (e) {

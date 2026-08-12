@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/sown_dashboard_model.dart';
@@ -12,6 +13,8 @@ import '../widgets/water_status_card.dart';
 import '../widgets/crop_health_card.dart';
 import '../widgets/yield_prediction_card.dart';
 import '../widgets/recommendations_card.dart';
+import '../widgets/planning_dashboard_card.dart';
+import '../widgets/top_crop_recommendations_card.dart';
 
 import 'profile_screen.dart';
 import 'pest_detection_screen.dart';
@@ -36,7 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool _isLoading = true;
   String? _errorMessage;
-  SownDashboardModel? _dashboardData;
+  DashboardOverviewModel? _overviewData;
 
   @override
   void initState() {
@@ -57,15 +60,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         phone = prefs.getString('user_phone');
       }
 
-      final jsonResponse = await ApiService.fetchSownDashboard(
+      final jsonResponse = await ApiService.fetchDashboardOverview(
         phoneNumber: phone,
         language: widget.language,
       );
-      final model = SownDashboardModel.fromJson(jsonResponse);
+      final model = DashboardOverviewModel.fromJson(jsonResponse);
 
       if (!mounted) return;
       setState(() {
-        _dashboardData = model;
+        _overviewData = model;
         _isLoading = false;
       });
     } catch (e) {
@@ -75,6 +78,190 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showSowingDateSelectionModal(TopCropRecommendationModel item) {
+    DateTime selectedDate = DateTime.now();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        item.icon,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Plan ${item.crop}',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '📅 Recommended Sowing: ${item.recommendedSowing}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF15803D),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Select Sowing Date',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF334155),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(const Duration(days: 90)),
+                        lastDate: DateTime.now().add(const Duration(days: 180)),
+                      );
+                      if (picked != null) {
+                        setModalState(() {
+                          selectedDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateFormat('dd MMMM yyyy').format(selectedDate),
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF15803D)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF15803D),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+
+                        String? phone = widget.phoneNumber;
+                        if (phone == null || phone.isEmpty) {
+                          final prefs = await SharedPreferences.getInstance();
+                          phone = prefs.getString('user_phone');
+                        }
+
+                        if (phone != null && phone.isNotEmpty) {
+                          try {
+                            final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                            await ApiService.updateUser(phone, {
+                              'current_crop': item.crop,
+                              'sowing_date': formattedDate,
+                            });
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('🌾 Switched active crop to ${item.crop}!'),
+                                  backgroundColor: const Color(0xFF15803D),
+                                ),
+                              );
+                              _loadDashboardData();
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to update crop: $e'),
+                                  backgroundColor: Colors.red.shade700,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                      label: Text(
+                        'Confirm & Start Growing',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -112,7 +299,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onTap: (index) {
             setState(() => _currentIndex = index);
             if (index == 0) {
-              // Reload dashboard data when tapping Home tab
               _loadDashboardData();
             }
           },
@@ -162,7 +348,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    if (_errorMessage != null || _dashboardData == null) {
+    if (_errorMessage != null || _overviewData == null) {
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Container(
@@ -220,7 +406,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    final data = _dashboardData!;
+    final overview = _overviewData!;
+
+    // 1. Growing State (Sown Dashboard)
+    if (overview.dashboardState == 'growing' && overview.sownDashboard != null) {
+      final data = overview.sownDashboard!;
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DashboardHeaderWidget(
+              farmer: data.farmer,
+              crop: data.crop,
+              onNotificationTap: () {},
+              onProfileTap: () => setState(() => _currentIndex = 3),
+            ),
+            const SizedBox(height: 20),
+            WeatherCardWidget(weather: data.weather),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: CropStageCardWidget(cropStage: data.cropStage)),
+                const SizedBox(width: 14),
+                Expanded(child: WaterStatusCardWidget(water: data.water)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            CropHealthCardWidget(health: data.cropHealth),
+            const SizedBox(height: 16),
+            YieldPredictionCardWidget(yieldData: data.yieldPrediction),
+            const SizedBox(height: 22),
+            RecommendationsCardWidget(recommendations: data.recommendations),
+            const SizedBox(height: 24),
+          ],
+        ),
+      );
+    }
+
+    // 2. Planning State (No-Crop or Crop Matured)
+    final topRecs = overview.topRecommendationsJson
+        .map((j) => TopCropRecommendationModel.fromJson(j))
+        .toList();
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -228,44 +457,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Header (Greeting + Location + Active Crop)
+          // 1. Header (Greeting + Location + No-Crop / Crop Badge)
           DashboardHeaderWidget(
-            farmer: data.farmer,
-            crop: data.crop,
+            farmer: overview.farmer,
+            crop: overview.dashboardState == 'crop_matured' && overview.previousCrop != null
+                ? CropInfoModel(id: '', name: overview.previousCrop!.name, sowingDate: overview.previousCrop!.sowingDate)
+                : null,
             onNotificationTap: () {},
             onProfileTap: () => setState(() => _currentIndex = 3),
           ),
           const SizedBox(height: 20),
 
           // 2. Weather Card
-          WeatherCardWidget(weather: data.weather),
+          WeatherCardWidget(weather: overview.weather),
           const SizedBox(height: 16),
 
-          // 3. Grid Row: Crop Stage Card & Water Status Card
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CropStageCardWidget(cropStage: data.cropStage),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: WaterStatusCardWidget(water: data.water),
-              ),
-            ],
+          // 3. No-Crop Banner Card or Maturity Transition Card
+          PlanningDashboardCardWidget(
+            dashboardState: overview.dashboardState,
+            previousCropName: overview.previousCrop?.name,
+            onPlanCropTap: () => setState(() => _currentIndex = 3),
           ),
-          const SizedBox(height: 16),
-
-          // 4. Crop Health Card
-          CropHealthCardWidget(health: data.cropHealth),
-          const SizedBox(height: 16),
-
-          // 5. Expected Yield Prediction Card (CatBoost)
-          YieldPredictionCardWidget(yieldData: data.yieldPrediction),
           const SizedBox(height: 22),
 
-          // 6. Top Recommendations (Gemini AI / Fallback)
-          RecommendationsCardWidget(recommendations: data.recommendations),
+          // 4. ⭐ Top Crop Recommendations
+          TopCropRecommendationsCardWidget(
+            recommendations: topRecs,
+            onCropSelected: (selectedItem) => _showSowingDateSelectionModal(selectedItem),
+          ),
           const SizedBox(height: 24),
         ],
       ),

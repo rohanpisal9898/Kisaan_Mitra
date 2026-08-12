@@ -16,9 +16,13 @@ from app.services.water_service import water_service
 from app.services.crop_health_service import crop_health_service
 from app.services.yield_service import yield_service
 from app.services.recommendation_service import recommendation_service
+from app.services.crop_recommendation_service import crop_recommendation_service
 
 from app.models.dashboard import (
     SownDashboardResponse,
+    PlanningDashboardResponse,
+    TopCropRecommendationItem,
+    PreviousCropInfo,
     FarmerInfo,
     CropInfo,
     WeatherInfo,
@@ -54,8 +58,8 @@ class DashboardService:
         village = user_doc.get("village", "Sonepur")
         district = user_doc.get("district", "Nashik")
         state = user_doc.get("state", "Maharashtra")
-        latitude = user_doc.get("latitude", 19.9975)
-        longitude = user_doc.get("longitude", 73.7898)
+        latitude = user_doc.get("latitude") if user_doc.get("latitude") is not None else 19.9975
+        longitude = user_doc.get("longitude") if user_doc.get("longitude") is not None else 73.7898
         current_crop = user_doc.get("current_crop", "Soyabean")
         sowing_date_str = user_doc.get("sowing_date", "2026-06-15")
 
@@ -318,6 +322,124 @@ class DashboardService:
             "satellite_data": None,
             "satellite_source": "unavailable",
         }
+
+    async def get_dashboard_overview(
+        self,
+        db: AsyncIOMotorDatabase,
+        phone_number: Optional[str] = None,
+        language: str = "English",
+        query_date: Optional[Any] = None,
+    ) -> Dict[str, Any]:
+        """
+        Dynamic multi-state dashboard handler.
+        Determines dashboard_state:
+          1. "no_crop": current_crop is None / empty -> Planning Dashboard UI
+          2. "crop_matured": active crop stage is maturity / DAS >= duration -> Transition Planning UI
+          3. "growing": active growing crop -> Existing Sown Dashboard UI
+        """
+        user_doc = None
+        if db is not None and phone_number and phone_number.strip():
+            user_doc = await db.users.find_one({"phone_number": phone_number.strip()})
+
+        if not user_doc and db is not None:
+            user_doc = await db.users.find_one({}, sort=[("updated_at", -1)])
+
+        if not user_doc:
+            user_doc = self._default_user_doc(phone_number)
+
+        current_crop = user_doc.get("current_crop")
+        sowing_date_str = user_doc.get("sowing_date")
+        latitude = user_doc.get("latitude") if user_doc.get("latitude") is not None else 19.9975
+        longitude = user_doc.get("longitude") if user_doc.get("longitude") is not None else 73.7898
+        farmer_name = user_doc.get("farmer_name", "Ramesh")
+        village = user_doc.get("village", "Sonepur")
+        district = user_doc.get("district", "Nashik")
+        state = user_doc.get("state", "Maharashtra")
+        farm_area_ha = float(user_doc.get("farm_area", user_doc.get("land_size_ha", 2.5)))
+
+        # 1. State A: No Crop Sown
+        if not current_crop or str(current_crop).strip().lower() in ["none", "null", "not sown yet", "not_sown", ""]:
+            print(f"[DASHBOARD STATE] No crop sown for {farmer_name}. Routing to Planning Dashboard.")
+            weather_res = await weather_service.get_weather(db, latitude, longitude)
+            curr_w = weather_res.get("current", {})
+            rain_w = weather_res.get("rain", {})
+            wind_w = weather_res.get("wind", {})
+
+            weather_info = WeatherInfo(
+                temperature=float(curr_w.get("temperature", 26.0)),
+                feels_like=float(curr_w.get("feels_like", 28.0)),
+                condition=str(curr_w.get("condition", "Sunny Day")),
+                rain_next_24h_mm=float(rain_w.get("amount_mm", 18.0)),
+                rain_description=str(rain_w.get("description", "18 mm rain expected")),
+                wind_kmh=float(wind_w.get("speed_kmh", 5.0)),
+                available=bool(weather_res.get("available", True)),
+            )
+
+            recs = await crop_recommendation_service.get_top_recommendations(db, user_doc, language, query_date)
+            top_rec_items = [TopCropRecommendationItem(**r) for r in recs]
+
+            return PlanningDashboardResponse(
+                dashboard_state="no_crop",
+                farmer=FarmerInfo(name=farmer_name, village=village, district=district, state=state),
+                location={"latitude": latitude, "longitude": longitude, "village": village, "district": district, "state": state},
+                farm_area_ha=farm_area_ha,
+                weather=weather_info,
+                previous_crop=None,
+                top_recommendations=top_rec_items,
+            ).dict()
+
+        # 2. Check Crop Maturity for active crop
+        crop_profile = await crop_stage_service.get_crop_profile(db, current_crop)
+        stage_res = crop_stage_service.calculate_stage(
+            crop_profile or {}, sowing_date_str, query_date_str=query_date.isoformat() if query_date else None
+        )
+
+        stage_id = stage_res.get("stage_id", "flowering")
+        days_after_sowing = stage_res.get("days_after_sowing", 60)
+        total_duration = stage_res.get("total_duration", 104)
+
+        # State B: Crop Reached Maturity
+        if stage_id == "maturity" or days_after_sowing >= total_duration:
+            print(f"[DASHBOARD STATE] Crop {current_crop} reached maturity (DAS: {days_after_sowing}/{total_duration}). Routing to Maturity Transition Dashboard.")
+            weather_res = await weather_service.get_weather(db, latitude, longitude)
+            curr_w = weather_res.get("current", {})
+            rain_w = weather_res.get("rain", {})
+            wind_w = weather_res.get("wind", {})
+
+            weather_info = WeatherInfo(
+                temperature=float(curr_w.get("temperature", 26.0)),
+                feels_like=float(curr_w.get("feels_like", 28.0)),
+                condition=str(curr_w.get("condition", "Sunny Day")),
+                rain_next_24h_mm=float(rain_w.get("amount_mm", 18.0)),
+                rain_description=str(rain_w.get("description", "18 mm rain expected")),
+                wind_kmh=float(wind_w.get("speed_kmh", 5.0)),
+                available=bool(weather_res.get("available", True)),
+            )
+
+            recs = await crop_recommendation_service.get_top_recommendations(db, user_doc, language, query_date)
+            top_rec_items = [TopCropRecommendationItem(**r) for r in recs]
+
+            prev_crop_info = PreviousCropInfo(
+                name=current_crop,
+                sowing_date=str(sowing_date_str),
+                status="mature",
+            )
+
+            return PlanningDashboardResponse(
+                dashboard_state="crop_matured",
+                farmer=FarmerInfo(name=farmer_name, village=village, district=district, state=state),
+                location={"latitude": latitude, "longitude": longitude, "village": village, "district": district, "state": state},
+                farm_area_ha=farm_area_ha,
+                weather=weather_info,
+                previous_crop=prev_crop_info,
+                top_recommendations=top_rec_items,
+            ).dict()
+
+        # 3. State C: Active Growing Crop -> Sown Dashboard
+        sown_resp = await self.get_sown_dashboard(db, phone_number, language)
+        res_dict = sown_resp.dict()
+        res_dict["dashboard_state"] = "growing"
+        return res_dict
 
 
 dashboard_service = DashboardService()

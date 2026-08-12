@@ -97,7 +97,7 @@ class WalletOverviewResponse(BaseModel):
     village: str = ""
     district: str = ""
     state: str = ""
-    current_crop: str = ""
+    current_crop: Optional[str] = None
     farm_area: float = 0.0
     farm_area_unit: str = "acres"
     has_farm_area: bool = True

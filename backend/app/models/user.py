@@ -18,10 +18,10 @@ class UserRegisterRequest(BaseModel):
     longitude: Optional[float] = Field(None, description="GPS longitude (from auto-detect)")
 
     # Farm details (Step 2)
-    current_crop: str = Field(..., description="Current crop being grown")
-    farm_area: float = Field(..., gt=0, description="Farm area")
+    current_crop: Optional[str] = Field(None, description="Current crop being grown (None if Not Sown Yet)")
+    farm_area: float = Field(..., description="Farm area")
     farm_area_unit: str = Field("acres", description="Unit: acres or hectares")
-    sowing_date: date = Field(..., description="Date when crop was sown")
+    sowing_date: Optional[date] = Field(None, description="Date when crop was sown (None if Not Sown Yet)")
     farm_location: str = Field("", description="Farm location / landmark description")
 
 
@@ -42,10 +42,10 @@ class UserResponse(BaseModel):
     district: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    current_crop: str
+    current_crop: Optional[str] = None
     farm_area: float
     farm_area_unit: str
-    sowing_date: date
+    sowing_date: Optional[date] = None
     farm_location: str = ""
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

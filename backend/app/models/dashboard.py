@@ -66,6 +66,7 @@ class RecommendationItem(BaseModel):
     icon: str = "💡"
 
 class SownDashboardResponse(BaseModel):
+    dashboard_state: str = "growing"
     state: str = "sown"
     farmer: FarmerInfo
     crop: CropInfo
@@ -75,3 +76,37 @@ class SownDashboardResponse(BaseModel):
     crop_health: CropHealthInfo
     yield_prediction: YieldPredictionInfo
     recommendations: List[RecommendationItem] = []
+
+class TopCropRecommendationItem(BaseModel):
+    rank: int
+    crop: str
+    crop_id: str
+    icon: str = "🌱"
+    score: int = 91
+    suitability_percentage: str = "91%"
+    demand_score: float = 90.0
+    water_score: float = 85.0
+    sowing_score: float = 95.0
+    market_demand: str = "High"
+    net_return: int = 11324
+    net_return_formatted: str = "Rs. 11,324/ha"
+    water_requirement: int = 4200
+    water_requirement_unit: str = "m3"
+    water_level: str = "Medium"
+    recommended_sowing: str = "June – July"
+
+class PreviousCropInfo(BaseModel):
+    name: str
+    sowing_date: str
+    status: str = "mature"
+
+class PlanningDashboardResponse(BaseModel):
+    dashboard_state: str = "no_crop"  # "no_crop" or "crop_matured"
+    crop: Optional[CropInfo] = None
+    sowing_date: Optional[str] = None
+    farmer: FarmerInfo
+    location: Dict[str, Any]
+    farm_area_ha: float = 2.5
+    weather: WeatherInfo
+    previous_crop: Optional[PreviousCropInfo] = None
+    top_recommendations: List[TopCropRecommendationItem] = []
