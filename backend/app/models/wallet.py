@@ -57,6 +57,8 @@ class SellingPriceInfo(BaseModel):
     available: bool = True
     message: Optional[str] = None
     data_source: str = "MongoDB Atlas mandi_prices"
+    source: Optional[str] = "gemini"
+    fetched_at: Optional[str] = None
 
 
 class YieldSummary(BaseModel):

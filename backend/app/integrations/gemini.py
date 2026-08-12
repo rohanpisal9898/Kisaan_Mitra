@@ -31,6 +31,32 @@ CRITICAL RULES:
 """
 
 
+def _clean_and_parse_json(text: str) -> Any:
+    text = text.strip()
+    if "```json" in text:
+        text = text.split("```json")[1].split("```")[0].strip()
+    elif "```" in text:
+        text = text.split("```")[1].split("```")[0].strip()
+
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+
+    import re
+    # Extract json block if surrounded by prose
+    match = re.search(r"(\[.*\]|\{.*\})", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except Exception:
+            pass
+
+    # Convert single-quoted keys/strings if valid json parsing fails
+    sanitized = re.sub(r"'", '"', text)
+    return json.loads(sanitized)
+
+
 async def get_gemini_recommendations(
     farm_context: Dict[str, Any],
     language: str = "English",
@@ -40,7 +66,7 @@ async def get_gemini_recommendations(
         print("[GEMINI DEBUG] enabled=False request_success=False fallback_used=True (No API Key)")
         return None
 
-    model_names = ["gemini-flash", "gemini-2.5-pro", "gemini-2.5-flash"]
+    model_names = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-2.5-flash"]
     
     context_str = json.dumps(farm_context, indent=2, default=str)
     user_prompt = f"Farm context:\n{context_str}\n\nLanguage: {language}\n\nGenerate 3 farmer-friendly recommendations based strictly on the above context.\nReturn ONLY valid JSON."
@@ -59,7 +85,8 @@ async def get_gemini_recommendations(
             ],
             "generationConfig": {
                 "temperature": 0.2,
-                "maxOutputTokens": 800,
+                "maxOutputTokens": 2048,
+                "responseMimeType": "application/json",
             }
         }
 
@@ -73,13 +100,7 @@ async def get_gemini_recommendations(
                         parts = candidates[0]["content"].get("parts", [])
                         if parts and "text" in parts[0]:
                             text = parts[0]["text"].strip()
-                            
-                            if "```json" in text:
-                                text = text.split("```json")[1].split("```")[0].strip()
-                            elif "```" in text:
-                                text = text.split("```")[1].split("```")[0].strip()
-
-                            parsed = json.loads(text)
+                            parsed = _clean_and_parse_json(text)
                             if isinstance(parsed, dict):
                                 recommendations = parsed.get("recommendations", [])
                             elif isinstance(parsed, list):
@@ -102,7 +123,7 @@ async def get_gemini_recommendations(
                                 print(f"[GEMINI DEBUG] enabled=True model_selected={model_name} request_success=True fallback_used=False")
                                 return validated
                 else:
-                    print(f"[GEMINI DEBUG] model={model_name} HTTP {response.status_code}")
+                    print(f"[GEMINI DEBUG] model={model_name} HTTP {response.status_code} Body: {response.text[:200]}")
         except Exception as e:
             print(f"[GEMINI DEBUG] model={model_name} exception: {e}")
             continue

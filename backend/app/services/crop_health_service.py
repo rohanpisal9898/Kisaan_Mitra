@@ -36,6 +36,7 @@ class CropHealthService:
         stage_id: str,
         satellite_data: Optional[Dict[str, float]] = None,
         satellite_date: Optional[str] = None,
+        is_baseline: bool = False,
     ) -> Dict[str, Any]:
 
         # Default fallback when no satellite data is provided
@@ -69,7 +70,9 @@ class CropHealthService:
         if satellite_date:
             try:
                 days_old = (date.today() - date.fromisoformat(satellite_date[:10])).days
-                if days_old > 30:
+                if is_baseline:
+                    sat_note = f"Pre-sowing baseline image from {satellite_date}"
+                elif days_old > 30:
                     return {
                         "status": "unavailable",
                         "status_display": "Unavailable",

@@ -147,7 +147,7 @@ def run_all_tests():
     sat_fresh_date = (today - timedelta(days=4)).isoformat()
     sat_stale_date = (today - timedelta(days=40)).isoformat()
 
-    sat_fresh_data = {"NDVI": 0.65, "NDMI": 0.20, "NDYI": 0.15, "LST": 28.5}
+    sat_fresh_data = {"NDVI": 0.65, "NDMI": 0.20, "NDYI": 0.15, "LST": 28.5, "ndvi": 0.65, "ndre": 0.35, "evi": 0.45, "ndmi": 0.20, "vv": -12.5, "vh": -18.2}
 
     health_fresh = crop_health_service.calculate_health(profile_soy, "flowering", sat_fresh_data, sat_fresh_date)
     health_stale = crop_health_service.calculate_health(profile_soy, "flowering", sat_fresh_data, sat_stale_date)

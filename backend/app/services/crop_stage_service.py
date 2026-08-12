@@ -128,7 +128,14 @@ class CropStageService:
         crop_profile: Dict[str, Any],
         sowing_date_input: Any,
         current_date: Optional[date] = None,
+        query_date_str: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if query_date_str:
+            try:
+                current_date = date.fromisoformat(query_date_str[:10])
+            except Exception:
+                pass
+
         if current_date is None:
             current_date = date.today()
 

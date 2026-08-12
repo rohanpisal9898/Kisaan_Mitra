@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from app.integrations.gee_service import gee_service
 from app.services.crop_stage_service import crop_stage_service
 from app.services.weather_service import weather_service
 from app.services.water_service import water_service
@@ -47,7 +48,7 @@ class DashboardService:
             user_doc = await db.users.find_one({}, sort=[("updated_at", -1)])
 
         if not user_doc:
-            user_doc = self._default_user_doc()
+            user_doc = self._default_user_doc(phone_number)
 
         farmer_name = user_doc.get("farmer_name", "Ramesh")
         village = user_doc.get("village", "Sonepur")
@@ -70,7 +71,7 @@ class DashboardService:
         crop_profile = await crop_stage_service.get_crop_profile(db, current_crop)
         crop_id = crop_profile.get("crop_id", "soybean") if crop_profile else "soybean"
 
-        # 2. Calculate Crop Stage (Canonical)
+        # 2. Calculate Crop Stage (Canonical for Today)
         stage_res = crop_stage_service.calculate_stage(
             crop_profile or {}, sowing_date_str
         )
@@ -101,16 +102,70 @@ class DashboardService:
         print(f"  Forecast Rain={forecast_rain_mm} mm, Net Irr Need={water_res.get('calculation', {}).get('net_irrigation_need_mm')} mm")
         print(f"  Water Status Display={water_res.get('status_display')}, Irr to apply={water_res.get('irrigation_mm')} mm")
 
-        # 5. Crop Health (Satellite)
+        # 5. Crop Health (GEE Satellite Integration with strict fallback)
         satellite_data = user_doc.get("satellite_data")
         satellite_date = user_doc.get("satellite_date")
+        satellite_source = user_doc.get("satellite_source", "unavailable")
+
+        needs_gee_fetch = False
+        if not satellite_data or not satellite_date:
+            needs_gee_fetch = True
+        else:
+            try:
+                sat_dt = datetime.fromisoformat(satellite_date[:10]).date()
+                sow_dt = datetime.fromisoformat(sowing_date_str[:10]).date()
+                if sat_dt < sow_dt:
+                    needs_gee_fetch = True
+                else:
+                    days_old = (datetime.now().date() - sat_dt).days
+                    if days_old > 14:
+                        needs_gee_fetch = True
+            except Exception:
+                needs_gee_fetch = True
+
+        if needs_gee_fetch:
+            print(f"[DASHBOARD DEBUG] Attempting GEE satellite fetch for lat={latitude}, lon={longitude}...")
+            gee_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
+            if gee_res.get("satellite_available"):
+                satellite_data = gee_res.get("satellite_data")
+                satellite_date = gee_res.get("satellite_date")
+                satellite_source = gee_res.get("satellite_source", "gee")
+
+                if db is not None and user_doc.get("phone_number"):
+                    try:
+                        await db.users.update_one(
+                            {"phone_number": user_doc["phone_number"]},
+                            {"$set": {
+                                "satellite_data": satellite_data,
+                                "satellite_date": satellite_date,
+                                "satellite_source": satellite_source,
+                                "updated_at": datetime.utcnow()
+                            }}
+                        )
+                        print(f"[DASHBOARD DEBUG] Persisted GEE satellite data to DB for {user_doc['phone_number']}")
+                    except Exception as ex:
+                        print(f"[DASHBOARD WARNING] DB update for GEE satellite failed: {ex}")
+            else:
+                satellite_data = None
+                satellite_date = None
+                satellite_source = "unavailable"
+
+        # Compute stage at satellite acquisition date if available
+        health_stage_id = stage_res.get("stage_id", "flowering")
+        if satellite_date:
+            health_stage_res = crop_stage_service.calculate_stage(
+                crop_profile or {}, sowing_date_str, query_date_str=satellite_date
+            )
+            health_stage_id = health_stage_res.get("stage_id", health_stage_id)
+
+        is_baseline = gee_res.get("image_before_sowing", False) if "gee_res" in locals() and gee_res else False
         health_res = crop_health_service.calculate_health(
-            crop_profile or {}, stage_res.get("stage_id", "flowering"), satellite_data, satellite_date
+            crop_profile or {}, health_stage_id, satellite_data, satellite_date, is_baseline=is_baseline
         )
 
         print(f"[CROP HEALTH DEBUG]")
         print(f"  Status={health_res.get('status')}, Display={health_res.get('status_display')}, Score={health_res.get('score')}")
-        print(f"  Satellite Available={health_res.get('satellite_available')}, Date={satellite_date}, Days Old={health_res.get('satellite_days_old')}")
+        print(f"  Satellite Available={health_res.get('satellite_available')}, Source={satellite_source}, Date={satellite_date}, Days Old={health_res.get('satellite_days_old')}")
 
         # 6. Yield Prediction (CatBoost Adapter)
         farm_context = {
@@ -233,8 +288,24 @@ class DashboardService:
             recommendations=recommendations_list,
         )
 
-    def _default_user_doc(self) -> Dict[str, Any]:
+    def _default_user_doc(self, phone_number: Optional[str] = None) -> Dict[str, Any]:
+        if phone_number == "1234567894":
+            return {
+                "phone_number": "1234567894",
+                "farmer_name": "manav",
+                "village": "navalgad",
+                "district": "JHUNJHUNU",
+                "state": "Rajasthan",
+                "latitude": 19.20881628657986,
+                "longitude": 72.8728440148901,
+                "current_crop": "Rapeseed &Mustard",
+                "sowing_date": "2026-08-11",
+                "satellite_date": None,
+                "satellite_data": None,
+                "satellite_source": "unavailable",
+            }
         return {
+            "phone_number": "9876543210",
             "farmer_name": "Ramesh",
             "village": "Sonepur",
             "district": "Nashik",
@@ -243,14 +314,9 @@ class DashboardService:
             "longitude": 73.7898,
             "current_crop": "Soyabean",
             "sowing_date": "2026-06-15",
-            "has_satellite_data": True,
-            "satellite_date": "2026-08-06",
-            "satellite_data": {
-                "NDVI": 0.65,
-                "NDMI": 0.20,
-                "NDYI": 0.15,
-                "LST": 28.5
-            }
+            "satellite_date": None,
+            "satellite_data": None,
+            "satellite_source": "unavailable",
         }
 
 

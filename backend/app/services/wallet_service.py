@@ -12,6 +12,7 @@ Collections:
 Zero runtime CSV dependency!
 """
 
+import asyncio
 import math
 import uuid
 import json
@@ -22,7 +23,7 @@ from typing import Dict, Any, List, Optional
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.services.yield_service import yield_service
-from app.integrations.gemini import settings
+from app.integrations.gemini import settings, _clean_and_parse_json
 
 
 def _format_indian_currency(val: float) -> str:
@@ -137,6 +138,260 @@ class WalletService:
         ]
         return items
 
+    async def _fetch_gemini_market_price(self, crop: str, state: str) -> Optional[Dict[str, Any]]:
+        """Queries Gemini API for live estimated APMC mandi market price in INR/quintal."""
+        api_key = settings.gemini_api_key
+        if not api_key or api_key == "your_gemini_api_key_here":
+            return None
+
+        model_names = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-2.5-flash"]
+        prompt = (
+            f"You are an Indian APMC agricultural market expert.\n"
+            f"Provide current estimated mandi market price for crop '{crop}' in '{state}', India in INR per quintal.\n"
+            f"RULES:\n"
+            f"1. Provide realistic market price specific to '{crop}' in '{state}'. DO NOT reuse prices from other crops.\n"
+            f"2. Return ONLY a valid JSON object in this exact schema:\n"
+            f'{{\n'
+            f'  "crop": "{crop}",\n'
+            f'  "state": "{state}",\n'
+            f'  "modal_price": <number_in_inr_per_quintal>,\n'
+            f'  "floor_price": <min_number_in_inr>,\n'
+            f'  "ceiling_price": <max_number_in_inr>,\n'
+            f'  "market": "<Mandi_Name>",\n'
+            f'  "available": true\n'
+            f'}}\n'
+            f"3. If reliable market data for '{crop}' is unavailable, set 'available': false.\n"
+        )
+
+        for model in model_names:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.2,
+                    "maxOutputTokens": 300,
+                    "responseMimeType": "application/json",
+                }
+            }
+            try:
+                async with httpx.AsyncClient(timeout=6.0) as client:
+                    resp = await client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        res_json = resp.json()
+                        candidates = res_json.get("candidates", [])
+                        if candidates and "content" in candidates[0]:
+                            parts = candidates[0]["content"].get("parts", [])
+                            if parts and "text" in parts[0]:
+                                text = parts[0]["text"].strip()
+                                parsed = _clean_and_parse_json(text)
+                                if isinstance(parsed, dict) and parsed.get("available", True) is not False:
+                                    modal = parsed.get("modal_price")
+                                    if modal and isinstance(modal, (int, float)) and 1000 <= modal <= 30000:
+                                        parsed["valid"] = True
+                                        parsed["model_used"] = model
+                                        print(f"[MARKET GEMINI] Live market price fetched via {model}: Rs. {modal}/quintal for {crop} in {state}")
+                                        return parsed
+            except Exception as e:
+                print(f"[MARKET GEMINI] Exception for model {model}: {e}")
+                continue
+
+        return None
+
+    async def get_mandi_price_with_fallback(
+        self, db: Optional[AsyncIOMotorDatabase], state: str, crop: str, ttl_hours: float = 6.0
+    ) -> Dict[str, Any]:
+        """
+        Gemini-First Market Price Service with 6-Hour MongoDB TTL Cache & Request Coalescing.
+        Architecture:
+          1. Read MongoDB `market_price_cache`. If cached & fetched_at < 6 hours old -> Return cache immediately (source="cached"). ZERO Gemini API call!
+          2. If expired or missing -> Coalesce in-flight requests & Call Gemini API.
+          3. Validate Gemini response (crop-specific, realistic price).
+          4. Save to MongoDB cache with fetched_at & expires_at (source="gemini").
+          5. On Gemini Failure -> Return last cached price if present, else Benchmark Default (source="default").
+        """
+        crop_norm = self._normalize_crop_name(crop)
+        state_title = state.title() if state else "Maharashtra"
+        now_dt = datetime.now()
+        now_iso = now_dt.isoformat()
+
+        # Step 1: Check MongoDB 6-Hour TTL Cache FIRST
+        if db is not None:
+            try:
+                cached_doc = await db.market_price_cache.find_one({"crop": crop_norm, "state": state_title})
+                if not cached_doc:
+                    cached_doc = await db.market_price_cache.find_one({"crop": crop_norm})
+
+                if cached_doc and float(cached_doc.get("modal_price", 0)) > 0:
+                    fetched_at_str = cached_doc.get("fetched_at")
+                    is_fresh = False
+                    if fetched_at_str:
+                        try:
+                            f_dt = datetime.fromisoformat(fetched_at_str)
+                            age_seconds = (now_dt - f_dt).total_seconds()
+                            if age_seconds < (ttl_hours * 3600):  # 6 hours = 21600 seconds
+                                is_fresh = True
+                        except Exception:
+                            pass
+
+                    if is_fresh:
+                        modal = float(cached_doc.get("modal_price"))
+                        age_min = int((now_dt - datetime.fromisoformat(fetched_at_str)).total_seconds() / 60)
+                        print(f"[MARKET SERVICE] [TTL Cache HIT] ({crop_norm}, {state_title}): Rs. {modal}/quintal (Age: {age_min}m)")
+                        return {
+                            "modal_price": modal,
+                            "floor_price": float(cached_doc.get("floor_price") or round(modal * 0.92, 2)),
+                            "ceiling_price": float(cached_doc.get("ceiling_price") or round(modal * 1.08, 2)),
+                            "unit": "Rs/Quintal",
+                            "market_name": cached_doc.get("market_name", f"{state_title} Mandi"),
+                            "available": True,
+                            "source": "cached",
+                            "fetched_at": fetched_at_str,
+                            "expires_at": cached_doc.get("expires_at"),
+                            "message": "Cached market price from MongoDB (6-Hour TTL active)",
+                            "data_source": "MongoDB Persistent Price Cache",
+                        }
+            except Exception as e:
+                print(f"[MARKET SERVICE] Error checking MongoDB TTL cache: {e}")
+
+        # Step 2: Cache Expired or Missing -> Call Gemini API with Request Coalescing / Deduplication
+        cache_key = f"{crop_norm}_{state_title}"
+
+        if not hasattr(self, "_in_flight_locks"):
+            self._in_flight_locks = {}
+
+        if cache_key in self._in_flight_locks:
+            print(f"[MARKET SERVICE] Coalescing concurrent fetch for {cache_key}...")
+            await self._in_flight_locks[cache_key].wait()
+            if db is not None:
+                cached_doc = await db.market_price_cache.find_one({"crop": crop_norm, "state": state_title})
+                if cached_doc and float(cached_doc.get("modal_price", 0)) > 0:
+                    modal = float(cached_doc.get("modal_price"))
+                    return {
+                        "modal_price": modal,
+                        "floor_price": float(cached_doc.get("floor_price") or round(modal * 0.92, 2)),
+                        "ceiling_price": float(cached_doc.get("ceiling_price") or round(modal * 1.08, 2)),
+                        "unit": "Rs/Quintal",
+                        "market_name": cached_doc.get("market_name", f"{state_title} Mandi"),
+                        "available": True,
+                        "source": "cached",
+                        "fetched_at": cached_doc.get("fetched_at"),
+                        "expires_at": cached_doc.get("expires_at"),
+                        "message": "Cached market price from MongoDB",
+                        "data_source": "MongoDB Persistent Price Cache",
+                    }
+
+        lock_event = asyncio.Event()
+        self._in_flight_locks[cache_key] = lock_event
+
+        try:
+            gemini_price = await self._fetch_gemini_market_price(crop_norm, state_title)
+            if gemini_price and gemini_price.get("valid"):
+                modal = float(gemini_price["modal_price"])
+                floor = float(gemini_price.get("floor_price") or round(modal * 0.92, 2))
+                ceil = float(gemini_price.get("ceiling_price") or round(modal * 1.08, 2))
+                market_name = str(gemini_price.get("market") or f"{state_title} Mandi")
+                model_used = str(gemini_price.get("model_used", "gemini-3.1-flash-lite"))
+                expires_iso = (now_dt + timedelta(hours=ttl_hours)).isoformat()
+
+                res_doc = {
+                    "modal_price": modal,
+                    "floor_price": floor,
+                    "ceiling_price": ceil,
+                    "unit": "Rs/Quintal",
+                    "market_name": market_name,
+                    "available": True,
+                    "source": "gemini",
+                    "fetched_at": now_iso,
+                    "expires_at": expires_iso,
+                    "message": "Live market price via Gemini AI",
+                    "data_source": "Gemini AI Live Market Intelligence",
+                }
+
+                if db is not None:
+                    try:
+                        await db.market_price_cache.update_one(
+                            {"crop": crop_norm, "state": state_title},
+                            {"$set": {
+                                "crop": crop_norm,
+                                "state": state_title,
+                                "modal_price": modal,
+                                "floor_price": floor,
+                                "ceiling_price": ceil,
+                                "unit": "Rs/Quintal",
+                                "market_name": market_name,
+                                "source": "gemini",
+                                "model": model_used,
+                                "fetched_at": now_iso,
+                                "expires_at": expires_iso,
+                                "updated_at": now_iso,
+                            }},
+                            upsert=True,
+                        )
+                        print(f"[MARKET SERVICE] Saved live Gemini price Rs. {modal}/quintal for {crop_norm} ({state_title}) to MongoDB TTL cache.")
+                    except Exception as e:
+                        print(f"[MARKET SERVICE] Error saving price cache to MongoDB: {e}")
+
+                return res_doc
+        finally:
+            lock_event.set()
+            self._in_flight_locks.pop(cache_key, None)
+
+        # Step 3: Gemini Failed -> Return Expired MongoDB Cache if present
+        if db is not None:
+            try:
+                cached_doc = await db.market_price_cache.find_one({"crop": crop_norm, "state": state_title})
+                if cached_doc and float(cached_doc.get("modal_price", 0)) > 0:
+                    modal = float(cached_doc.get("modal_price"))
+                    print(f"[MARKET SERVICE] Gemini failed. Returning last saved cached price Rs. {modal}/quintal from MongoDB.")
+                    return {
+                        "modal_price": modal,
+                        "floor_price": float(cached_doc.get("floor_price") or round(modal * 0.92, 2)),
+                        "ceiling_price": float(cached_doc.get("ceiling_price") or round(modal * 1.08, 2)),
+                        "unit": "Rs/Quintal",
+                        "market_name": cached_doc.get("market_name", f"{state_title} Mandi"),
+                        "available": True,
+                        "source": "cached",
+                        "fetched_at": cached_doc.get("fetched_at"),
+                        "expires_at": cached_doc.get("expires_at"),
+                        "message": "Last known cached market price from MongoDB",
+                        "data_source": "MongoDB Persistent Price Cache",
+                    }
+            except Exception as e:
+                pass
+
+        # Step 4: Missing Cache -> Hardcoded Benchmark Default Fallback
+        default_db = await self.get_mandi_price_from_db(db, state_title, crop_norm)
+        if default_db and default_db.get("available") and default_db.get("modal_price", 0) > 0:
+            default_db["source"] = "default"
+            default_db["fetched_at"] = None
+            default_db["message"] = "Baseline benchmark market data"
+            return default_db
+
+        hardcoded_defaults = {
+            "Rapeseed &Mustard": 5440.0,
+            "Soybean": 4892.0,
+            "Groundnut": 6780.0,
+            "Castor seed": 5850.0,
+            "Sunflower": 6550.0,
+            "Sesamum": 14500.0,
+            "Linseed": 5950.0,
+            "Safflower": 5650.0,
+            "Niger seed": 7850.0,
+        }
+        fallback_modal = hardcoded_defaults.get(crop_norm, 5200.0)
+        return {
+            "modal_price": fallback_modal,
+            "floor_price": round(fallback_modal * 0.92, 2),
+            "ceiling_price": round(fallback_modal * 1.08, 2),
+            "unit": "Rs/Quintal",
+            "market_name": f"{state_title} Mandi (Benchmark)",
+            "available": True,
+            "source": "default",
+            "fetched_at": None,
+            "message": "Default agricultural benchmark price",
+            "data_source": "Agricultural Benchmark Default",
+        }
+
     async def get_mandi_price_from_db(
         self, db: AsyncIOMotorDatabase, state: str, crop: str
     ) -> Dict[str, Any]:
@@ -176,6 +431,8 @@ class WalletService:
                         "available": True,
                         "message": "National benchmark market data",
                         "data_source": "MongoDB Atlas mandi_prices",
+                        "source": "default",
+                        "fetched_at": None,
                     }
 
             if mandi_doc:
@@ -188,6 +445,8 @@ class WalletService:
                     "available": True,
                     "message": "MongoDB Atlas benchmark data (2024)",
                     "data_source": "MongoDB Atlas mandi_prices",
+                    "source": "default",
+                    "fetched_at": None,
                 }
 
         return {
@@ -199,6 +458,8 @@ class WalletService:
             "available": False,
             "message": "Market price unavailable in DB",
             "data_source": "MongoDB Atlas",
+            "source": "default",
+            "fetched_at": None,
         }
 
     async def get_msp_price_from_db(
@@ -253,7 +514,7 @@ class WalletService:
         results = []
 
         for c_raw in oilseed_crops:
-            mandi_info = await self.get_mandi_price_from_db(db, state, c_raw)
+            mandi_info = await self.get_mandi_price_with_fallback(db, state, c_raw)
             if not mandi_info.get("available") or mandi_info.get("modal_price", 0) <= 0:
                 continue
 
@@ -421,19 +682,7 @@ class WalletService:
             user_doc = await db.users.find_one({}, sort=[("updated_at", -1)])
 
         if not user_doc:
-            user_doc = {
-                "phone_number": "guest",
-                "farmer_name": "Ramesh",
-                "village": "Sonepur",
-                "district": "Nashik",
-                "state": "Maharashtra",
-                "current_crop": "Soyabean",
-                "farm_area": 2.5,
-                "farm_area_unit": "acres",
-                "sowing_date": "2026-06-15",
-                "latitude": 19.9975,
-                "longitude": 73.7898,
-            }
+            user_doc = self._default_user_doc(phone_number)
 
         phone = user_doc.get("phone_number", "guest")
         farmer_name = user_doc.get("farmer_name", "Farmer")
@@ -478,8 +727,8 @@ class WalletService:
         yield_low = float(yield_res.get("yield_lower", 0.0))
         yield_upp = float(yield_res.get("yield_upper", 0.0))
 
-        # 2. Mandi Market Price & MSP Lookup from MongoDB
-        mandi_info = await self.get_mandi_price_from_db(db, state, current_crop)
+        # 2. Mandi Market Price & MSP Lookup (Gemini First -> MongoDB Cache -> Benchmark Default)
+        mandi_info = await self.get_mandi_price_with_fallback(db, state, current_crop)
         msp_info = await self.get_msp_price_from_db(db, current_crop)
 
         modal_price = mandi_info.get("modal_price", 0.0)
@@ -632,6 +881,36 @@ class WalletService:
                 {"$set": {"phone_number": phone_number, "expenses": expenses, "updated_at": datetime.now().isoformat()}},
                 upsert=True,
             )
+
+
+    def _default_user_doc(self, phone_number: Optional[str] = None) -> Dict[str, Any]:
+        if phone_number == "1234567894":
+            return {
+                "phone_number": "1234567894",
+                "farmer_name": "manav",
+                "village": "navalgad",
+                "district": "JHUNJHUNU",
+                "state": "Rajasthan",
+                "current_crop": "Rapeseed &Mustard",
+                "farm_area": 3.0,
+                "farm_area_unit": "acres",
+                "sowing_date": "2026-08-11",
+                "latitude": 19.20881628657986,
+                "longitude": 72.8728440148901,
+            }
+        return {
+            "phone_number": "9876543210",
+            "farmer_name": "Ramesh",
+            "village": "Sonepur",
+            "district": "Nashik",
+            "state": "Maharashtra",
+            "current_crop": "Soyabean",
+            "farm_area": 2.5,
+            "farm_area_unit": "acres",
+            "sowing_date": "2026-06-15",
+            "latitude": 19.9975,
+            "longitude": 73.7898,
+        }
 
 
 wallet_service = WalletService()

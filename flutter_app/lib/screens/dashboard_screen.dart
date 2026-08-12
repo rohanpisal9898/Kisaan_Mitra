@@ -228,9 +228,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Header (Greeting + Location)
+          // 1. Header (Greeting + Location + Active Crop)
           DashboardHeaderWidget(
             farmer: data.farmer,
+            crop: data.crop,
             onNotificationTap: () {},
             onProfileTap: () => setState(() => _currentIndex = 3),
           ),

@@ -5,12 +5,14 @@ import '../models/sown_dashboard_model.dart';
 
 class DashboardHeaderWidget extends StatelessWidget {
   final FarmerInfoModel farmer;
+  final CropInfoModel? crop;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onProfileTap;
 
   const DashboardHeaderWidget({
     super.key,
     required this.farmer,
+    this.crop,
     this.onNotificationTap,
     this.onProfileTap,
   });
@@ -94,44 +96,116 @@ class DashboardHeaderWidget extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
-        // Welcome greeting & location
+        // Welcome greeting & location + Active Crop Badge
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Hi, ${farmer.name}',
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Hi, ${farmer.name}',
+                          style: GoogleFonts.inter(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '👋',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '${farmer.village}, ${farmer.district} • ${farmer.state}',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 6),
-            const Text(
-              '👋',
-              style: TextStyle(fontSize: 20),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
 
-        Row(
-          children: [
-            Icon(
-              Icons.location_on,
-              size: 14,
-              color: Colors.grey.shade600,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${farmer.village}, ${farmer.district} • ${farmer.state}',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade600,
+            // Active Crop Badge
+            if (crop != null && crop!.name.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFDCFCE7), Color(0xFFF0FDF4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF86EFAC), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF15803D).withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'ACTIVE CROP',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: const Color(0xFF166534),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🌾', style: TextStyle(fontSize: 13)),
+                        const SizedBox(width: 4),
+                        Text(
+                          crop!.name,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF15803D),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ],

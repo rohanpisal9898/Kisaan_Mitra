@@ -42,7 +42,7 @@ class YieldPredictionCardWidget extends StatelessWidget {
                 const Text('✦', style: TextStyle(fontSize: 10, color: Color(0xFF143823), fontWeight: FontWeight.bold)),
                 const SizedBox(width: 4),
                 Text(
-                  'AI PREDICTION',
+                  'ML YIELD PREDICTION',
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,

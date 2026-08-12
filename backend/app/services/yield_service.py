@@ -64,11 +64,21 @@ class YieldService:
         else:
             season = "Zaid"
 
-        # 4. Get CatBoost model & feature order
-        model, feature_order = model_loader.get_model_for_user(has_satellite and satellite_data is not None)
-        model_used = "satellite" if (has_satellite and satellite_data is not None) else "nosat"
+        # 4. Validate Satellite Data Completeness
+        use_satellite_model = False
+        if has_satellite and isinstance(satellite_data, dict):
+            required_sat_keys = ["NDVI", "NDMI", "NDYI", "LST"]
+            if all(k in satellite_data and satellite_data[k] is not None for k in required_sat_keys):
+                use_satellite_model = True
+            else:
+                missing = [k for k in required_sat_keys if k not in satellite_data or satellite_data[k] is None]
+                print(f"[YIELD ML DEBUG] Missing satellite features {missing}, falling back to NoSat model")
 
-        # 5. Build input feature vector
+        # 5. Get CatBoost model & feature order
+        model, feature_order = model_loader.get_model_for_user(use_satellite_model)
+        model_used = "satellite" if use_satellite_model else "nosat"
+
+        # 6. Build input feature vector
         feature_dict = {
             "State": state,
             "District": district,
