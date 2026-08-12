@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+import math
+from pydantic import BaseModel, Field, field_validator
 from datetime import date, datetime
 from typing import Optional, List
 
@@ -19,10 +20,17 @@ class UserRegisterRequest(BaseModel):
 
     # Farm details (Step 2)
     current_crop: Optional[str] = Field(None, description="Current crop being grown (None if Not Sown Yet)")
-    farm_area: float = Field(..., description="Farm area")
+    farm_area: float = Field(..., gt=0, description="Farm area must be finite and > 0")
     farm_area_unit: str = Field("acres", description="Unit: acres or hectares")
     sowing_date: Optional[date] = Field(None, description="Date when crop was sown (None if Not Sown Yet)")
     farm_location: str = Field("", description="Farm location / landmark description")
+
+    @field_validator("farm_area")
+    @classmethod
+    def validate_farm_area(cls, v: float) -> float:
+        if not math.isfinite(v) or v <= 0:
+            raise ValueError("Farm area must be a finite number greater than 0")
+        return v
 
 
 class UserLoginRequest(BaseModel):
@@ -65,3 +73,11 @@ class UserUpdateRequest(BaseModel):
     farm_area_unit: Optional[str] = None
     sowing_date: Optional[date] = None
     farm_location: Optional[str] = None
+
+    @field_validator("farm_area")
+    @classmethod
+    def validate_farm_area_opt(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None:
+            if not math.isfinite(v) or v <= 0:
+                raise ValueError("Farm area must be a finite number greater than 0")
+        return v

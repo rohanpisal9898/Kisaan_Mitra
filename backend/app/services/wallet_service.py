@@ -73,6 +73,27 @@ class WalletService:
             return "Niger seed"
         return raw_crop.strip().title() if raw_crop else "Soybean"
 
+    def _get_canonical_crop_id(self, raw_crop: Optional[str]) -> Optional[str]:
+        """Returns snake_case canonical crop ID or None if no active crop is sown."""
+        if not raw_crop or not str(raw_crop).strip():
+            return None
+        c_str = str(raw_crop).strip().lower()
+        if c_str in ["none", "null", "not_sown", "not sown yet", ""]:
+            return None
+        norm = self._normalize_crop_name(raw_crop)
+        mapping = {
+            "Groundnut": "groundnut",
+            "Soybean": "soybean",
+            "Sesamum": "sesamum",
+            "Sunflower": "sunflower",
+            "Rapeseed &Mustard": "rapeseed_mustard",
+            "Castor seed": "castor_seed",
+            "Linseed": "linseed",
+            "Safflower": "safflower",
+            "Niger seed": "niger_seed",
+        }
+        return mapping.get(norm, norm.lower().replace(" ", "_"))
+
     def _get_current_season(self) -> str:
         month = datetime.now().month
         if 6 <= month <= 10:
@@ -576,11 +597,13 @@ class WalletService:
         """
         Fetches top oilseed market & MSP comparisons from MongoDB.
         Dynamically prepends the farmer's sown crop to index 0 without duplication.
+        Evaluates is_farmer_crop strictly via canonical crop IDs.
         """
         default_oilseeds = ["Groundnut", "Soybean", "Sesamum", "Sunflower", "Rapeseed &Mustard"]
         candidate_crops = list(default_oilseeds)
+        farmer_crop_id = self._get_canonical_crop_id(farmer_crop)
 
-        if farmer_crop and str(farmer_crop).strip():
+        if farmer_crop_id is not None:
             farmer_norm = self._normalize_crop_name(farmer_crop)
             existing_idx = None
             for idx, c_raw in enumerate(candidate_crops):
@@ -589,11 +612,9 @@ class WalletService:
                     break
 
             if existing_idx is not None:
-                # Move farmer crop to index 0 (first position)
                 f_crop = candidate_crops.pop(existing_idx)
                 candidate_crops.insert(0, f_crop)
             else:
-                # Insert farmer crop at index 0 (first position)
                 candidate_crops.insert(0, farmer_norm)
 
         results = []
@@ -608,7 +629,6 @@ class WalletService:
             ceil = mandi_info["ceiling_price"]
             msp = msp_info.get("msp_price", 0.0) if msp_info.get("available") else None
 
-            # Calculate Difference between Market Price and MSP
             diff = (modal - msp) if msp and msp > 0 else None
             diff_label = f"{'+' if diff >= 0 else ''}₹{round(diff):,} / quintal" if diff is not None else None
 
@@ -621,6 +641,7 @@ class WalletService:
                 status = "Subdued Market"
 
             c_norm = self._normalize_crop_name(c_raw)
+            item_crop_id = self._get_canonical_crop_id(c_raw)
             crop_display = c_raw
             if c_norm == "Soybean":
                 crop_display = "Soybean (Yellow)"
@@ -629,9 +650,10 @@ class WalletService:
             elif c_norm == "Rapeseed &Mustard":
                 crop_display = "Mustard / Rapeseed"
 
-            is_farmer = (c_norm == self._normalize_crop_name(farmer_crop)) if farmer_crop else False
+            is_farmer = bool(farmer_crop_id is not None and item_crop_id == farmer_crop_id)
 
             results.append({
+                "crop_id": item_crop_id,
                 "crop_name": crop_display,
                 "unit_price": modal,
                 "min_price": floor,
@@ -663,46 +685,43 @@ class WalletService:
         if db is None or not phone_number or phone_number == "guest":
             return
 
-        phone = phone_number.strip()
         now_dt = datetime.now()
         now_iso = now_dt.isoformat()
 
-        # 1. Check 5-minute Cooldown in MongoDB
-        existing_insight = await db.market_insights.find_one({"phone_number": phone})
-        if existing_insight and "generated_at" in existing_insight:
-            try:
-                gen_dt = datetime.fromisoformat(existing_insight["generated_at"])
-                seconds_elapsed = (now_dt - gen_dt).total_seconds()
-                if seconds_elapsed < 300:  # 5 minutes cooldown
-                    print(f"[GEMINI REFRESH] Cooldown active for {phone} ({int(300 - seconds_elapsed)}s remaining). Skipping Gemini call.")
-                    return
-            except Exception as e:
-                pass
-
-        # 2. Fetch Farmer Profile, Mandi Price & MSP from MongoDB
-        user_doc = await db.users.find_one({"phone_number": phone})
+        # 1. Fetch user doc & market snapshots from MongoDB Atlas
+        user_doc = await db.users.find_one({"phone_number": phone_number})
         if not user_doc:
             return
 
-        crop = user_doc.get("current_crop", "Soyabean")
         state = user_doc.get("state", "Maharashtra")
+        district = user_doc.get("district", "Nashik")
+        crop = user_doc.get("current_crop", "Soyabean")
 
-        mandi_info = await self.get_mandi_price_from_db(db, state, crop)
+        # Check 5-minute cooldown
+        existing_insight = await db.market_insights.find_one({"phone_number": phone_number})
+        if existing_insight and existing_insight.get("generated_at"):
+            try:
+                g_dt = datetime.fromisoformat(existing_insight["generated_at"])
+                if (now_dt - g_dt).total_seconds() < 300:
+                    print(f"[GEMINI REFRESH SKIPPED] Cooldown active for farmer {phone_number}")
+                    return
+            except Exception:
+                pass
+
+        mandi_info = await self.get_mandi_price_with_fallback(db, state, crop, district)
         msp_info = await self.get_msp_price_from_db(db, crop)
 
-        modal_price = mandi_info.get("modal_price", 0.0)
-        floor_price = mandi_info.get("floor_price", 0.0)
-        ceiling_price = mandi_info.get("ceiling_price", 0.0)
-        msp_price = msp_info.get("msp_price", 0.0)
+        modal_price = mandi_info.get("modal_price", 4800.0)
+        floor_price = mandi_info.get("floor_price", 4400.0)
+        ceiling_price = mandi_info.get("ceiling_price", 5200.0)
+        msp_price = msp_info.get("msp_price", 4892.0)
 
-        fallback_text = (
-            f"{crop} market price in {state} is currently averaging around ₹{int(modal_price):,}/quintal "
-            f"against the official MSP benchmark of ₹{int(msp_price):,}/quintal. "
-            f"Plan your sales taking into account local quality and market arrivals."
-        )
-
+        # 2. Call Gemini Flash API for fresh 2-sentence market insight
         api_key = settings.gemini_api_key
-        insight_text = fallback_text
+        insight_text = (
+            f"{crop} mandi market price in {district}, {state} is currently hovering around ₹{int(modal_price):,}/quintal "
+            f"against the official MSP of ₹{int(msp_price):,}/quintal. Monitor local market arrivals before selling."
+        )
 
         if api_key and api_key != "your_gemini_api_key_here":
             prompt = (
@@ -734,7 +753,7 @@ class WalletService:
 
         # 3. Upsert into MongoDB `market_insights` collection
         insight_doc = {
-            "phone_number": phone,
+            "phone_number": phone_number,
             "crop": crop,
             "state": state,
             "insight_title": "🌱 Market Insight",
@@ -747,11 +766,11 @@ class WalletService:
         }
 
         await db.market_insights.update_one(
-            {"phone_number": phone},
+            {"phone_number": phone_number},
             {"$set": insight_doc},
             upsert=True,
         )
-        print(f"[OK] Refreshed & Saved MarketInsight in MongoDB for farmer {phone}")
+        print(f"[OK] Refreshed & Saved MarketInsight in MongoDB for farmer {phone_number}")
 
     async def get_wallet_overview(
         self,
@@ -781,6 +800,7 @@ class WalletService:
         if current_crop and not str(current_crop).strip():
             current_crop = None
 
+        current_crop_id = self._get_canonical_crop_id(current_crop)
         farm_area = float(user_doc.get("farm_area", 2.5))
         farm_area_unit = user_doc.get("farm_area_unit", "acres").lower()
 
@@ -890,11 +910,11 @@ class WalletService:
         }
 
         # 5. Market Items & MSP comparisons from MongoDB
-        market_items = await self.get_oilseed_markets_from_db(db, state, lookup_crop, district)
+        market_items = await self.get_oilseed_markets_from_db(db, state, current_crop, district)
 
         # 6. Read Stored Gemini Insight directly from MongoDB `market_insights` (Zero Gemini API call)
         insight_res = None
-        if db is not None and phone != "guest":
+        if current_crop and db is not None and phone != "guest":
             insight_doc = await db.market_insights.find_one({"phone_number": phone})
             if insight_doc:
                 gen_at = insight_doc.get("generated_at")
@@ -917,9 +937,9 @@ class WalletService:
                     "cooldown_seconds_remaining": cooldown_sec,
                 }
 
-        if not insight_res:
+        if current_crop and not insight_res:
             fallback_text = (
-                f"{current_crop} market price in {state} averages ₹{int(modal_price):,}/quintal "
+                f"{lookup_crop} market price in {state} averages ₹{int(modal_price):,}/quintal "
                 f"against official MSP of ₹{int(msp_info.get('msp_price', 0)):,}/quintal. "
                 f"Sign in to generate an AI market insight."
             )
@@ -939,6 +959,7 @@ class WalletService:
             "district": district,
             "state": state,
             "current_crop": current_crop,
+            "current_crop_id": current_crop_id,
             "farm_area": farm_area,
             "farm_area_unit": farm_area_unit,
             "has_farm_area": has_farm_area,
@@ -948,9 +969,9 @@ class WalletService:
                 "predicted": round(yield_pred, 2),
                 "lower": round(yield_low, 2),
                 "upper": round(yield_upp, 2),
-                "unit": yield_res.get("unit", "tonnes_per_hectare"),
-                "model_used": yield_res.get("model_used", "nosat"),
-                "confidence_label": "90% Confidence Range",
+                "unit": "tonnes_per_hectare",
+                "model_used": yield_res.get("model_used", "satellite"),
+                "confidence_label": yield_res.get("confidence_label", "90% Confidence Range"),
                 "available": has_yield,
             },
             "selling_price": mandi_info,
@@ -959,8 +980,8 @@ class WalletService:
             "expenses": expense_items,
             "market_items": market_items,
             "market_insight": insight_res,
-            "historical_cost_benchmark_note": "Historical/estimated cost benchmark from MongoDB crop_costs",
-            "data_freshness_note": "Market & Cost Data: MongoDB Atlas (2024 Benchmark)",
+            "historical_cost_benchmark_note": "Historical/estimated cost benchmark from agricultural dataset",
+            "data_freshness_note": f"Market Data: {mandi_info.get('data_source', 'Gemini AI / MongoDB')}",
         }
 
     async def update_user_expenses(

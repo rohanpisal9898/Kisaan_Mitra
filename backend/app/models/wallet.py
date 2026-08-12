@@ -25,6 +25,7 @@ class MspInfo(BaseModel):
 
 
 class MarketItem(BaseModel):
+    crop_id: Optional[str] = Field(None, description="Canonical crop ID e.g. soybean, castor_seed")
     crop_name: str = Field(..., description="Crop name e.g. Groundnut, Soybean (Yellow)")
     unit_price: float = Field(..., description="Modal selling price per unit")
     min_price: float = Field(..., description="Minimum floor price")
@@ -98,6 +99,7 @@ class WalletOverviewResponse(BaseModel):
     district: str = ""
     state: str = ""
     current_crop: Optional[str] = None
+    current_crop_id: Optional[str] = None
     farm_area: float = 0.0
     farm_area_unit: str = "acres"
     has_farm_area: bool = True

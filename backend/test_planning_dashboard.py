@@ -108,8 +108,32 @@ async def run_suite():
 
     assert dash_res["dashboard_state"] == "no_crop"
     assert dash_res["crop"] is None
+    assert dash_res.get("financial_outlook") is None
+    assert dash_res.get("yield_prediction") is None
+    assert dash_res.get("crop_health") is None
+    assert dash_res.get("water_status") is None
     assert len(dash_res["top_recommendations"]) == 3
-    print("   [PASS] TEST 1 PASSED: dashboard_state == 'no_crop', 3 recommendations returned.")
+    assert len(dash_res.get("market_items", [])) > 0
+    print("   [PASS] TEST 1 PASSED: dashboard_state == 'no_crop', null financial/yield fields, 3 recs and market items returned.")
+
+    # ------------------------------------------------------------------
+    # TEST 1B: Farm Area Validation (gt=0 and isfinite)
+    # ------------------------------------------------------------------
+    print("\n--- TEST 1B: Farm Area Validation (gt=0 and isfinite) ---")
+    import math
+    for invalid_area in [0, 0.0, -1.5, float('nan'), float('inf')]:
+        try:
+            UserRegisterRequest(
+                phone_number="9990001111",
+                farmer_name="InvalidAreaFarmer",
+                state="Maharashtra",
+                district="Pune",
+                farm_area=invalid_area,
+            )
+            assert False, f"Expected ValueError for farm_area={invalid_area}"
+        except Exception as e:
+            assert "farm_area" in str(e) or "greater than 0" in str(e) or "finite" in str(e)
+    print("   [PASS] TEST 1B PASSED: Farm area validation correctly rejects 0, negative, NaN, and Infinity.")
 
     # ------------------------------------------------------------------
     # TEST 2: All Candidate Crops Scored

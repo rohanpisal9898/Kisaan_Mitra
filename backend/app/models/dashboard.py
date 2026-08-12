@@ -109,4 +109,9 @@ class PlanningDashboardResponse(BaseModel):
     farm_area_ha: float = 2.5
     weather: WeatherInfo
     previous_crop: Optional[PreviousCropInfo] = None
-    top_recommendations: List[TopCropRecommendationItem] = []
+    top_recommendations: List[TopCropRecommendationItem] = Field(default_factory=list)
+    market_items: List[Dict[str, Any]] = Field(default_factory=list)
+    financial_outlook: Optional[Any] = None
+    yield_prediction: Optional[Any] = None
+    crop_health: Optional[Any] = None
+    water_status: Optional[Any] = None

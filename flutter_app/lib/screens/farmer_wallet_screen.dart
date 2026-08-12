@@ -419,6 +419,12 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     final data = _walletData!;
     final ps = data.profitSummary;
 
+    final bool isPlanningMode = !data.hasCrop ||
+        data.currentCrop == null ||
+        data.currentCrop!.trim().isEmpty ||
+        data.currentCrop!.trim().toLowerCase() == 'not sown yet' ||
+        data.currentCrop!.trim().toLowerCase() == 'none';
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -436,7 +442,9 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
           const SizedBox(height: 2),
           Text(
-            'Financial overview for your farm',
+            isPlanningMode
+                ? 'Oilseed Market Data & Regional Intelligence'
+                : 'Financial overview for your farm',
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -445,46 +453,39 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
           const SizedBox(height: 18),
 
-          // Fallback Alerts if Farm Area, Crop or Yield Missing
-          if (!data.hasFarmArea) ...[
-            _buildWarningBanner('Add your farm area to view your financial outlook.'),
-            const SizedBox(height: 14),
+          if (!isPlanningMode) ...[
+            if (!data.hasFarmArea) ...[
+              _buildWarningBanner('Add your farm area to view your financial outlook.'),
+              const SizedBox(height: 14),
+            ],
+            if (!data.hasYieldPrediction) ...[
+              _buildWarningBanner('Generate your yield prediction to see your financial outlook.'),
+              const SizedBox(height: 14),
+            ],
+            if (!data.sellingPrice.available) ...[
+              _buildWarningBanner('Market price unavailable for current location/crop.'),
+              const SizedBox(height: 14),
+            ],
+
+            // 2. HERO EXPECTED PROFIT CARD
+            _buildExpectedProfitCard(ps, data),
+            const SizedBox(height: 16),
+
+            // 3. FINANCIAL OUTLOOK CARD
+            _buildFinancialOutlookCard(ps),
+            const SizedBox(height: 20),
+
+            // 4. YOUR FARM COSTS SECTION
+            _buildFarmCostsSection(data),
+            const SizedBox(height: 24),
           ],
-          if (!data.hasCrop) ...[
-            _buildWarningBanner('Select a crop to view your financial outlook.'),
-            const SizedBox(height: 14),
-          ],
-          if (!data.hasYieldPrediction) ...[
-            _buildWarningBanner('Generate your yield prediction to see your financial outlook.'),
-            const SizedBox(height: 14),
-          ],
-          if (!data.sellingPrice.available) ...[
-            _buildWarningBanner('Market price unavailable for current location/crop.'),
-            const SizedBox(height: 14),
-          ],
-
-          // 2. HERO EXPECTED PROFIT CARD
-          _buildExpectedProfitCard(ps, data),
-
-          const SizedBox(height: 16),
-
-          // 3. FINANCIAL OUTLOOK CARD
-          _buildFinancialOutlookCard(ps),
-
-          const SizedBox(height: 20),
-
-          // 4. YOUR FARM COSTS SECTION
-          _buildFarmCostsSection(data),
-
-          const SizedBox(height: 24),
 
           // 5. OILSEED MARKET TODAY SECTION
           _buildMarketTodaySection(data),
-
           const SizedBox(height: 16),
 
-          // 6. GEMINI MARKET INSIGHT
-          if (data.marketInsight != null && data.marketInsight!.available) ...[
+          // 6. GEMINI MARKET INSIGHT (Active Crop Only)
+          if (!isPlanningMode && data.marketInsight != null && data.marketInsight!.available) ...[
             _buildMarketInsightCard(data.marketInsight!),
             const SizedBox(height: 20),
           ],
@@ -956,8 +957,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: item.isFarmerCrop ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
-          width: item.isFarmerCrop ? 1.5 : 1.0,
+          color: const Color(0xFFE2E8F0),
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(

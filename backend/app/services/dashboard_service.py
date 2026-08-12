@@ -17,6 +17,7 @@ from app.services.crop_health_service import crop_health_service
 from app.services.yield_service import yield_service
 from app.services.recommendation_service import recommendation_service
 from app.services.crop_recommendation_service import crop_recommendation_service
+from app.services.wallet_service import wallet_service
 
 from app.models.dashboard import (
     SownDashboardResponse,
@@ -377,6 +378,7 @@ class DashboardService:
 
             recs = await crop_recommendation_service.get_top_recommendations(db, user_doc, language, query_date)
             top_rec_items = [TopCropRecommendationItem(**r) for r in recs]
+            market_items = await wallet_service.get_oilseed_markets_from_db(db, state, None, district)
 
             return PlanningDashboardResponse(
                 dashboard_state="no_crop",
@@ -386,6 +388,11 @@ class DashboardService:
                 weather=weather_info,
                 previous_crop=None,
                 top_recommendations=top_rec_items,
+                market_items=market_items,
+                financial_outlook=None,
+                yield_prediction=None,
+                crop_health=None,
+                water_status=None,
             ).dict()
 
         # 2. Check Crop Maturity for active crop
@@ -418,6 +425,7 @@ class DashboardService:
 
             recs = await crop_recommendation_service.get_top_recommendations(db, user_doc, language, query_date)
             top_rec_items = [TopCropRecommendationItem(**r) for r in recs]
+            market_items = await wallet_service.get_oilseed_markets_from_db(db, state, None, district)
 
             prev_crop_info = PreviousCropInfo(
                 name=current_crop,
@@ -433,6 +441,11 @@ class DashboardService:
                 weather=weather_info,
                 previous_crop=prev_crop_info,
                 top_recommendations=top_rec_items,
+                market_items=market_items,
+                financial_outlook=None,
+                yield_prediction=None,
+                crop_health=None,
+                water_status=None,
             ).dict()
 
         # 3. State C: Active Growing Crop -> Sown Dashboard

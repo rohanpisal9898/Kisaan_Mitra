@@ -79,6 +79,7 @@ class MspInfoModel {
 }
 
 class MarketItemModel {
+  final String? cropId;
   final String cropName;
   final double unitPrice;
   final double minPrice;
@@ -92,6 +93,7 @@ class MarketItemModel {
   final String? marketVsMspLabel;
 
   MarketItemModel({
+    this.cropId,
     required this.cropName,
     required this.unitPrice,
     required this.minPrice,
@@ -107,6 +109,7 @@ class MarketItemModel {
 
   factory MarketItemModel.fromJson(Map<String, dynamic> json) {
     return MarketItemModel(
+      cropId: json['crop_id'],
       cropName: json['crop_name'] ?? '',
       unitPrice: (json['unit_price'] as num?)?.toDouble() ?? 0.0,
       minPrice: (json['min_price'] as num?)?.toDouble() ?? 0.0,
@@ -291,7 +294,8 @@ class WalletOverviewModel {
   final String village;
   final String district;
   final String state;
-  final String currentCrop;
+  final String? currentCrop;
+  final String? currentCropId;
   final double farmArea;
   final String farmAreaUnit;
   final bool hasFarmArea;
@@ -312,7 +316,8 @@ class WalletOverviewModel {
     required this.village,
     required this.district,
     required this.state,
-    required this.currentCrop,
+    this.currentCrop,
+    this.currentCropId,
     required this.farmArea,
     required this.farmAreaUnit,
     required this.hasFarmArea,
@@ -335,7 +340,8 @@ class WalletOverviewModel {
       village: json['village'] ?? '',
       district: json['district'] ?? '',
       state: json['state'] ?? '',
-      currentCrop: json['current_crop'] ?? '',
+      currentCrop: json['current_crop'],
+      currentCropId: json['current_crop_id'],
       farmArea: (json['farm_area'] as num?)?.toDouble() ?? 0.0,
       farmAreaUnit: json['farm_area_unit'] ?? 'acres',
       hasFarmArea: json['has_farm_area'] ?? true,

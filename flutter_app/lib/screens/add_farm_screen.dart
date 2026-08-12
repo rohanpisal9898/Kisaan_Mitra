@@ -48,9 +48,16 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   ];
 
   String _selectedCrop = 'Not Sown Yet';
-  final _areaController = TextEditingController(text: '0.0');
+  final _areaController = TextEditingController(text: '');
   String _areaUnit = 'Acres';
   DateTime? _sowingDate;
+
+  bool get _isAreaValid {
+    final text = _areaController.text.trim();
+    if (text.isEmpty) return false;
+    final val = double.tryParse(text);
+    return val != null && val.isFinite && val > 0;
+  }
 
   // State / District selection from API
   List<String> _states = [];
@@ -296,6 +303,17 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                       _buildLabel(_l10n.farmArea),
                       const SizedBox(height: 10),
                       _buildFarmAreaRow(),
+                      if (_areaController.text.trim().isNotEmpty && !_isAreaValid) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Farm area must be greater than 0.',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
 
                       // Sowing Date (only shown if a real crop is selected)
                       if (_selectedCrop != 'Not Sown Yet') ...[
@@ -375,7 +393,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   }
 
   bool _canAnalyze() {
-    return _selectedState != null && _selectedDistrict != null;
+    return _selectedState != null && _selectedDistrict != null && _isAreaValid;
   }
 
   Widget _buildStepIndicator() {
@@ -757,6 +775,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           flex: 2,
           child: TextField(
             controller: _areaController,
+            onChanged: (_) => setState(() {}),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),

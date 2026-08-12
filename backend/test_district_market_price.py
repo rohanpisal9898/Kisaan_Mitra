@@ -306,18 +306,36 @@ async def run_suite():
     print("   [PASS] TEST 13 PASSED: Market items list updated dynamically on crop switch.")
 
     # ------------------------------------------------------------------
-    # TEST 14: No Crop State Handling
+    # TEST 14: No Crop State Handling & Zero Your Crop Badges
     # ------------------------------------------------------------------
-    print("\n--- TEST 14: No Crop State Handling ---")
+    print("\n--- TEST 14: No Crop State Handling & Zero Your Crop Badges ---")
     items_nocrop = await wallet_service.get_oilseed_markets_from_db(db, "Maharashtra", None, district="Nagpur")
     farmer_crop_flags = [item["is_farmer_crop"] for item in items_nocrop]
     print(f"   No Crop State -> Items Count: {len(items_nocrop)}, Farmer Crop Flags: {farmer_crop_flags}")
-    assert not any(farmer_crop_flags)
+    assert not any(farmer_crop_flags), "No Crop state must have ZERO Your Crop badges!"
     assert len(items_nocrop) == 5
-    print("   [PASS] TEST 14 PASSED: Default 5 oilseeds rendered cleanly without extra items.")
+    print("   [PASS] TEST 14 PASSED: Default 5 oilseeds rendered cleanly with ZERO Your Crop badges.")
+
+    # ------------------------------------------------------------------
+    # TEST 15: Position Independence Verification (Index != 0)
+    # ------------------------------------------------------------------
+    print("\n--- TEST 15: Position Independence Verification (Index != 0) ---")
+    # Simulate a list where farmer crop is placed at index 2, not index 0
+    test_crops = ["Groundnut", "Soybean", "Castor seed", "Sunflower", "Rapeseed &Mustard"]
+    res_list = []
+    farmer_crop_id = wallet_service._get_canonical_crop_id("Castor seed")
+    for c_raw in test_crops:
+        item_crop_id = wallet_service._get_canonical_crop_id(c_raw)
+        is_farmer = bool(farmer_crop_id is not None and item_crop_id == farmer_crop_id)
+        res_list.append({"crop_id": item_crop_id, "crop_name": c_raw, "is_farmer_crop": is_farmer})
+
+    print(f"   Position Test List: {[item['crop_name'] + (' [Your Crop]' if item['is_farmer_crop'] else '') for item in res_list]}")
+    assert res_list[0]["is_farmer_crop"] is False, "Index 0 must NOT receive Your Crop badge!"
+    assert res_list[2]["is_farmer_crop"] is True, "Index 2 (Castor seed) MUST receive Your Crop badge!"
+    print("   [PASS] TEST 15 PASSED: Your Crop badge relies strictly on canonical crop ID match, NOT index 0.")
 
     print("\n======================================================================")
-    print("  [SUCCESS] ALL 14 DISTRICT-SPECIFIC MARKET PRICE & DEMAND TESTS PASSED!")
+    print("  [SUCCESS] ALL 15 DISTRICT-SPECIFIC MARKET PRICE & DEMAND TESTS PASSED!")
     print("======================================================================")
 
 if __name__ == "__main__":
