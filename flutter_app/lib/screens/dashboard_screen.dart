@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/sown_dashboard_model.dart';
 import '../services/api_service.dart';
 
@@ -40,11 +41,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   DashboardOverviewModel? _overviewData;
+  String? _activeLanguage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadDashboardData();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLang = Localizations.localeOf(context).languageCode;
+    if (_activeLanguage != currentLang) {
+      _activeLanguage = currentLang;
+      _loadDashboardData();
+    }
   }
 
   Future<void> _loadDashboardData() async {
@@ -60,9 +66,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         phone = prefs.getString('user_phone');
       }
 
+      final activeLang = _activeLanguage ?? widget.language;
       final jsonResponse = await ApiService.fetchDashboardOverview(
         phoneNumber: phone,
-        language: widget.language,
+        language: activeLang,
       );
       final model = DashboardOverviewModel.fromJson(jsonResponse);
 
@@ -81,6 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showSowingDateSelectionModal(TopCropRecommendationModel item) {
+    final l10n = AppLocalizations.of(context);
     DateTime selectedDate = DateTime.now();
 
     showModalBottomSheet(
@@ -122,12 +130,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: const TextStyle(fontSize: 24),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Plan ${item.crop}',
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
+                      Expanded(
+                        child: Text(
+                          '${l10n.planCrop} ${item.crop}',
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -140,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '📅 Recommended Sowing: ${item.recommendedSowing}',
+                      '📅 ${l10n.recommendedSowing}: ${item.recommendedSowing}',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -150,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'Select Sowing Date',
+                    l10n.selectSowingDate,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -226,7 +237,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('🌾 Switched active crop to ${item.crop}!'),
+                                  content: Text('🌾 ${l10n.switchedCropSuccess} ${item.crop}!'),
                                   backgroundColor: const Color(0xFF15803D),
                                 ),
                               );
@@ -246,7 +257,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                       icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                       label: Text(
-                        'Confirm & Start Growing',
+                        l10n.confirmStartGrowing,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -266,6 +277,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: _currentIndex == 1
@@ -278,7 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: RefreshIndicator(
                         onRefresh: _loadDashboardData,
                         color: const Color(0xFF15803D),
-                        child: _buildDashboardContent(),
+                        child: _buildDashboardContent(l10n),
                       ),
                     ),
 
@@ -312,26 +325,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
           unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
+              label: l10n.navHome,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.bug_report_outlined),
-              activeIcon: Icon(Icons.bug_report),
-              label: 'Pest',
+              icon: const Icon(Icons.bug_report_outlined),
+              activeIcon: const Icon(Icons.bug_report),
+              label: l10n.navPest,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Wallet',
+              icon: const Icon(Icons.account_balance_wallet_outlined),
+              activeIcon: const Icon(Icons.account_balance_wallet),
+              label: l10n.navWallet,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline),
+              activeIcon: const Icon(Icons.person),
+              label: l10n.navProfile,
             ),
           ],
         ),
@@ -339,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDashboardContent() {
+  Widget _buildDashboardContent(AppLocalizations l10n) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -364,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Unable to connect to backend',
+                l10n.unableConnectBackend,
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -373,7 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Please check your network or backend server and try again.',
+                l10n.checkNetworkBackend,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 13,
@@ -392,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onPressed: _loadDashboardData,
                 icon: const Icon(Icons.refresh, color: Colors.white),
                 label: Text(
-                  'Retry',
+                  l10n.retry,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

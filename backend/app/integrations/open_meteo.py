@@ -160,6 +160,14 @@ async def fetch_weather(latitude: float, longitude: float) -> Optional[Dict[str,
     else:
         wind_desc = f"{round(wind_speed)} km/h"
 
+    # Extract today's ET0
+    today_et0 = None
+    if eto_values and len(eto_values) > 0 and eto_values[0] is not None:
+        try:
+            today_et0 = round(float(eto_values[0]), 2)
+        except (ValueError, TypeError):
+            today_et0 = None
+
     return {
         "location": {"latitude": latitude, "longitude": longitude},
         "current": {
@@ -177,8 +185,10 @@ async def fetch_weather(latitude: float, longitude: float) -> Optional[Dict[str,
             "speed_kmh": round(wind_speed, 1),
             "description": wind_desc,
         },
+        "et0_mm": today_et0,
         "forecast": forecast,
         "available": True,
+        "source": "open_meteo",
     }
 
 

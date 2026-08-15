@@ -48,6 +48,12 @@ class CropHealthInfo(BaseModel):
     satellite_available: bool = True
     satellite_date: Optional[str] = "2026-08-06"
     satellite_days_old: Optional[int] = 4
+    crop_id: Optional[str] = "soybean"
+    stage_id: Optional[str] = "flowering"
+    available_indices: List[str] = []
+    missing_indices: List[str] = []
+    index_scores: Dict[str, float] = {}
+    benchmark_metadata: Dict[str, Any] = {}
 
 class YieldPredictionInfo(BaseModel):
     predicted: float = 3.4
@@ -59,7 +65,8 @@ class YieldPredictionInfo(BaseModel):
 
 class RecommendationItem(BaseModel):
     priority: int
-    type: str
+    category: str = "general"
+    type: str = "general"
     title: str
     description: str
     severity: str = "medium"

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../models/sown_dashboard_model.dart';
 
@@ -19,6 +20,8 @@ class DashboardHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     final bool isNoCrop = crop == null ||
         crop!.name.isEmpty ||
         crop!.name.trim().toLowerCase() == 'not sown yet' ||
@@ -48,7 +51,7 @@ class DashboardHeaderWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Kisaan Mitra',
+                  l10n.appName,
                   style: GoogleFonts.inter(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
@@ -57,47 +60,22 @@ class DashboardHeaderWidget extends StatelessWidget {
                 ),
               ],
             ),
-            Row(
-              children: [
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, size: 26),
-                      onPressed: onNotificationTap,
-                      color: AppColors.textPrimary,
-                    ),
-                    Positioned(
-                      right: 12,
-                      top: 12,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF22C55E),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
+            GestureDetector(
+              onTap: onProfileTap,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
-                GestureDetector(
-                  onTap: onProfileTap,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: const Icon(
-                      Icons.person_outline_rounded,
-                      color: AppColors.textPrimary,
-                      size: 22,
-                    ),
-                  ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.textPrimary,
+                  size: 22,
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -116,9 +94,9 @@ class DashboardHeaderWidget extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          'Hi, ${farmer.name}',
+                          '${l10n.hiFarmer} ${farmer.name}',
                           style: GoogleFonts.inter(
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
@@ -128,7 +106,7 @@ class DashboardHeaderWidget extends StatelessWidget {
                       const SizedBox(width: 6),
                       const Text(
                         '👋',
-                        style: TextStyle(fontSize: 20),
+                        style: TextStyle(fontSize: 18),
                       ),
                     ],
                   ),
@@ -145,7 +123,7 @@ class DashboardHeaderWidget extends StatelessWidget {
                         child: Text(
                           '${farmer.village}, ${farmer.district} • ${farmer.state}',
                           style: GoogleFonts.inter(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.grey.shade600,
                           ),
@@ -162,7 +140,7 @@ class DashboardHeaderWidget extends StatelessWidget {
             if (isNoCrop)
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(16),
@@ -171,14 +149,14 @@ class DashboardHeaderWidget extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('🌱', style: TextStyle(fontSize: 13)),
+                    const Text('🌱', style: TextStyle(fontSize: 12)),
                     const SizedBox(width: 4),
                     Text(
-                      'NO CROP SOWN',
+                      l10n.noCropSown,
                       style: GoogleFonts.inter(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
+                        letterSpacing: 0.3,
                         color: const Color(0xFF475569),
                       ),
                     ),
@@ -188,7 +166,7 @@ class DashboardHeaderWidget extends StatelessWidget {
             else
               Container(
                 margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFDCFCE7), Color(0xFFF0FDF4)],
@@ -210,11 +188,11 @@ class DashboardHeaderWidget extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'ACTIVE CROP',
+                      l10n.activeCrop,
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
+                        letterSpacing: 0.5,
                         color: const Color(0xFF166534),
                       ),
                     ),
@@ -222,14 +200,19 @@ class DashboardHeaderWidget extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('🌾', style: TextStyle(fontSize: 13)),
+                        const Text('🌾', style: TextStyle(fontSize: 12)),
                         const SizedBox(width: 4),
-                        Text(
-                          crop!.name,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF15803D),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              crop!.name,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF15803D),
+                              ),
+                            ),
                           ),
                         ),
                       ],

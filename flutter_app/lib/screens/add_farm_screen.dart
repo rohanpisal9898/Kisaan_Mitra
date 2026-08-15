@@ -715,8 +715,8 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                   _selectedCrop = crop;
                   if (_selectedCrop == 'Not Sown Yet') {
                     _sowingDate = null;
-                  } else if (_sowingDate == null) {
-                    _sowingDate = DateTime.now();
+                  } else {
+                    _sowingDate ??= DateTime.now();
                   }
                 });
               },

@@ -101,6 +101,62 @@ class AppLocalizations {
       'nav_profile': 'Profile',
       'welcome': 'Welcome back,',
 
+      // Dashboard Header & Badges
+      'active_crop': 'ACTIVE CROP',
+      'no_crop_sown': 'NO CROP SOWN',
+      'hi_farmer': 'Hi,',
+
+      // Weather Card
+      'feels_like': 'Feels like',
+      'wind': 'Wind',
+      'rain': 'Rain',
+
+      // Crop Stage Card
+      'crop_stage': 'Crop Stage',
+      'on_track': 'On track',
+      'stage_sowing': 'Sowing',
+      'stage_veg': 'Veg.',
+      'stage_flowering': 'Flowering',
+      'stage_maturity': 'Maturity',
+
+      // Water Status Card
+      'water_status': 'Water Status',
+      'no_irrigation_needed': 'No irrigation needed',
+      'needs_irrigation': 'Needs irrigation',
+
+      // Crop Health Card
+      'crop_health': 'Crop Health',
+
+      // Yield Prediction Card
+      'ml_yield_prediction': 'ML YIELD PREDICTION',
+      'expected_yield': 'Expected Yield',
+      'tons_per_hectare': 'Tons / Hectare',
+      'confidence_range': 'Confidence Range',
+
+      // Recommendations & Planning
+      'top_recommendations': 'Top Recommendations',
+      'crop_cycle_complete': 'CROP CYCLE COMPLETE',
+      'no_crop_sown_yet': 'NO CROP SOWN YET',
+      'plan_next_season': 'Choose a crop to plan your next season.',
+      'planning_description': "We'll compare crops using your farm's soil, weather, water requirement and local market demand.",
+      'top_crop_recommendations': 'Top Crop Recommendations',
+      'net_return': 'Net return',
+      'water_req': 'Water Req.',
+      'recommended_sowing': 'Recommended Sowing',
+      'suitable': 'Suitable',
+      'personalized_recs_info': 'These recommendations are personalized for your farm.',
+      'ranking_factors': 'Ranking considers: Market Demand • Water Requirement • Sowing Period',
+
+      // Sowing Date Modal & Recommendation Modal
+      'plan_crop': 'Plan',
+      'select_sowing_date': 'Select Sowing Date',
+      'confirm_start_growing': 'Confirm & Start Growing',
+      'switched_crop_success': 'Switched active crop to',
+      'got_it': 'Got it',
+      'why_recommendation': 'Why this recommendation?',
+      'unable_connect_backend': 'Unable to connect to backend',
+      'check_network_backend': 'Please check your network or backend server and try again.',
+
       // Pest Detection Page 1
       'pest_detection_title': 'Pest Detection',
       'pest_hero_title': 'Something wrong\nwith your crop?',
@@ -207,6 +263,62 @@ class AppLocalizations {
       'nav_wallet': 'वॉलेट',
       'nav_profile': 'प्रोफाइल',
       'welcome': 'स्वागत है,',
+
+      // Dashboard Header & Badges
+      'active_crop': 'सक्रिय फसल',
+      'no_crop_sown': 'फसल बोई नहीं गई',
+      'hi_farmer': 'नमस्ते,',
+
+      // Weather Card
+      'feels_like': 'महसूस होता है',
+      'wind': 'हवा',
+      'rain': 'बारिश',
+
+      // Crop Stage Card
+      'crop_stage': 'फसल का चरण',
+      'on_track': 'सही स्थिति में',
+      'stage_sowing': 'बुवाई',
+      'stage_veg': 'बढ़वार',
+      'stage_flowering': 'फूल आना',
+      'stage_maturity': 'पकाई',
+
+      // Water Status Card
+      'water_status': 'जल स्थिति',
+      'no_irrigation_needed': 'सिंचाई की आवश्यकता नहीं',
+      'needs_irrigation': 'सिंचाई की आवश्यकता',
+
+      // Crop Health Card
+      'crop_health': 'फसल का स्वास्थ्य',
+
+      // Yield Prediction Card
+      'ml_yield_prediction': 'ML उपज अनुमान',
+      'expected_yield': 'अपेक्षित उपज',
+      'tons_per_hectare': 'टन / हेक्टेयर',
+      'confidence_range': 'विश्वास सीमा',
+
+      // Recommendations & Planning
+      'top_recommendations': 'प्रमुख सिफारिशें',
+      'crop_cycle_complete': 'फसल चक्र पूर्ण',
+      'no_crop_sown_yet': 'अभी कोई फसल नहीं बोई गई',
+      'plan_next_season': 'अगले सीजन की योजना बनाने के लिए फसल चुनें।',
+      'planning_description': 'हम आपके खेत की मिट्टी, मौसम, पानी की आवश्यकता और बाजार मांग के आधार पर फसलों की तुलना करेंगे।',
+      'top_crop_recommendations': 'शीर्ष फसल सिफारिशें',
+      'net_return': 'शुद्ध लाभ',
+      'water_req': 'पानी आवश्यकता',
+      'recommended_sowing': 'अनुशंसित बुवाई',
+      'suitable': 'उपयुक्त',
+      'personalized_recs_info': 'ये सिफारिशें आपके खेत के लिए व्यक्तिगत हैं।',
+      'ranking_factors': 'रैंकिंग का आधार: बाजार मांग • पानी की आवश्यकता • बुवाई का समय',
+
+      // Sowing Date Modal & Recommendation Modal
+      'plan_crop': 'योजना बनाएं',
+      'select_sowing_date': 'बुवाई की तारीख चुनें',
+      'confirm_start_growing': 'पुष्टि करें और खेती शुरू करें',
+      'switched_crop_success': 'सक्रिय फसल बदलकर हुई',
+      'got_it': 'समझ गया',
+      'why_recommendation': 'यह सिफारिश क्यों?',
+      'unable_connect_backend': 'बैकएंड से कनेक्ट करने में असमर्थ',
+      'check_network_backend': 'कृपया अपना नेटवर्क या बैकएंड सर्वर जांचें और पुनः प्रयास करें।',
 
       // Pest Detection Page 1
       'pest_detection_title': 'कीट पहचान',
@@ -315,6 +427,62 @@ class AppLocalizations {
       'nav_profile': 'प्रोफाइल',
       'welcome': 'स्वागत आहे,',
 
+      // Dashboard Header & Badges
+      'active_crop': 'सक्रिय पीक',
+      'no_crop_sown': 'पीक पेरलेले नाही',
+      'hi_farmer': 'नमस्कार,',
+
+      // Weather Card
+      'feels_like': 'जाणवते',
+      'wind': 'वारा',
+      'rain': 'पाऊस',
+
+      // Crop Stage Card
+      'crop_stage': 'पिकाचा टप्पा',
+      'on_track': 'योग्य मार्गावर',
+      'stage_sowing': 'पेरणी',
+      'stage_veg': 'वाढ',
+      'stage_flowering': 'फुलोरा',
+      'stage_maturity': 'पक्वता',
+
+      // Water Status Card
+      'water_status': 'पाणी स्थिती',
+      'no_irrigation_needed': 'सिंचनाची गरज नाही',
+      'needs_irrigation': 'सिंचनाची गरज',
+
+      // Crop Health Card
+      'crop_health': 'पिकाचे आरोग्य',
+
+      // Yield Prediction Card
+      'ml_yield_prediction': 'ML उत्पादन अंदाज',
+      'expected_yield': 'अपेक्षित उत्पादन',
+      'tons_per_hectare': 'टन / हेक्टर',
+      'confidence_range': 'विश्वास श्रेणी',
+
+      // Recommendations & Planning
+      'top_recommendations': 'प्रमुख शिफारसी',
+      'crop_cycle_complete': 'पीक चक्र पूर्ण',
+      'no_crop_sown_yet': 'अजून कोणतेही पीक पेरलेले नाही',
+      'plan_next_season': 'पुढील हंगामाचे नियोजन करण्यासाठी पीक निवडा.',
+      'planning_description': 'आम्ही तुमच्या शेताची माती, हवामान, पाण्याची गरज आणि बाजार मागणीनुसार पिकांची तुलना करू.',
+      'top_crop_recommendations': 'प्रमुख पीक शिफारसी',
+      'net_return': 'निव्वळ नफा',
+      'water_req': 'पाण्याची गरज',
+      'recommended_sowing': 'योग्य पेरणी वेळ',
+      'suitable': 'योग्य',
+      'personalized_recs_info': 'या शिफारसी तुमच्या शेतासाठी वैयक्तिकृत आहेत.',
+      'ranking_factors': 'रँकिंगचे निकष: बाजार मागणी • पाण्याची गरज • पेरणीचा काळ',
+
+      // Sowing Date Modal & Recommendation Modal
+      'plan_crop': 'नियोजन करा',
+      'select_sowing_date': 'पेरणी तारीख निवडा',
+      'confirm_start_growing': 'खात्री करा आणि शेती सुरू करा',
+      'switched_crop_success': 'सक्रिय पीक बदलून झाले',
+      'got_it': 'समजले',
+      'why_recommendation': 'ही शिफारस का?',
+      'unable_connect_backend': 'बॅकएंडशी कनेक्ट करण्यात अक्षम',
+      'check_network_backend': 'कृपया तुमचे नेटवर्क किंवा बॅकएंड सर्व्हर तपासा आणि पुन्हा प्रयत्न करा.',
+
       // Pest Detection Page 1
       'pest_detection_title': 'कीड ओळख',
       'pest_hero_title': 'तुमच्या पिकात\nकाही समस्या आहे का?',
@@ -411,6 +579,48 @@ class AppLocalizations {
   String get nameLabel => get('name_label');
   String get farmerRole => get('farmer_role');
   String get notAvailable => get('not_available');
+
+  // Dashboard getters
+  String get activeCrop => get('active_crop');
+  String get noCropSown => get('no_crop_sown');
+  String get hiFarmer => get('hi_farmer');
+  String get feelsLike => get('feels_like');
+  String get wind => get('wind');
+  String get rain => get('rain');
+  String get cropStage => get('crop_stage');
+  String get onTrack => get('on_track');
+  String get stageSowing => get('stage_sowing');
+  String get stageVeg => get('stage_veg');
+  String get stageFlowering => get('stage_flowering');
+  String get stageMaturity => get('stage_maturity');
+  String get waterStatus => get('water_status');
+  String get noIrrigationNeeded => get('no_irrigation_needed');
+  String get needsIrrigation => get('needs_irrigation');
+  String get cropHealth => get('crop_health');
+  String get mlYieldPrediction => get('ml_yield_prediction');
+  String get expectedYield => get('expected_yield');
+  String get tonsPerHectare => get('tons_per_hectare');
+  String get confidenceRange => get('confidence_range');
+  String get topRecommendations => get('top_recommendations');
+  String get cropCycleComplete => get('crop_cycle_complete');
+  String get noCropSownYet => get('no_crop_sown_yet');
+  String get planNextSeason => get('plan_next_season');
+  String get planningDescription => get('planning_description');
+  String get topCropRecommendations => get('top_crop_recommendations');
+  String get netReturn => get('net_return');
+  String get waterReq => get('water_req');
+  String get recommendedSowing => get('recommended_sowing');
+  String get suitable => get('suitable');
+  String get personalizedRecsInfo => get('personalized_recs_info');
+  String get rankingFactors => get('ranking_factors');
+  String get planCrop => get('plan_crop');
+  String get selectSowingDate => get('select_sowing_date');
+  String get confirmStartGrowing => get('confirm_start_growing');
+  String get switchedCropSuccess => get('switched_crop_success');
+  String get gotIt => get('got_it');
+  String get whyRecommendation => get('why_recommendation');
+  String get unableConnectBackend => get('unable_connect_backend');
+  String get checkNetworkBackend => get('check_network_backend');
 
   // Pest Detection getters
   String get pestDetectionTitle => get('pest_detection_title');

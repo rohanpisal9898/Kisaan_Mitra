@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 
 class PlanningDashboardCardWidget extends StatelessWidget {
   final String dashboardState; // "no_crop" or "crop_matured"
@@ -15,6 +16,7 @@ class PlanningDashboardCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isMatured = dashboardState == "crop_matured";
 
     return Container(
@@ -42,8 +44,8 @@ class PlanningDashboardCardWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -51,7 +53,7 @@ class PlanningDashboardCardWidget extends StatelessWidget {
                 child: Center(
                   child: Text(
                     isMatured ? '🌾' : '🌱',
-                    style: const TextStyle(fontSize: 26),
+                    style: const TextStyle(fontSize: 24),
                   ),
                 ),
               ),
@@ -61,9 +63,9 @@ class PlanningDashboardCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isMatured ? 'CROP CYCLE COMPLETE' : 'NO CROP SOWN YET',
+                      isMatured ? l10n.cropCycleComplete : l10n.noCropSownYet,
                       style: GoogleFonts.inter(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                         color: const Color(0xFF166534),
@@ -87,8 +89,8 @@ class PlanningDashboardCardWidget extends StatelessWidget {
 
           Text(
             isMatured
-                ? 'Your ${previousCropName ?? "crop"} has reached full maturity. It\'s time to plan your next season.'
-                : 'Choose a crop to plan your next season.',
+                ? '${previousCropName ?? l10n.farmerRole}: ${l10n.planNextSeason}'
+                : l10n.planNextSeason,
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -98,7 +100,7 @@ class PlanningDashboardCardWidget extends StatelessWidget {
           const SizedBox(height: 6),
 
           Text(
-            'We\'ll compare crops using your farm\'s soil, weather, water requirement and local market demand.',
+            l10n.planningDescription,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,

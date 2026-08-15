@@ -63,6 +63,9 @@ class DashboardService:
         longitude = user_doc.get("longitude") if user_doc.get("longitude") is not None else 73.7898
         current_crop = user_doc.get("current_crop", "Soyabean")
         sowing_date_str = user_doc.get("sowing_date", "2026-06-15")
+        farm_area = float(user_doc.get("farm_area", 2.5))
+        farm_area_unit = str(user_doc.get("farm_area_unit", "acres")).lower()
+        farm_area_ha = farm_area * 0.404686 if "acre" in farm_area_unit else farm_area
 
         print(f"\n[DASHBOARD SERVICE DEBUG]")
         print(f"  Requested Phone : {phone_number}")
@@ -81,22 +84,32 @@ class DashboardService:
             crop_profile or {}, sowing_date_str
         )
 
-        # 3. Weather
+        # 3. Canonical Weather Context per Dashboard Request
         weather_res = await weather_service.get_weather(db, latitude, longitude)
         curr_weather = weather_res.get("current", {})
         rain_info = weather_res.get("rain", {})
         wind_info = weather_res.get("wind", {})
         forecast_list = weather_res.get("forecast", [])
-        eto_mm = forecast_list[0].get("eto_mm", 5.2) if forecast_list else 5.2
+        weather_available = weather_res.get("available", True)
+        weather_source = weather_res.get("source", "open_meteo")
+
+        # Canonical ET0 Extraction (Strict single source per request)
+        raw_et0 = weather_res.get("et0_mm")
+        if raw_et0 is None and forecast_list and len(forecast_list) > 0:
+            raw_et0 = forecast_list[0].get("eto_mm")
+
+        eto_mm = round(float(raw_et0), 2) if raw_et0 is not None else 4.5
+        forecast_rain_mm = float(rain_info.get("amount_mm") or 0.0)
+        curr_temp = curr_weather.get("temperature") if curr_weather.get("temperature") is not None else 26.0
+        wind_speed = wind_info.get("speed_kmh") if wind_info.get("speed_kmh") is not None else 5.0
 
         print(f"[WEATHER DEBUG]")
         print(f"  Latitude={latitude}, Longitude={longitude}")
-        print(f"  Current Temp={curr_weather.get('temperature')}°C, Rain Forecast={rain_info.get('amount_mm')} mm, Wind={wind_info.get('speed_kmh')} km/h")
-        print(f"  Weather Source={'Mock' if not weather_res.get('available') else 'Open-Meteo'}")
+        print(f"  Current Temp={curr_temp}°C, Rain Forecast={forecast_rain_mm} mm, Wind={wind_speed} km/h")
+        print(f"  ET0={eto_mm} mm/day, Weather Source={weather_source}, Available={weather_available}")
 
-        # 4. Water Status
+        # 4. Water Status (Consumes Canonical Weather Context)
         days_after_sowing = stage_res.get("days_after_sowing", 60)
-        forecast_rain_mm = rain_info.get("amount_mm", 18.0)
         water_res = water_service.calculate_water_status(
             crop_profile or {}, days_after_sowing, eto_mm, forecast_rain_mm
         )
@@ -190,13 +203,16 @@ class DashboardService:
         print(f"  Model Used={yield_res.get('model_used')}")
         print(f"  Predicted={yield_res.get('yield_predicted')}, Lower={yield_res.get('yield_lower')}, Upper={yield_res.get('yield_upper')} {yield_res.get('unit')}")
 
-        # 7. Gemini Recommendations (Deterministic fallback if API fails)
+        # 7. Gemini Recommendations (Deterministic 3-category fallback if API fails)
         rec_context = {
+            "phone_number": phone_number,
             "crop_name": current_crop,
             "district": district,
             "state": state,
             "crop_stage": stage_res.get("stage_name", "Flowering"),
             "days_after_sowing": days_after_sowing,
+            "current_month": datetime.now().strftime("%B"),
+            "farm_area_ha": farm_area_ha,
             "weather_summary": {
                 "temperature": curr_weather.get("temperature", 26.0),
                 "condition": curr_weather.get("condition", "Partly Cloudy"),
@@ -206,6 +222,12 @@ class DashboardService:
             "water_summary": {
                 "status": water_res.get("status", "rain_sufficient"),
                 "irrigation_mm": water_res.get("irrigation_mm", 0.0),
+                "net_irrigation_mm": water_res.get("irrigation_mm", 0.0),
+                "et0": eto_mm,
+                "kc": water_res.get("calculation", {}).get("kc", 0.8),
+                "etc": water_res.get("calculation", {}).get("crop_water_demand_etc_mm", 3.6),
+                "forecast_rain": forecast_rain_mm,
+                "weather_source": weather_source,
             },
             "health_summary": {
                 "status": health_res.get("status", "good"),
@@ -224,9 +246,10 @@ class DashboardService:
             recommendations_list.append(
                 RecommendationItem(
                     priority=r.get("priority", 1),
+                    category=r.get("category", "general"),
                     type=r.get("type", "water"),
-                    title=r.get("title", "Rain expected soon"),
-                    description=r.get("description", "Delay irrigation if enough rain occurs"),
+                    title=r.get("title", ""),
+                    description=r.get("description", ""),
                     severity=r.get("severity", "medium"),
                     icon=r.get("icon", "💡"),
                 )

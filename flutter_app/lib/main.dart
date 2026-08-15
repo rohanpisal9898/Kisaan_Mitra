@@ -50,7 +50,9 @@ class _KisaanMitraAppState extends State<KisaanMitraApp> {
     });
   }
 
-  void setLocale(Locale locale) {
+  Future<void> setLocale(Locale locale) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', locale.languageCode);
     setState(() {
       _locale = locale;
     });

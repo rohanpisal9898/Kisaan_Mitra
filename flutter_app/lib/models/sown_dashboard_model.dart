@@ -148,6 +148,11 @@ class CropHealthInfoModel {
   final bool satelliteAvailable;
   final String? satelliteDate;
   final int? satelliteDaysOld;
+  final String? cropId;
+  final String? stageId;
+  final List<String> availableIndices;
+  final List<String> missingIndices;
+  final Map<String, double> indexScores;
 
   CropHealthInfoModel({
     required this.status,
@@ -157,6 +162,11 @@ class CropHealthInfoModel {
     required this.satelliteAvailable,
     this.satelliteDate,
     this.satelliteDaysOld,
+    this.cropId,
+    this.stageId,
+    this.availableIndices = const [],
+    this.missingIndices = const [],
+    this.indexScores = const {},
   });
 
   factory CropHealthInfoModel.fromJson(Map<String, dynamic> json) {
@@ -168,6 +178,20 @@ class CropHealthInfoModel {
       satelliteAvailable: json['satellite_available'] ?? true,
       satelliteDate: json['satellite_date'],
       satelliteDaysOld: (json['satellite_days_old'] as num?)?.toInt(),
+      cropId: json['crop_id'],
+      stageId: json['stage_id'],
+      availableIndices: (json['available_indices'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      missingIndices: (json['missing_indices'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      indexScores: (json['index_scores'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, (v as num).toDouble()),
+          ) ??
+          const {},
     );
   }
 }
@@ -203,6 +227,7 @@ class YieldPredictionInfoModel {
 
 class RecommendationItemModel {
   final int priority;
+  final String category;
   final String type;
   final String title;
   final String description;
@@ -211,6 +236,7 @@ class RecommendationItemModel {
 
   RecommendationItemModel({
     required this.priority,
+    required this.category,
     required this.type,
     required this.title,
     required this.description,
@@ -221,7 +247,8 @@ class RecommendationItemModel {
   factory RecommendationItemModel.fromJson(Map<String, dynamic> json) {
     return RecommendationItemModel(
       priority: (json['priority'] as num?)?.toInt() ?? 1,
-      type: json['type'] ?? 'water',
+      category: json['category'] ?? json['type'] ?? 'general',
+      type: json['type'] ?? 'general',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       severity: json['severity'] ?? 'medium',

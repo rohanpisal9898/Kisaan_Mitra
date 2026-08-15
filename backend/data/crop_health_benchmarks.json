@@ -1,0 +1,452 @@
+{
+  "soybean": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.25, "optimal_min": 0.35, "optimal_max": 0.50, "max": 0.60, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.30, "max": 0.38, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.18, "optimal_min": 0.22, "optimal_max": 0.38, "max": 0.45, "evidence_level": "literature_supported"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.05, "optimal_max": 0.10, "max": 0.18, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["USGS NDVI Phenology Studies", "FAO Crop Remote Sensing Manual"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.45, "optimal_min": 0.55, "optimal_max": 0.72, "max": 0.80, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.22, "optimal_min": 0.28, "optimal_max": 0.42, "max": 0.50, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.30, "optimal_min": 0.38, "optimal_max": 0.55, "max": 0.65, "evidence_level": "directly_reported"},
+        "NDMI": {"min": 0.00, "optimal_min": 0.05, "optimal_max": 0.20, "max": 0.28, "evidence_level": "literature_supported"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Journal of Applied Remote Sensing - Soybean Canopy Dynamics"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.60, "optimal_min": 0.70, "optimal_max": 0.88, "max": 0.94, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.30, "optimal_min": 0.38, "optimal_max": 0.52, "max": 0.60, "evidence_level": "directly_reported"},
+        "EVI": {"min": 0.45, "optimal_min": 0.52, "optimal_max": 0.72, "max": 0.80, "evidence_level": "directly_reported"},
+        "NDMI": {"min": 0.08, "optimal_min": 0.15, "optimal_max": 0.32, "max": 0.40, "evidence_level": "literature_supported"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Remote Sensing of Environment - Soybean Peak Bloom Phenology"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.25, "optimal_min": 0.35, "optimal_max": 0.58, "max": 0.68, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.32, "max": 0.40, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.18, "optimal_min": 0.25, "optimal_max": 0.42, "max": 0.50, "evidence_level": "literature_supported"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.05, "optimal_max": 0.12, "max": 0.20, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Agricultural and Forest Meteorology - Senescence Decline in Oilseeds"]}
+    }
+  },
+  "rapeseed_mustard": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.28, "optimal_min": 0.38, "optimal_max": 0.55, "max": 0.65, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.15, "optimal_min": 0.20, "optimal_max": 0.34, "max": 0.42, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.20, "optimal_min": 0.28, "optimal_max": 0.45, "max": 0.52, "evidence_level": "literature_supported"},
+        "NDMI": {"min": -0.05, "optimal_min": 0.00, "optimal_max": 0.15, "max": 0.22, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["ISPRS Journal of Photogrammetry - Indian Mustard Phenology"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.55, "optimal_min": 0.65, "optimal_max": 0.85, "max": 0.92, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.28, "optimal_min": 0.35, "optimal_max": 0.52, "max": 0.58, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.40, "optimal_min": 0.48, "optimal_max": 0.68, "max": 0.75, "evidence_level": "directly_reported"},
+        "NDMI": {"min": 0.05, "optimal_min": 0.12, "optimal_max": 0.28, "max": 0.35, "evidence_level": "literature_supported"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Indian Society of Remote Sensing - Mustard Early Peak Canopy"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.50, "optimal_min": 0.62, "optimal_max": 0.78, "max": 0.85, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.25, "optimal_min": 0.32, "optimal_max": 0.46, "max": 0.52, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.35, "optimal_min": 0.42, "optimal_max": 0.60, "max": 0.68, "evidence_level": "literature_supported"},
+        "NDMI": {"min": 0.02, "optimal_min": 0.08, "optimal_max": 0.22, "max": 0.30, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Field Crops Research - Mustard Yellow Bloom Spectral Response"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.20, "optimal_min": 0.30, "optimal_max": 0.48, "max": 0.58, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.15, "optimal_max": 0.28, "max": 0.35, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.15, "optimal_min": 0.20, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.12, "optimal_min": -0.06, "optimal_max": 0.08, "max": 0.15, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Agronomy Journal - Mustard Harvest Senescence"]}
+    }
+  },
+  "sunflower": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.25, "optimal_min": 0.35, "optimal_max": 0.50, "max": 0.60, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.30, "max": 0.38, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.18, "optimal_min": 0.24, "optimal_max": 0.38, "max": 0.45, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.08, "optimal_min": -0.02, "optimal_max": 0.12, "max": 0.18, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Remote Sensing MDPI - Sunflower Growth Trajectories"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.48, "optimal_min": 0.58, "optimal_max": 0.75, "max": 0.82, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.24, "optimal_min": 0.30, "optimal_max": 0.44, "max": 0.52, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.32, "optimal_min": 0.40, "optimal_max": 0.58, "max": 0.66, "evidence_level": "literature_supported"},
+        "NDMI": {"min": 0.02, "optimal_min": 0.08, "optimal_max": 0.22, "max": 0.30, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["European Journal of Agronomy - Sunflower Leaf Area Dynamics"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.62, "optimal_min": 0.72, "optimal_max": 0.88, "max": 0.94, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.32, "optimal_min": 0.40, "optimal_max": 0.55, "max": 0.62, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.45, "optimal_min": 0.54, "optimal_max": 0.72, "max": 0.80, "evidence_level": "directly_reported"},
+        "NDMI": {"min": 0.10, "optimal_min": 0.16, "optimal_max": 0.34, "max": 0.42, "evidence_level": "literature_supported"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Remote Sensing of Environment - Sunflower Peak Bloom NDVI"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.22, "optimal_min": 0.32, "optimal_max": 0.52, "max": 0.62, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.11, "optimal_min": 0.16, "optimal_max": 0.28, "max": 0.36, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.16, "optimal_min": 0.22, "optimal_max": 0.38, "max": 0.45, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.12, "optimal_min": -0.06, "optimal_max": 0.08, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Agronomy Journal - Sunflower Head Drying & Senescence"]}
+    }
+  },
+  "groundnut": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.22, "optimal_min": 0.30, "optimal_max": 0.48, "max": 0.58, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.16, "optimal_max": 0.28, "max": 0.35, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.16, "optimal_min": 0.22, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.08, "optimal_min": -0.02, "optimal_max": 0.10, "max": 0.18, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Computers and Electronics in Agriculture - Groundnut Canopy Mapping"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.42, "optimal_min": 0.52, "optimal_max": 0.68, "max": 0.76, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.20, "optimal_min": 0.26, "optimal_max": 0.38, "max": 0.46, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.28, "optimal_min": 0.35, "optimal_max": 0.50, "max": 0.58, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.00, "optimal_min": 0.05, "optimal_max": 0.18, "max": 0.25, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["International Journal of Remote Sensing - Peanut Vegetative Index Curves"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.58, "optimal_min": 0.68, "optimal_max": 0.84, "max": 0.90, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.28, "optimal_min": 0.35, "optimal_max": 0.48, "max": 0.55, "evidence_level": "literature_supported"},
+        "EVI": {"min": 0.40, "optimal_min": 0.48, "optimal_max": 0.65, "max": 0.72, "evidence_level": "directly_reported"},
+        "NDMI": {"min": 0.08, "optimal_min": 0.14, "optimal_max": 0.28, "max": 0.35, "evidence_level": "literature_supported"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Crop Science - Groundnut Pegging & Pod Initiation Remote Sensing"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.25, "optimal_min": 0.35, "optimal_max": 0.52, "max": 0.62, "evidence_level": "directly_reported"},
+        "NDRE": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.30, "max": 0.38, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.18, "optimal_min": 0.24, "optimal_max": 0.38, "max": 0.45, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.04, "optimal_max": 0.10, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "directly_reported", "sources": ["Field Crops Research - Groundnut Harvest Maturation Curves"]}
+    }
+  },
+  "sesame": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.20, "optimal_min": 0.28, "optimal_max": 0.44, "max": 0.54, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.14, "optimal_max": 0.26, "max": 0.32, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.14, "optimal_min": 0.20, "optimal_max": 0.32, "max": 0.40, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.04, "optimal_max": 0.08, "max": 0.15, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Agronomy Journal - Sesame Canopy Development"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.40, "optimal_min": 0.48, "optimal_max": 0.65, "max": 0.74, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.18, "optimal_min": 0.24, "optimal_max": 0.36, "max": 0.44, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.26, "optimal_min": 0.32, "optimal_max": 0.48, "max": 0.55, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.02, "optimal_min": 0.04, "optimal_max": 0.16, "max": 0.22, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Industrial Crops and Products - Sesame Spectral Signatures"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.54, "optimal_min": 0.62, "optimal_max": 0.78, "max": 0.85, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.25, "optimal_min": 0.30, "optimal_max": 0.44, "max": 0.50, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.35, "optimal_min": 0.42, "optimal_max": 0.58, "max": 0.66, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.04, "optimal_min": 0.10, "optimal_max": 0.24, "max": 0.30, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Remote Sensing Applications - Sesame Bloom Index Limits"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.18, "optimal_min": 0.25, "optimal_max": 0.42, "max": 0.52, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.08, "optimal_min": 0.12, "optimal_max": 0.24, "max": 0.30, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.30, "max": 0.38, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.14, "optimal_min": -0.08, "optimal_max": 0.04, "max": 0.10, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Field Crops Research - Sesame Dry-Down Senescence"]}
+    }
+  },
+  "castor": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.22, "optimal_min": 0.30, "optimal_max": 0.48, "max": 0.58, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.16, "optimal_max": 0.28, "max": 0.34, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.16, "optimal_min": 0.22, "optimal_max": 0.36, "max": 0.44, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.08, "optimal_min": -0.02, "optimal_max": 0.10, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Industrial Crops and Products - Castor Vegetative Canopy"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.44, "optimal_min": 0.54, "optimal_max": 0.72, "max": 0.80, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.22, "optimal_min": 0.28, "optimal_max": 0.42, "max": 0.50, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.30, "optimal_min": 0.38, "optimal_max": 0.54, "max": 0.62, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.00, "optimal_min": 0.06, "optimal_max": 0.20, "max": 0.26, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Journal of Arid Environments - Castor Leaf Canopy Dynamics"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.58, "optimal_min": 0.68, "optimal_max": 0.85, "max": 0.92, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.28, "optimal_min": 0.36, "optimal_max": 0.50, "max": 0.58, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.40, "optimal_min": 0.48, "optimal_max": 0.66, "max": 0.74, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.06, "optimal_min": 0.12, "optimal_max": 0.28, "max": 0.34, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Remote Sensing Applications - Castor Peak Bloom & Spike Formation"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.25, "optimal_min": 0.35, "optimal_max": 0.55, "max": 0.65, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.32, "max": 0.40, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.18, "optimal_min": 0.24, "optimal_max": 0.40, "max": 0.48, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.04, "optimal_max": 0.10, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Agronomy Journal - Castor Pod Ripening & Harvest Curves"]}
+    }
+  },
+  "linseed": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.22, "optimal_min": 0.30, "optimal_max": 0.46, "max": 0.56, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.15, "optimal_max": 0.28, "max": 0.34, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.15, "optimal_min": 0.22, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.08, "optimal_min": -0.02, "optimal_max": 0.10, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Flax Council Agronomic Remote Sensing Profiles"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.42, "optimal_min": 0.52, "optimal_max": 0.70, "max": 0.78, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.20, "optimal_min": 0.26, "optimal_max": 0.40, "max": 0.48, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.28, "optimal_min": 0.35, "optimal_max": 0.52, "max": 0.60, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.00, "optimal_min": 0.05, "optimal_max": 0.18, "max": 0.24, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Canadian Journal of Plant Science - Flax Canopy Growth"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.58, "optimal_min": 0.66, "optimal_max": 0.82, "max": 0.88, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.28, "optimal_min": 0.34, "optimal_max": 0.48, "max": 0.54, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.38, "optimal_min": 0.45, "optimal_max": 0.62, "max": 0.70, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.06, "optimal_min": 0.12, "optimal_max": 0.26, "max": 0.32, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["Remote Sensing MDPI - Flax Flowering Canopy Reflectance"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.20, "optimal_min": 0.28, "optimal_max": 0.48, "max": 0.58, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.15, "optimal_max": 0.28, "max": 0.35, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.15, "optimal_min": 0.20, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.12, "optimal_min": -0.06, "optimal_max": 0.08, "max": 0.14, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Flax Agronomy Guidelines - Maturation Senescence"]}
+    }
+  },
+  "safflower": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.22, "optimal_min": 0.30, "optimal_max": 0.46, "max": 0.56, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.15, "optimal_max": 0.28, "max": 0.34, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.15, "optimal_min": 0.22, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.08, "optimal_min": -0.02, "optimal_max": 0.10, "max": 0.16, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Agricultural Water Management - Safflower Early Development"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.42, "optimal_min": 0.52, "optimal_max": 0.70, "max": 0.78, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.20, "optimal_min": 0.26, "optimal_max": 0.40, "max": 0.48, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.28, "optimal_min": 0.35, "optimal_max": 0.52, "max": 0.60, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.00, "optimal_min": 0.05, "optimal_max": 0.18, "max": 0.24, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Field Crops Research - Safflower Vegetative Canopy Dynamics"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.58, "optimal_min": 0.66, "optimal_max": 0.82, "max": 0.88, "evidence_level": "literature_supported"},
+        "NDRE": {"min": 0.28, "optimal_min": 0.34, "optimal_max": 0.48, "max": 0.54, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.38, "optimal_min": 0.45, "optimal_max": 0.62, "max": 0.70, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.06, "optimal_min": 0.12, "optimal_max": 0.26, "max": 0.32, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "literature_supported", "sources": ["ISPRS Journal - Safflower Bloom & Canopy Cover"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.20, "optimal_min": 0.28, "optimal_max": 0.48, "max": 0.58, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.15, "optimal_max": 0.28, "max": 0.35, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.15, "optimal_min": 0.20, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.12, "optimal_min": -0.06, "optimal_max": 0.08, "max": 0.14, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Agronomy Journal - Safflower Harvest Maturity Curves"]}
+    }
+  },
+  "niger": {
+    "early_growth": {
+      "indices": {
+        "NDVI": {"min": 0.20, "optimal_min": 0.28, "optimal_max": 0.44, "max": 0.54, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.10, "optimal_min": 0.14, "optimal_max": 0.26, "max": 0.32, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.14, "optimal_min": 0.20, "optimal_max": 0.32, "max": 0.40, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.10, "optimal_min": -0.04, "optimal_max": 0.08, "max": 0.15, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Indian Council of Agricultural Research - Niger Seed Studies"]}
+    },
+    "vegetative": {
+      "indices": {
+        "NDVI": {"min": 0.38, "optimal_min": 0.46, "optimal_max": 0.64, "max": 0.72, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.18, "optimal_min": 0.22, "optimal_max": 0.35, "max": 0.42, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.24, "optimal_min": 0.30, "optimal_max": 0.46, "max": 0.54, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.04, "optimal_min": 0.02, "optimal_max": 0.15, "max": 0.20, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "increasing", "NDRE": "increasing", "EVI": "increasing", "NDMI": "increasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["Journal of Oilseeds Research - Niger Vegetative Phase"]}
+    },
+    "flowering": {
+      "indices": {
+        "NDVI": {"min": 0.52, "optimal_min": 0.60, "optimal_max": 0.76, "max": 0.84, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.24, "optimal_min": 0.28, "optimal_max": 0.42, "max": 0.48, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.34, "optimal_min": 0.40, "optimal_max": 0.56, "max": 0.64, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": 0.02, "optimal_min": 0.08, "optimal_max": 0.22, "max": 0.28, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "peak", "NDRE": "peak", "EVI": "peak", "NDMI": "stable"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["ICAR Oilseeds Handbook - Niger Bloom Peak"]}
+    },
+    "maturity": {
+      "indices": {
+        "NDVI": {"min": 0.18, "optimal_min": 0.24, "optimal_max": 0.42, "max": 0.50, "evidence_level": "derived_from_published_curve"},
+        "NDRE": {"min": 0.08, "optimal_min": 0.12, "optimal_max": 0.24, "max": 0.30, "evidence_level": "derived_from_published_curve"},
+        "EVI": {"min": 0.12, "optimal_min": 0.18, "optimal_max": 0.30, "max": 0.36, "evidence_level": "derived_from_published_curve"},
+        "NDMI": {"min": -0.14, "optimal_min": -0.08, "optimal_max": 0.04, "max": 0.10, "evidence_level": "derived_from_published_curve"},
+        "S1_VV": {"status": "calibration_required", "evidence_level": "insufficient"},
+        "S1_VH": {"status": "calibration_required", "evidence_level": "insufficient"}
+      },
+      "trend": {"NDVI": "decreasing", "NDRE": "decreasing", "EVI": "decreasing", "NDMI": "decreasing"},
+      "evidence": {"overall_level": "derived_from_published_curve", "sources": ["ICAR Crop Guidelines - Niger Senescence & Harvesting"]}
+    }
+  }
+}

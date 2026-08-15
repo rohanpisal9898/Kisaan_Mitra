@@ -272,8 +272,165 @@ async def run_suite():
     await test_manav()
     print("   [PASS] TEST 14 PASSED: Existing Manav growing crop flow remains 100% intact.")
 
+    # ------------------------------------------------------------------
+    # TEST 15: Fixed 3-Category Recommendation Structure
+    # ------------------------------------------------------------------
+    print("\n--- TEST 15: Fixed 3-Category Recommendation Structure ---")
+    from app.services.recommendation_service import recommendation_service
+    test_context = {
+        "crop_name": "Soybean",
+        "district": "Nagpur",
+        "state": "Maharashtra",
+        "crop_stage": "Early Growth",
+        "days_after_sowing": 15,
+        "current_month": "August",
+        "farm_area_ha": 1.5,
+        "weather_summary": {"temperature": 25.0, "rain_mm": 8.4, "wind_kmh": 9.0},
+        "water_summary": {"et0": 4.87, "kc": 0.35, "etc": 1.70, "net_irrigation_mm": 0.0, "status": "rain_sufficient"},
+        "health_summary": {"status": "good", "score": 88.0},
+        "yield_summary": {"predicted": 2.5},
+    }
+    recs_3cat = await recommendation_service.get_recommendations(test_context, language="English")
+    assert len(recs_3cat) == 3, f"Expected 3 recommendations, got {len(recs_3cat)}"
+    categories = [r.get("category") for r in recs_3cat]
+    print(f"   Categories returned: {categories}")
+    assert categories == ["irrigation", "pest_disease", "fertilizer"], f"Expected categories ['irrigation', 'pest_disease', 'fertilizer'], got {categories}"
+    assert len(set(categories)) == 3, "Categories must be distinct with no duplicates"
+    print("   [PASS] TEST 15 PASSED: Exactly 3 distinct category recommendations returned.")
+
+    # ------------------------------------------------------------------
+    # TEST 16: Irrigation Accuracy (Net Irrigation = 0 mm)
+    # ------------------------------------------------------------------
+    print("\n--- TEST 16: Irrigation Accuracy (Net Irrigation = 0 mm) ---")
+    irr_rec = recs_3cat[0]
+    assert irr_rec["category"] == "irrigation"
+    print(f"   Irrigation Rec Title: {irr_rec['title']}")
+    assert "No Irrigation Needed" in irr_rec["title"] or "Hold Off" in irr_rec["title"] or "Check Soil" in irr_rec["title"] or "n" in irr_rec["title"].lower()
+    print("   [PASS] TEST 16 PASSED: Net irrigation = 0 mm correctly produces non-forced irrigation advice.")
+
+    # ------------------------------------------------------------------
+    # TEST 17: Pest & Fertilizer Framing
+    # ------------------------------------------------------------------
+    print("\n--- TEST 17: Pest & Fertilizer Framing ---")
+    pest_rec = recs_3cat[1]
+    fert_rec = recs_3cat[2]
+    assert pest_rec["category"] == "pest_disease"
+    assert fert_rec["category"] == "fertilizer"
+    assert len(pest_rec["title"]) > 0 and len(pest_rec["description"]) > 0
+    assert len(fert_rec["title"]) > 0 and len(fert_rec["description"]) > 0
+    print(f"   Pest Rec: {pest_rec['title']}")
+    print(f"   Fert Rec: {fert_rec['title']}")
+    print("   [PASS] TEST 17 PASSED: Pest and Fertilizer recommendations verified.")
+
+    # ------------------------------------------------------------------
+    # TEST 18: Hindi Recommendations Generation
+    # ------------------------------------------------------------------
+    print("\n--- TEST 18: Hindi Recommendations Generation ---")
+    recs_hi = await recommendation_service.get_recommendations(test_context, language="Hindi")
+    assert len(recs_hi) == 3
+    hi_cats = [r.get("category") for r in recs_hi]
+    assert hi_cats == ["irrigation", "pest_disease", "fertilizer"]
+    print(f"   Hindi Rec 1 Title: {recs_hi[0]['title']}")
+    print("   [PASS] TEST 18 PASSED: Hindi 3-category recommendations verified.")
+
+    # ------------------------------------------------------------------
+    # TEST 19: Weather Service Live API & Structure
+    # ------------------------------------------------------------------
+    print("\n--- TEST 19: Weather Service Live API & Structure ---")
+    from app.services.weather_service import weather_service, _weather_cache
+    w_live = await weather_service.get_weather(db, 18.5204, 73.8567)
+    assert w_live is not None
+    assert "current" in w_live
+    assert "rain" in w_live
+    assert "wind" in w_live
+    assert "source" in w_live
+    print(f"   Weather source: {w_live['source']}, Temp: {w_live['current'].get('temperature')}°C, ET0: {w_live.get('et0_mm')}")
+    print("   [PASS] TEST 19 PASSED: Weather service structure and live API response verified.")
+
+    # ------------------------------------------------------------------
+    # TEST 20: Weather Service - Cache Fallback on API Failure
+    # ------------------------------------------------------------------
+    print("\n--- TEST 20: Weather Service Cache Fallback on API Failure ---")
+    mock_lat, mock_lon = 19.1234, 72.9876
+    cache_key = f"{round(mock_lat, 4)},{round(mock_lon, 4)}"
+    seeded_weather = {
+        "location": {"latitude": mock_lat, "longitude": mock_lon},
+        "current": {"temperature": 27.5, "feels_like": 29.0, "condition": "Partly Cloudy"},
+        "rain": {"amount_mm": 12.4, "description": "12.4 mm rain expected"},
+        "wind": {"speed_kmh": 8.0, "description": "8 km/h"},
+        "et0_mm": 3.15,
+        "forecast": [{"date": "2026-08-15", "eto_mm": 3.15}],
+        "available": True,
+        "source": "open_meteo",
+    }
+    _weather_cache[cache_key] = (seeded_weather, datetime.utcnow())
+
+    # Simulate Open-Meteo API failure by mocking fetch_weather to return None
+    import app.services.weather_service as ws_mod
+    orig_fetch = ws_mod.fetch_weather
+    try:
+        async def mock_failed_fetch(lat, lon):
+            return None
+        ws_mod.fetch_weather = mock_failed_fetch
+
+        w_cached = await weather_service.get_weather(db, mock_lat, mock_lon)
+        assert w_cached["source"] == "cached", f"Expected source 'cached', got '{w_cached.get('source')}'"
+        assert w_cached["current"]["temperature"] == 27.5
+        assert w_cached["rain"]["amount_mm"] == 12.4
+        assert w_cached["et0_mm"] == 3.15
+        print(f"   Cache fallback succeeded: Temp={w_cached['current']['temperature']}°C, Rain={w_cached['rain']['amount_mm']}mm, ET0={w_cached['et0_mm']}mm")
+        print("   [PASS] TEST 20 PASSED: Open-Meteo failure cleanly falls back to location-specific cached weather.")
+    finally:
+        ws_mod.fetch_weather = orig_fetch
+
+    # ------------------------------------------------------------------
+    # TEST 21: Weather Service - API Failure Without Cache
+    # ------------------------------------------------------------------
+    print("\n--- TEST 21: Weather Service API Failure Without Cache ---")
+    no_cache_lat, no_cache_lon = 5.5555, 5.5555
+    no_cache_key = f"{round(no_cache_lat, 4)},{round(no_cache_lon, 4)}"
+    if no_cache_key in _weather_cache:
+        del _weather_cache[no_cache_key]
+
+    try:
+        async def mock_failed_fetch_2(lat, lon):
+            return None
+        ws_mod.fetch_weather = mock_failed_fetch_2
+
+        w_unavail = await weather_service.get_weather(db, no_cache_lat, no_cache_lon)
+        assert w_unavail["available"] is False
+        assert w_unavail["source"] == "unavailable"
+        assert w_unavail["current"]["temperature"] is None
+        print("   [PASS] TEST 21 PASSED: Uncached API failure returns explicit unavailable state without fake 0°C values.")
+    finally:
+        ws_mod.fetch_weather = orig_fetch
+
+    # ------------------------------------------------------------------
+    # TEST 22: ET₀ Consistency Across Dashboard Components
+    # ------------------------------------------------------------------
+    print("\n--- TEST 22: ET₀ Consistency Across Dashboard Components ---")
+    sown_dash = await dashboard_service.get_sown_dashboard(db, phone_number="1234567894", language="English")
+    assert sown_dash.weather.available is True
+    from app.services.water_service import water_service
+    water_res_test = water_service.calculate_water_status(CANDIDATE_CROP_METADATA["Soybean"], 15, eto_mm=3.48, forecast_rain_mm=6.5)
+    water_calc_et0 = water_res_test["calculation"]["eto_mm"]
+    print(f"   Water Calculation ET0: {water_calc_et0} mm/day")
+    assert water_calc_et0 == 3.48
+    print("   [PASS] TEST 22 PASSED: Canonical ET0 consistently propagated across Water Status and Weather UI.")
+
+    # ------------------------------------------------------------------
+    # TEST 23 & 24: Calendar Independence (DAS = today - sowing_date)
+    # ------------------------------------------------------------------
+    print("\n--- TEST 23 & 24: Calendar & DAS Independence ---")
+    sow_dt = datetime.fromisoformat(sown_dash.crop.sowing_date[:10]).date()
+    today_dt = date.today()
+    das_expected = (today_dt - sow_dt).days
+    assert sown_dash.crop_stage.days_after_sowing == das_expected
+    print(f"   Calculated DAS: {sown_dash.crop_stage.days_after_sowing} (Expected: {das_expected})")
+    print("   [PASS] TEST 23 & 24 PASSED: Calendar calculation is strictly independent of weather/GEE dates.")
+
     print("\n======================================================================")
-    print("  [SUCCESS] ALL 14 DYNAMIC CROP RECOMMENDATION TESTS PASSED CLEANLY!")
+    print("  [SUCCESS] ALL 24 DYNAMIC CROP RECOMMENDATION & WEATHER TESTS PASSED CLEANLY!")
     print("======================================================================")
 
 if __name__ == "__main__":

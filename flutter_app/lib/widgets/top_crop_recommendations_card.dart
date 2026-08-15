@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 
 class TopCropRecommendationModel {
   final int rank;
@@ -60,6 +61,8 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (recommendations.isEmpty) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
+
     final rank1 = recommendations.isNotEmpty ? recommendations[0] : null;
     final rank2 = recommendations.length > 1 ? recommendations[1] : null;
     final rank3 = recommendations.length > 2 ? recommendations[2] : null;
@@ -72,12 +75,16 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
           children: [
             const Text('⭐', style: TextStyle(fontSize: 16)),
             const SizedBox(width: 6),
-            Text(
-              'Top Crop Recommendations',
-              style: GoogleFonts.inter(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+            Expanded(
+              child: Text(
+                l10n.topCropRecommendations,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -86,7 +93,7 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
 
         // Rank #1 Large Hero Card
         if (rank1 != null) ...[
-          _buildRank1Card(context, rank1),
+          _buildRank1Card(context, l10n, rank1),
           const SizedBox(height: 14),
         ],
 
@@ -96,11 +103,11 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (rank2 != null)
-                Expanded(child: _buildGridRankCard(context, rank2)),
+                Expanded(child: _buildGridRankCard(context, l10n, rank2)),
               if (rank2 != null && rank3 != null)
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
               if (rank3 != null)
-                Expanded(child: _buildGridRankCard(context, rank3)),
+                Expanded(child: _buildGridRankCard(context, l10n, rank3)),
             ],
           ),
           const SizedBox(height: 16),
@@ -117,8 +124,8 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 32,
+                height: 32,
                 decoration: const BoxDecoration(
                   color: Color(0xFFDCFCE7),
                   shape: BoxShape.circle,
@@ -133,7 +140,7 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'These recommendations are personalized for your farm.',
+                      l10n.personalizedRecsInfo,
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -142,9 +149,9 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Ranking considers: Market Demand • Water Requirement • Sowing Period',
+                      l10n.rankingFactors,
                       style: GoogleFonts.inter(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF15803D),
                       ),
@@ -159,7 +166,7 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildRank1Card(BuildContext context, TopCropRecommendationModel item) {
+  Widget _buildRank1Card(BuildContext context, AppLocalizations l10n, TopCropRecommendationModel item) {
     return GestureDetector(
       onTap: () => onCropSelected?.call(item),
       child: Container(
@@ -183,8 +190,8 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
               children: [
                 // Rank Circle
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   decoration: const BoxDecoration(
                     color: Color(0xFF86EFAC),
                     shape: BoxShape.circle,
@@ -193,37 +200,39 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                     child: Text(
                       '${item.rank}',
                       style: GoogleFonts.inter(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF14532D),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Text(item.icon, style: const TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
+                Text(item.icon, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     item.crop,
                     style: GoogleFonts.inter(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: const Color(0xFF0F172A),
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 6),
                 // Suitability Pill
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${item.score}% Suitable',
+                    '${item.score}% ${l10n.suitable}',
                     style: GoogleFonts.inter(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF15803D),
                     ),
@@ -235,108 +244,139 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
 
             // Inner Details Box
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Net Return
-                  Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF15803D),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Center(
-                          child: Text('₹', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.netReturnFormatted,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF15803D),
+                            shape: BoxShape.circle,
                           ),
-                          Text(
-                            'Net return',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: const Color(0xFF64748B),
-                            ),
+                          child: const Center(
+                            child: Text('₹', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item.netReturnFormatted,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                l10n.netReturn,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  color: const Color(0xFF64748B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Container(height: 24, width: 1, color: const Color(0xFFE2E8F0)),
+                  Container(height: 20, width: 1, color: const Color(0xFFE2E8F0)),
+                  const SizedBox(width: 6),
 
                   // Water Req
-                  Row(
-                    children: [
-                      const Text('💧', style: TextStyle(fontSize: 16)),
-                      const SizedBox(width: 6),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.waterRequirementFormatted,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Text('💧', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item.waterRequirementFormatted,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                l10n.waterReq,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  color: const Color(0xFF64748B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Water Req.',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                  Container(height: 24, width: 1, color: const Color(0xFFE2E8F0)),
+                  Container(height: 20, width: 1, color: const Color(0xFFE2E8F0)),
+                  const SizedBox(width: 6),
 
                   // Sowing
-                  Row(
-                    children: [
-                      const Text('📅', style: TextStyle(fontSize: 16)),
-                      const SizedBox(width: 6),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.recommendedSowing,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Text('📅', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  item.recommendedSowing,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                l10n.recommendedSowing,
+                                style: GoogleFonts.inter(
+                                  fontSize: 8,
+                                  color: const Color(0xFF64748B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Recommended Sowing',
-                            style: GoogleFonts.inter(
-                              fontSize: 9,
-                              color: const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -347,11 +387,11 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildGridRankCard(BuildContext context, TopCropRecommendationModel item) {
+  Widget _buildGridRankCard(BuildContext context, AppLocalizations l10n, TopCropRecommendationModel item) {
     return GestureDetector(
       onTap: () => onCropSelected?.call(item),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
@@ -367,12 +407,12 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row: Rank circle, Icon, Name, Suitability
+            // Top Row: Rank circle, Icon, Name
             Row(
               children: [
                 Container(
-                  width: 24,
-                  height: 24,
+                  width: 22,
+                  height: 22,
                   decoration: const BoxDecoration(
                     color: Color(0xFF22C55E),
                     shape: BoxShape.circle,
@@ -381,21 +421,21 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                     child: Text(
                       '${item.rank}',
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(item.icon, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 5),
+                Text(item.icon, style: const TextStyle(fontSize: 15)),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     item.crop,
                     style: GoogleFonts.inter(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),
@@ -406,25 +446,25 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
                 color: const Color(0xFFDCFCE7),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '${item.score}% Suitable',
+                '${item.score}% ${l10n.suitable}',
                 style: GoogleFonts.inter(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF15803D),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Details Container
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
@@ -434,60 +474,94 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.netReturnFormatted,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
-                          ),
-                          Text('Net return', style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF64748B))),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text('💧', style: TextStyle(fontSize: 11)),
-                              const SizedBox(width: 2),
-                              Text(
-                                item.waterRequirementFormatted,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                item.netReturnFormatted,
                                 style: GoogleFonts.inter(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF0F172A),
                                 ),
                               ),
-                            ],
-                          ),
-                          Text('Water Req.', style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF64748B))),
-                        ],
+                            ),
+                            Text(
+                              l10n.netReturn,
+                              style: GoogleFonts.inter(fontSize: 8, color: const Color(0xFF64748B)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Text('💧', style: TextStyle(fontSize: 10)),
+                                const SizedBox(width: 2),
+                                Expanded(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      item.waterRequirementFormatted,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              l10n.waterReq,
+                              style: GoogleFonts.inter(fontSize: 8, color: const Color(0xFF64748B)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Text('📅', style: TextStyle(fontSize: 11)),
+                      const Text('📅', style: TextStyle(fontSize: 10)),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              item.recommendedSowing,
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                item.recommendedSowing,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF0F172A),
+                                ),
                               ),
                             ),
-                            Text('Sowing', style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF64748B))),
+                            Text(
+                              l10n.recommendedSowing,
+                              style: GoogleFonts.inter(fontSize: 8, color: const Color(0xFF64748B)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ),
                       ),

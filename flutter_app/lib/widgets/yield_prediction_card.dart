@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import '../models/sown_dashboard_model.dart';
 
 class YieldPredictionCardWidget extends StatelessWidget {
@@ -12,9 +13,11 @@ class YieldPredictionCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: const Color(0xFF143823), // Dark green background matching reference image
         borderRadius: BorderRadius.circular(20),
@@ -41,13 +44,16 @@ class YieldPredictionCardWidget extends StatelessWidget {
               children: [
                 const Text('✦', style: TextStyle(fontSize: 10, color: Color(0xFF143823), fontWeight: FontWeight.bold)),
                 const SizedBox(width: 4),
-                Text(
-                  'ML YIELD PREDICTION',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF143823),
-                    letterSpacing: 0.5,
+                Flexible(
+                  child: Text(
+                    l10n.mlYieldPrediction,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF143823),
+                      letterSpacing: 0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -56,7 +62,7 @@ class YieldPredictionCardWidget extends StatelessWidget {
           const SizedBox(height: 14),
 
           Text(
-            'Expected Yield',
+            l10n.expectedYield,
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -69,35 +75,44 @@ class YieldPredictionCardWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '${yieldData.predicted}',
-                    style: GoogleFonts.inter(
-                      fontSize: 44,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1.0,
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${yieldData.predicted}',
+                      style: GoogleFonts.inter(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.0,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Tons / Hectare',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.85),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.bottomLeft,
+                        child: Text(
+                          l10n.tonsPerHectare,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
 
               // Upward Trend Arrow Icon
               SizedBox(
-                width: 48,
-                height: 32,
+                width: 44,
+                height: 30,
                 child: CustomPaint(
                   painter: TrendLinePainter(),
                 ),
@@ -115,17 +130,21 @@ class YieldPredictionCardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                yieldData.confidenceLabel,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Colors.white.withOpacity(0.7),
+              Expanded(
+                child: Text(
+                  yieldData.confidenceLabel,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${yieldData.lower} – ${yieldData.upper} T/Ha',
                 style: GoogleFonts.inter(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
