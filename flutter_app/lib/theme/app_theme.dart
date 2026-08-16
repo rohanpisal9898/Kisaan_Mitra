@@ -33,7 +33,7 @@ class AppColors {
   static const Color chipText = Color(0xFF3F6212);       // Dark green chip text
 }
 
-/// App-wide theme data.
+/// App-wide theme data using DM Sans throughout.
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
@@ -47,45 +47,46 @@ class AppTheme {
         surface: AppColors.bgLight,
       ),
       scaffoldBackgroundColor: AppColors.bgLight,
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(
+      fontFamily: GoogleFonts.dmSans().fontFamily,
+      textTheme: GoogleFonts.dmSansTextTheme().copyWith(
+        displayLarge: GoogleFonts.dmSans(
           fontSize: 32,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.2,
         ),
-        displayMedium: GoogleFonts.inter(
+        displayMedium: GoogleFonts.dmSans(
           fontSize: 28,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.2,
         ),
-        headlineMedium: GoogleFonts.inter(
+        headlineMedium: GoogleFonts.dmSans(
           fontSize: 24,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        titleLarge: GoogleFonts.inter(
+        titleLarge: GoogleFonts.dmSans(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        titleMedium: GoogleFonts.inter(
+        titleMedium: GoogleFonts.dmSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.dmSans(
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: GoogleFonts.dmSans(
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
         ),
-        labelLarge: GoogleFonts.inter(
+        labelLarge: GoogleFonts.dmSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -99,7 +100,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.dmSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
@@ -122,8 +123,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.dmSans(
           fontSize: 14,
+          fontWeight: FontWeight.w400,
           color: AppColors.textSecondary.withValues(alpha: 0.6),
         ),
       ),

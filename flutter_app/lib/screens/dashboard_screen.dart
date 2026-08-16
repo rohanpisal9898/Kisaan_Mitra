@@ -320,11 +320,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           unselectedItemColor: const Color(0xFF94A3B8),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          selectedLabelStyle: GoogleFonts.inter(
+          selectedLabelStyle: GoogleFonts.dmSans(
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
+          unselectedLabelStyle: GoogleFonts.dmSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+          ),
           items: [
             BottomNavigationBarItem(
               icon: const Icon(Icons.home_outlined),

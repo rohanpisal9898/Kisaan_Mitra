@@ -8,6 +8,12 @@ class AppLocalizations {
 
   AppLocalizations(this.languageCode);
 
+  String get localeName {
+    if (languageCode == 'hi') return 'Hindi';
+    if (languageCode == 'mr') return 'Marathi';
+    return 'English';
+  }
+
   static AppLocalizations of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
         AppLocalizations(Localizations.localeOf(context).languageCode);
@@ -159,25 +165,61 @@ class AppLocalizations {
 
       // Pest Detection Page 1
       'pest_detection_title': 'Pest Detection',
-      'pest_hero_title': 'Something wrong\nwith your crop?',
-      'pest_hero_subtitle': 'Take a photo of the affected plant and we\'ll help identify the possible pest or problem.',
+      'pest_hero_title': 'Identify what\'s\naffecting your crop',
+      'pest_hero_subtitle': 'Take a clear photo of the\naffected plant or leaf and\nwe\'ll detect the problem.',
       'take_photo': 'Take Photo',
       'use_camera': 'Use camera',
-      'choose_photo': 'Choose Photo',
-      'from_gallery': 'From gallery',
-      'quick_easy_private': 'Quick • Easy • Private',
-      'not_sure_what_to_scan': 'Not sure what to scan?',
-      'look_for_signs': 'Look for signs like these',
-      'symptom_holes': 'Holes /\neaten leaves',
-      'symptom_insects': 'Insects',
-      'symptom_spots': 'Spots /\ndiscoloration',
-      'symptom_curling': 'Curling /\ndistortion',
-      'symptom_webbing': 'Webbing',
-      'symptom_sudden_damage': 'Sudden\ndamage',
+      'or_divider': 'or',
+      'upload_from_gallery': 'Upload from Gallery',
+      'tips_title': 'Tips for best results',
+      'tips_text': 'Use daylight • Focus on the affected area •\nAvoid blurry images',
+      'camera_perm_title': 'Camera Permission Required',
+      'camera_perm_body': 'Camera permission is required to capture photos of affected crops. Please allow camera access.',
+      'camera_perm_denied_body': 'Camera permission is permanently denied. Please open App Settings to enable camera access.',
+      'open_settings': 'Open Settings',
+      'cancel_btn': 'Cancel',
       'nav_my_crop': 'My Crop',
       'nav_scan': 'Scan',
       'nav_advisory': 'Advisory',
       'nav_more': 'More',
+      'ai_analyzing_photo': 'AI is analyzing\nyour photo',
+      'takes_few_seconds': 'This usually takes a few seconds.',
+      'step_image_quality': 'Image quality check',
+      'step_detecting_patterns': 'Detecting patterns',
+      'step_identifying_issues': 'Identifying issues',
+      'step_preparing_questions': 'Preparing questions',
+      'step_generating_insights': 'Generating insights',
+      'data_safe_private': 'Your data is safe and private',
+      'question_progress_format': 'Question {current} of {total}',
+      'yes': 'Yes',
+      'no': 'No',
+      'not_sure': 'Not sure?',
+      'skip_question': 'Skip this question',
+      'this_helps_understand': 'This helps us understand\nthe problem better.',
+      'please_select_answer': 'Please select an answer or skip this question.',
+      'next_btn': 'Next',
+      'previous_btn': 'Back',
+      'questions_error': 'Could not load questions. Please try again.',
+
+      // Pest Detection Page 4 - Diagnosis Report
+      'diagnosis_report_title': 'Diagnosis Report',
+      'what_we_found': 'What we found',
+      'confidence_score': 'Confidence Score',
+      'what_to_do_now': 'What to do now',
+      'view_treatment_guide': 'View Treatment Guide',
+      'affected_part_label': 'Affected part',
+      'observed_damage_label': 'Observed damage',
+      'spread_label': 'Spread',
+      'affected_area_label': 'Affected area',
+      'crop_stage_label': 'Your crop stage',
+      'moderate_concern': 'Moderate Concern',
+
+      // Pest Detection Page 5 - Treatment Guide
+      'treatment_guide_title': 'Treatment Guide',
+      'what_to_do_for_field': 'What to do (For Field)',
+      'recommended_products': 'Recommended Products',
+      'additional_tips': 'Additional Tips',
+      'save_and_done': 'Save & Done',
 
       // Farmer Wallet
       'wallet': 'Farmer Wallet',
@@ -362,25 +404,61 @@ class AppLocalizations {
 
       // Pest Detection Page 1
       'pest_detection_title': 'कीट पहचान',
-      'pest_hero_title': 'आपकी फसल में\nकुछ समस्या है?',
-      'pest_hero_subtitle': 'प्रभावित पौधे की फोटो लें और हम संभावित कीट या समस्या की पहचान करने में मदद करेंगे।',
+      'pest_hero_title': 'पहचानें कि आपकी फसल\nको क्या प्रभावित कर रहा है',
+      'pest_hero_subtitle': 'प्रभावित पौधे या पत्ती की स्पष्ट फोटो लें\nऔर हम समस्या का पता लगाएंगे।',
       'take_photo': 'फोटो लें',
       'use_camera': 'कैमरा उपयोग करें',
-      'choose_photo': 'फोटो चुनें',
-      'from_gallery': 'गैलरी से',
-      'quick_easy_private': 'त्वरित • आसान • निजी',
-      'not_sure_what_to_scan': 'क्या स्कैन करें समझ नहीं आ रहा?',
-      'look_for_signs': 'इस तरह के लक्षण देखें',
-      'symptom_holes': 'छेद /\nखाई हुई पत्तियाँ',
-      'symptom_insects': 'कीड़े',
-      'symptom_spots': 'धब्बे /\nरंग बदलना',
-      'symptom_curling': 'मुड़ना /\nविकृति',
-      'symptom_webbing': 'जाला (वेबिंग)',
-      'symptom_sudden_damage': 'अचानक\nनुकसान',
+      'or_divider': 'या',
+      'upload_from_gallery': 'गैलरी से अपलोड करें',
+      'tips_title': 'उत्तम परिणामों के लिए सुझाव',
+      'tips_text': 'दिन के उजाले का उपयोग करें • प्रभावित क्षेत्र पर ध्यान केंद्रित करें •\nधुंधली छवियों से बचें',
+      'camera_perm_title': 'कैमरा अनुमति आवश्यक',
+      'camera_perm_body': 'फसल की फोटो लेने के लिए कैमरा अनुमति आवश्यक है। कृपया अनुमति दें।',
+      'camera_perm_denied_body': 'कैमरा अनुमति स्थायी रूप से अस्वीकृत है। कृपया ऐप सेटिंग्स में इसे सक्षम करें।',
+      'open_settings': 'सेटिंग्स खोलें',
+      'cancel_btn': 'रद्द करें',
       'nav_my_crop': 'मेरी फसल',
       'nav_scan': 'स्कैन',
       'nav_advisory': 'सलाह',
       'nav_more': 'अधिक',
+      'ai_analyzing_photo': 'AI आपकी फोटो का\nविश्लेषण कर रहा है',
+      'takes_few_seconds': 'इसमें आमतौर पर कुछ सेकंड लगते हैं।',
+      'step_image_quality': 'छवि गुणवत्ता जांच',
+      'step_detecting_patterns': 'पैटर्न का पता लगाना',
+      'step_identifying_issues': 'समस्याओं की पहचान',
+      'step_preparing_questions': 'प्रश्न तैयार करना',
+      'step_generating_insights': 'अंतर्दृष्टि उत्पन्न करना',
+      'data_safe_private': 'आपका डेटा सुरक्षित और निजी है',
+      'question_progress_format': 'प्रश्न {current} / {total}',
+      'yes': 'हां',
+      'no': 'नहीं',
+      'not_sure': 'पक्का नहीं पता?',
+      'skip_question': 'इस प्रश्न को छोड़ें',
+      'this_helps_understand': 'यह हमें समस्या को\nबेहतर ढंग से समझने में मदद करता है।',
+      'please_select_answer': 'कृपया उत्तर चुनें या इस प्रश्न को छोड़ें।',
+      'next_btn': 'आगे',
+      'previous_btn': 'मागे',
+      'questions_error': 'प्रश्न लोड नहीं हो सके। कृपया पुनः प्रयास करें।',
+
+      // Pest Detection Page 4 - Diagnosis Report
+      'diagnosis_report_title': 'निदान रिपोर्ट',
+      'what_we_found': 'हमें क्या मिला',
+      'confidence_score': 'विश्वसनीयता स्कोर',
+      'what_to_do_now': 'अब क्या करें',
+      'view_treatment_guide': 'उपचार निर्देश देखें',
+      'affected_part_label': 'प्रभावित भाग',
+      'observed_damage_label': 'देखी गई क्षति',
+      'spread_label': 'प्रसार',
+      'affected_area_label': 'प्रभावित क्षेत्र',
+      'crop_stage_label': 'आपकी फसल का चरण',
+      'moderate_concern': 'मध्यम चिंता',
+
+      // Pest Detection Page 5 - Treatment Guide
+      'treatment_guide_title': 'उपचार मार्गदर्शक',
+      'what_to_do_for_field': 'क्या करें (खेत के लिए)',
+      'recommended_products': 'अनुशंसित उत्पाद',
+      'additional_tips': 'अतिरिक्त सुझाव',
+      'save_and_done': 'सहेजें और पूरा करें',
 
       // Farmer Wallet
       'wallet': 'किसान वॉलेट',
@@ -565,25 +643,61 @@ class AppLocalizations {
 
       // Pest Detection Page 1
       'pest_detection_title': 'कीड ओळख',
-      'pest_hero_title': 'तुमच्या पिकात\nकाही समस्या आहे का?',
-      'pest_hero_subtitle': 'बाधित रोपाचा फोटो घ्या आणि आम्ही संभाव्य कीड किंवा समस्येची ओळख पटवण्यास मदत करू.',
+      'pest_hero_title': 'तुमच्या पिकाला काय\nबाधित करत आहे ते ओळखा',
+      'pest_hero_subtitle': 'बाधित वनस्पती किंवा पाणाचा स्पष्ट फोटो घ्या\nआणि आम्ही समस्येचा शोध घेऊ.',
       'take_photo': 'फोटो घ्या',
       'use_camera': 'कॅमेरा वापरा',
-      'choose_photo': 'फोटो निवडा',
-      'from_gallery': 'गॅलरीमधून',
-      'quick_easy_private': 'जलद • सोपे • खाजगी',
-      'not_sure_what_to_scan': 'काय स्कॅन करावे हे समजत नाही?',
-      'look_for_signs': 'यासारखी लक्षणे शोधा',
-      'symptom_holes': 'छिद्रे /\nखाल्लेली पाने',
-      'symptom_insects': 'कीटक',
-      'symptom_spots': 'डाग /\nरंग बदलणे',
-      'symptom_curling': 'वळणे /\nविकृती',
-      'symptom_webbing': 'जाळे (वेबिंग)',
-      'symptom_sudden_damage': 'अचानक\nनुकसान',
+      'or_divider': 'किंवा',
+      'upload_from_gallery': 'गॅलरीमधून अपलोड करा',
+      'tips_title': 'उत्तम परिणामांसाठी टिप्स',
+      'tips_text': 'दिवसाच्या प्रकाशाचा वापर करा • बाधित भागावर लक्ष केंद्रित करा •\nअस्पष्ट फोटो टाळा',
+      'camera_perm_title': 'कॅमेरा परवानगी आवश्यक',
+      'camera_perm_body': 'पिकाचा फोटो घेण्यासाठी कॅमेरा परवानगी आवश्यक आहे. कृपया परवानगी द्या.',
+      'camera_perm_denied_body': 'कॅमेरा परवानगी कायमची नाकारली गेली आहे. कृपया ॲप सेटिंग्जमध्ये सक्षम करा.',
+      'open_settings': 'सेटिंग्ज उघडा',
+      'cancel_btn': 'रद्द करा',
       'nav_my_crop': 'माझे पीक',
       'nav_scan': 'स्कॅन',
       'nav_advisory': 'सल्ला',
       'nav_more': 'अधिक',
+      'ai_analyzing_photo': 'AI तुमच्या फोटोचे\nविश्लेषण करत आहे',
+      'takes_few_seconds': 'याला सहसा काही सेकंद लागतात.',
+      'step_image_quality': 'फोटो गुणवत्तेची तपासणी',
+      'step_detecting_patterns': 'पॅटर्न शोधणे',
+      'step_identifying_issues': 'समस्या ओळखणे',
+      'step_preparing_questions': 'प्रश्न तयार करणे',
+      'step_generating_insights': 'माहिती तयार करणे',
+      'data_safe_private': 'तुमचा डेटा सुरक्षित आणि खाजगी आहे',
+      'question_progress_format': 'प्रश्न {current} / {total}',
+      'yes': 'होय',
+      'no': 'नाही',
+      'not_sure': 'खात्री नाही?',
+      'skip_question': 'हा प्रश्न वगळा',
+      'this_helps_understand': 'यामुळे आम्हाला समस्या\nअधिक चांगल्या प्रकारे समजण्यास मदत होते.',
+      'please_select_answer': 'कृपया उत्तर निवडा किंवा हा प्रश्न वगळा.',
+      'next_btn': 'पुढे',
+      'previous_btn': 'मागे',
+      'questions_error': 'प्रश्न लोड करता आले नाहीत. कृपया पुन्हा प्रयत्न करा.',
+
+      // Pest Detection Page 4 - Diagnosis Report
+      'diagnosis_report_title': 'निदान अहवाल',
+      'what_we_found': 'आम्हाला काय आढळले',
+      'confidence_score': 'विश्वासार्हता गुण',
+      'what_to_do_now': 'आता काय करावे',
+      'view_treatment_guide': 'उपचार मार्गदर्शक पहा',
+      'affected_part_label': 'बाधित भाग',
+      'observed_damage_label': 'आढळलेले नुकसान',
+      'spread_label': 'प्रसार',
+      'affected_area_label': 'बाधित क्षेत्र',
+      'crop_stage_label': 'तुमच्या पिकाचा टप्पा',
+      'moderate_concern': 'मध्यम चिंता',
+
+      // Pest Detection Page 5 - Treatment Guide
+      'treatment_guide_title': 'उपचार मार्गदर्शक',
+      'what_to_do_for_field': 'काय करावे (शेतासाठी)',
+      'recommended_products': 'शिफारस केलेली उत्पादने',
+      'additional_tips': 'अतिरिक्त टिप्स',
+      'save_and_done': 'सेव्ह करा आणि पूर्ण झाले',
 
       // Farmer Wallet
       'wallet': 'शेतकरी वॉलेट',
@@ -747,21 +861,57 @@ class AppLocalizations {
   String get pestHeroSubtitle => get('pest_hero_subtitle');
   String get takePhoto => get('take_photo');
   String get useCamera => get('use_camera');
-  String get choosePhoto => get('choose_photo');
-  String get fromGallery => get('from_gallery');
-  String get quickEasyPrivate => get('quick_easy_private');
-  String get notSureWhatToScan => get('not_sure_what_to_scan');
-  String get lookForSigns => get('look_for_signs');
-  String get symptomHoles => get('symptom_holes');
-  String get symptomInsects => get('symptom_insects');
-  String get symptomSpots => get('symptom_spots');
-  String get symptomCurling => get('symptom_curling');
-  String get symptomWebbing => get('symptom_webbing');
-  String get symptomSuddenDamage => get('symptom_sudden_damage');
+  String get orDivider => get('or_divider');
+  String get uploadFromGallery => get('upload_from_gallery');
+  String get tipsTitle => get('tips_title');
+  String get tipsText => get('tips_text');
+  String get cameraPermTitle => get('camera_perm_title');
+  String get cameraPermBody => get('camera_perm_body');
+  String get cameraPermDeniedBody => get('camera_perm_denied_body');
+  String get openSettings => get('open_settings');
+  String get cancelBtn => get('cancel_btn');
   String get navMyCrop => get('nav_my_crop');
   String get navScan => get('nav_scan');
   String get navAdvisory => get('nav_advisory');
   String get navMore => get('nav_more');
+  String get aiAnalyzingPhoto => get('ai_analyzing_photo');
+  String get takesFewSeconds => get('takes_few_seconds');
+  String get stepImageQuality => get('step_image_quality');
+  String get stepDetectingPatterns => get('step_detecting_patterns');
+  String get stepIdentifyingIssues => get('step_identifying_issues');
+  String get stepPreparingQuestions => get('step_preparing_questions');
+  String get stepGeneratingInsights => get('step_generating_insights');
+  String get dataSafePrivate => get('data_safe_private');
+  String get yesLabel => get('yes');
+  String get noLabel => get('no');
+  String get notSure => get('not_sure');
+  String get skipQuestion => get('skip_question');
+  String get thisHelpsUnderstand => get('this_helps_understand');
+  String get pleaseSelectAnswer => get('please_select_answer');
+  String get nextBtn => get('next_btn');
+  String get previousBtn => get('previous_btn');
+  String get questionsError => get('questions_error');
+  String get diagnosisReportTitle => get('diagnosis_report_title');
+  String get whatWeFound => get('what_we_found');
+  String get confidenceScore => get('confidence_score');
+  String get whatToDoNow => get('what_to_do_now');
+  String get viewTreatmentGuide => get('view_treatment_guide');
+  String get affectedPartLabel => get('affected_part_label');
+  String get observedDamageLabel => get('observed_damage_label');
+  String get spreadLabel => get('spread_label');
+  String get affectedAreaLabel => get('affected_area_label');
+  String get cropStageLabel => get('crop_stage_label');
+  String get moderateConcern => get('moderate_concern');
+  String get treatmentGuideTitle => get('treatment_guide_title');
+  String get whatToDoForField => get('what_to_do_for_field');
+  String get recommendedProducts => get('recommended_products');
+  String get additionalTips => get('additional_tips');
+  String get saveAndDone => get('save_and_done');
+  String questionProgress(int current, int total) {
+    return get('question_progress_format')
+        .replaceAll('{current}', current.toString())
+        .replaceAll('{total}', total.toString());
+  }
 
   // Farmer Wallet getters
   String get wallet => get('wallet');

@@ -196,6 +196,7 @@ class ApiService {
     required dynamic imageFile, // XFile from image_picker
     required String source,     // "camera" or "gallery"
     String? userId,
+    String? language,
   }) async {
     final uri = Uri.parse('$baseUrl/api/v1/pest-detection/scan');
     final bytes = await imageFile.readAsBytes();
@@ -207,6 +208,7 @@ class ApiService {
       'source': source,
       'user_id': userId ?? 'guest',
       'filename': filename,
+      'language': language ?? 'English',
     };
 
     final response = await http.post(
@@ -220,6 +222,40 @@ class ApiService {
     } else {
       throw Exception('Failed to upload scan image: ${response.body}');
     }
+  }
+
+  /// Fetch dynamic AI Diagnosis Report based on scan image and 5 Yes/No answers.
+  /// POST /api/v1/pest-detection/diagnosis
+  static Future<Map<String, dynamic>> fetchPestDiagnosis({
+    String? scanId,
+    String? imageBase64,
+    Map<String, String>? answers,
+    String language = 'English',
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/diagnosis');
+      final body = {
+        'scan_id': scanId,
+        'image_base64': imageBase64,
+        'answers': answers,
+        'language': language,
+      };
+
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return (decoded['diagnosis'] as Map<String, dynamic>?) ?? {};
+      }
+    } catch (e) {
+      print('[API SERVICE DIAGNOSIS ERROR] $e');
+    }
+
+    return {};
   }
 
   /// Fetch multi-state Dashboard Overview (no_crop, growing, crop_matured) from FastAPI.

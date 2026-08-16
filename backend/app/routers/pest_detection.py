@@ -2,10 +2,12 @@ import os
 import uuid
 import base64
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any, List
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, status
 from app.database import get_database
 from app.models.pest_scan import PestScanJsonRequest, PestScanCreateResponse
+from app.integrations.gemini import get_gemini_pest_questions, get_gemini_pest_diagnosis
 
 router = APIRouter(
     prefix="/api/v1/pest-detection",
@@ -27,6 +29,7 @@ async def create_pest_scan(body: PestScanJsonRequest):
     Creates a persistent pest scan record in MongoDB and saves the uploaded image.
     Accepts JSON payload with Base64 encoded image string.
     Source must be either 'camera' or 'gallery'.
+    Generates dynamic Gemini Yes/No questions.
     """
     source = body.source if body.source in ["camera", "gallery"] else "camera"
 
@@ -77,12 +80,17 @@ async def create_pest_scan(body: PestScanJsonRequest):
     image_url = f"/uploads/pest_scans/{safe_filename}"
     created_at = datetime.utcnow()
 
+    # Generate dynamic Yes/No questions via Gemini
+    requested_lang = body.language or "English"
+    questions = await get_gemini_pest_questions(image_base64=raw_b64, language=requested_lang)
+
     scan_doc = {
         "scan_id": scan_id,
         "user_id": body.user_id or "guest",
         "image_reference": save_path,
         "image_url": image_url,
         "source": source,
+        "questions": questions,
         "status": "created",
         "created_at": created_at,
     }
@@ -96,4 +104,36 @@ async def create_pest_scan(body: PestScanJsonRequest):
         image_url=image_url,
         source=source,
         message="Pest scan image uploaded and stored in MongoDB successfully",
+        questions=questions,
     )
+
+
+class PestDiagnosisRequest(BaseModel):
+    scan_id: Optional[str] = None
+    image_base64: Optional[str] = None
+    answers: Optional[Dict[str, str]] = None
+    language: Optional[str] = "English"
+
+
+@router.post(
+    "/diagnosis",
+    summary="Generate dynamic AI Diagnosis Report based on scan image and 5 Yes/No answers",
+)
+async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
+    """
+    Generates dynamic Diagnosis Report details using Gemini integration.
+    """
+    requested_lang = body.language or "English"
+    report = await get_gemini_pest_diagnosis(
+        image_base64=body.image_base64,
+        answers=body.answers,
+        language=requested_lang,
+    )
+
+    return {
+        "status": "success",
+        "scan_id": body.scan_id or "demo_scan",
+        "diagnosis": report,
+    }
+
+

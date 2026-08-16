@@ -9,6 +9,7 @@ class PestScanJsonRequest(BaseModel):
     source: str = Field("camera", description="Source of image: camera or gallery")
     user_id: Optional[str] = Field("guest", description="Optional user phone number or ID")
     filename: Optional[str] = Field("pest_scan.jpg", description="Original image filename")
+    language: Optional[str] = Field("English", description="Farmer requested language for Gemini questions")
 
 
 class PestScanCreateResponse(BaseModel):
@@ -18,6 +19,7 @@ class PestScanCreateResponse(BaseModel):
     image_url: str = Field(..., description="Relative or absolute URL of stored image")
     source: str = Field(..., description="Source of image: camera or gallery")
     message: str = Field("Scan image saved successfully", description="Status message")
+    questions: Optional[list] = Field(None, description="Gemini-generated Yes/No follow-up questions")
 
 
 class PestScanDocument(BaseModel):

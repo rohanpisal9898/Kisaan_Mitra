@@ -104,11 +104,11 @@ async def fetch_weather(latitude: float, longitude: float) -> Optional[Dict[str,
 
     # Parse current conditions
     current = data.get("current", {})
-    temp = current.get("temperature_2m", 0)
-    feels_like = current.get("apparent_temperature", temp)
+    temp = current.get("temperature_2m") or 0.0
+    feels_like = current.get("apparent_temperature") if current.get("apparent_temperature") is not None else temp
     humidity = current.get("relative_humidity_2m")
-    weather_code = current.get("weather_code", 0)
-    wind_speed = current.get("wind_speed_10m", 0)
+    weather_code = current.get("weather_code") if current.get("weather_code") is not None else 0
+    wind_speed = current.get("wind_speed_10m") or 0.0
 
     condition = SIMPLE_CONDITIONS.get(weather_code, "Unknown")
 
@@ -123,15 +123,19 @@ async def fetch_weather(latitude: float, longitude: float) -> Optional[Dict[str,
 
     forecast = []
     for i in range(len(dates)):
+        t_max = temp_maxes[i] if (i < len(temp_maxes) and temp_maxes[i] is not None) else 0.0
+        t_min = temp_mins[i] if (i < len(temp_mins) and temp_mins[i] is not None) else 0.0
+        p_sum = precip_sums[i] if (i < len(precip_sums) and precip_sums[i] is not None) else 0.0
+        d_code = daily_codes[i] if (i < len(daily_codes) and daily_codes[i] is not None) else 0
+        eto_val = eto_values[i] if (i < len(eto_values) and eto_values[i] is not None) else None
+
         forecast.append({
             "date": dates[i],
-            "temp_max": temp_maxes[i] if i < len(temp_maxes) else 0,
-            "temp_min": temp_mins[i] if i < len(temp_mins) else 0,
-            "precipitation_mm": precip_sums[i] if i < len(precip_sums) else 0,
-            "condition": SIMPLE_CONDITIONS.get(
-                daily_codes[i] if i < len(daily_codes) else 0, "Unknown"
-            ),
-            "eto_mm": eto_values[i] if i < len(eto_values) else None,
+            "temp_max": t_max,
+            "temp_min": t_min,
+            "precipitation_mm": p_sum,
+            "condition": SIMPLE_CONDITIONS.get(d_code, "Unknown"),
+            "eto_mm": eto_val,
         })
 
     # Find next significant rain
@@ -140,8 +144,9 @@ async def fetch_weather(latitude: float, longitude: float) -> Optional[Dict[str,
     rain_description = "No significant rain expected"
 
     for f in forecast[1:]:  # skip today
-        if f["precipitation_mm"] > 1.0:
-            rain_amount = round(f["precipitation_mm"], 1)
+        precip = f.get("precipitation_mm") or 0.0
+        if precip > 1.0:
+            rain_amount = round(precip, 1)
             rain_date = f["date"]
             if rain_amount >= 40:
                 rain_description = f"Heavy rain expected ({rain_amount} mm)"
@@ -206,5 +211,6 @@ def get_rainfall_next_days(forecast: list, days: int = 3) -> float:
     """Sum rainfall for the next N days from forecast."""
     total = 0.0
     for f in forecast[1 : days + 1]:  # skip today
-        total += f.get("precipitation_mm", 0)
+        total += (f.get("precipitation_mm") or 0.0)
     return round(total, 1)
+
