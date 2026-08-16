@@ -5,6 +5,7 @@ from app.database import get_database
 from app.models.user import UserRegisterRequest, UserLoginRequest, UserResponse, UserUpdateRequest
 from app.services.user_service import user_service
 from app.services.wallet_service import wallet_service
+from app.services.n8n_notifications import n8n_notification_service
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 
@@ -37,6 +38,10 @@ async def login_user(
     background_tasks.add_task(
         wallet_service.refresh_gemini_market_insight_async, db, user.phone_number
     )
+    # Trigger n8n background notification
+    background_tasks.add_task(
+        n8n_notification_service.trigger_farmer_notification, db, str(user.id)
+    )
     return user
 
 
@@ -54,6 +59,10 @@ async def register_user(
         user = await user_service.register_user(db, user_data)
         background_tasks.add_task(
             wallet_service.refresh_gemini_market_insight_async, db, user.phone_number
+        )
+        # Trigger n8n background notification
+        background_tasks.add_task(
+            n8n_notification_service.trigger_farmer_notification, db, str(user.id)
         )
         return user
     except ValueError as ve:
