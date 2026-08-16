@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/wallet_model.dart';
 import '../services/api_service.dart';
 
@@ -19,6 +20,7 @@ class FarmerWalletScreen extends StatefulWidget {
 
 class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   bool _isLoading = true;
+  bool _isSavingExpenses = false;
   String? _errorMessage;
   WalletOverviewModel? _walletData;
   String? _userPhone;
@@ -60,7 +62,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     }
   }
 
-  // Live Recalculation Helpers
+  // Live Recalculation Helpers for local draft changes
   void _recalculateProfit() {
     if (_walletData == null) return;
     final w = _walletData!;
@@ -141,7 +143,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     }
   }
 
-  Future<void> _adjustExpense(ExpenseItemModel item, double delta) async {
+  void _adjustExpense(ExpenseItemModel item, double delta) {
     final newAmount = (item.amount + delta).clamp(0.0, 10000000.0);
     if (newAmount == item.amount) return;
 
@@ -149,35 +151,71 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
       item.amount = newAmount;
       _recalculateProfit();
     });
-
-    try {
-      await ApiService.updateExpense(
-        phoneNumber: _userPhone,
-        expenseId: item.id,
-        amount: newAmount,
-      );
-    } catch (e) {
-      debugPrint('Failed saving expense update: $e');
-    }
   }
 
-  Future<void> _deleteExpense(ExpenseItemModel item) async {
+  void _deleteExpense(ExpenseItemModel item) {
     setState(() {
       _walletData?.expenses.removeWhere((e) => e.id == item.id);
       _recalculateProfit();
     });
+  }
+
+  Future<void> _saveExpenses() async {
+    if (_walletData == null) return;
+    final l10n = AppLocalizations.of(context);
+
+    setState(() {
+      _isSavingExpenses = true;
+    });
 
     try {
-      await ApiService.deleteExpense(
+      final expensesList = _walletData!.expenses.map((e) => e.toJson()).toList();
+      final jsonResponse = await ApiService.saveExpenses(
         phoneNumber: _userPhone,
-        expenseId: item.id,
+        expenses: expensesList,
+      );
+      final updatedModel = WalletOverviewModel.fromJson(jsonResponse);
+
+      if (!mounted) return;
+      setState(() {
+        _walletData = updatedModel;
+        _isSavingExpenses = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.saveSuccess,
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFF15803D),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
     } catch (e) {
-      debugPrint('Failed deleting expense: $e');
+      if (!mounted) return;
+      setState(() {
+        _isSavingExpenses = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to save expenses. Please try again.',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     }
   }
 
   void _showAddExpenseModal() {
+    final l10n = AppLocalizations.of(context);
     final categories = [
       'Seeds',
       'Fertilizer',
@@ -218,12 +256,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Add Expense',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                      Expanded(
+                        child: Text(
+                          l10n.addExpense,
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
                         ),
                       ),
                       IconButton(
@@ -234,7 +274,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Category',
+                    l10n.category,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -244,6 +284,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedCategory,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       border: OutlineInputBorder(
@@ -254,7 +295,10 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                     items: categories
                         .map((c) => DropdownMenuItem(
                               value: c,
-                              child: Text(c, style: GoogleFonts.inter(fontSize: 14)),
+                              child: Text(
+                                _getCategoryDisplayName(l10n, c),
+                                style: GoogleFonts.inter(fontSize: 14),
+                              ),
                             ))
                         .toList(),
                     onChanged: (val) {
@@ -266,7 +310,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   if (isOther) ...[
                     const SizedBox(height: 14),
                     Text(
-                      'Custom Category Name',
+                      l10n.customCategoryName,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -288,7 +332,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   ],
                   const SizedBox(height: 14),
                   Text(
-                    'Amount (₹)',
+                    l10n.amount,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -344,7 +388,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                         }
                       },
                       child: Text(
-                        'Save Expense',
+                        l10n.saveExpense,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -360,6 +404,66 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         );
       },
     );
+  }
+
+  String _getCategoryDisplayName(AppLocalizations l10n, String categoryName) {
+    final c = categoryName.toLowerCase().trim();
+    if (c.contains('seed')) return l10n.seeds;
+    if (c.contains('fert')) return l10n.fertilizer;
+    if (c.contains('labour') || c.contains('labor')) return l10n.labour;
+    if (c.contains('machin')) return l10n.machinery;
+    if (c.contains('irrig')) return l10n.irrigation;
+    if (c.contains('pest') || c.contains('insect')) return l10n.pestControl;
+    if (c == 'other') return l10n.other;
+    return categoryName;
+  }
+
+  String _getLocalizedExpenseLabel(AppLocalizations l10n, ExpenseItemModel item) {
+    final cat = item.category.toLowerCase().trim();
+    final lbl = item.label.toLowerCase().trim();
+
+    if (cat.contains('seed') || lbl.contains('seed')) return l10n.seeds;
+    if (cat.contains('fert') || lbl.contains('fert')) return l10n.fertilizer;
+    if (cat.contains('labour') || cat.contains('labor') || lbl.contains('labour') || lbl.contains('labor')) return l10n.labour;
+    if (cat.contains('machin') || lbl.contains('machin')) return l10n.machinery;
+    if (cat.contains('irrig') || lbl.contains('irrig')) return l10n.irrigation;
+    if (cat.contains('pest') || cat.contains('insect') || lbl.contains('pest') || lbl.contains('insect')) return l10n.pestControl;
+    if ((cat == 'other' || cat.isEmpty) && (lbl == 'other' || lbl.isEmpty || item.label == 'Other')) return l10n.other;
+
+    return item.label;
+  }
+
+  String _getLocalizedCropName(AppLocalizations l10n, String cropName) {
+    final c = cropName.toLowerCase();
+    final lang = l10n.languageCode;
+    if (c.contains('groundnut') || c.contains('moongphali')) {
+      return lang == 'hi' ? 'मूंगफली' : lang == 'mr' ? 'भुईमूग' : 'Groundnut';
+    }
+    if (c.contains('soybean') || c.contains('soyabean')) {
+      return lang == 'hi' ? 'सोयाबीन' : lang == 'mr' ? 'सोयाबीन' : 'Soybean';
+    }
+    if (c.contains('mustard') || c.contains('rapeseed')) {
+      return lang == 'hi' ? 'सरसों / रायडा' : lang == 'mr' ? 'मोहरी' : 'Mustard / Rapeseed';
+    }
+    if (c.contains('sunflower') || c.contains('surajmukhi')) {
+      return lang == 'hi' ? 'सूरजमुखी' : lang == 'mr' ? 'सूर्यफूल' : 'Sunflower';
+    }
+    if (c.contains('sesame') || c.contains('til') || c.contains('sesamum')) {
+      return lang == 'hi' ? 'तिल' : lang == 'mr' ? 'तीळ' : 'Sesame Seed (Til)';
+    }
+    if (c.contains('castor')) {
+      return lang == 'hi' ? 'अरंडी' : lang == 'mr' ? 'एरंडी' : 'Castor Seed';
+    }
+    if (c.contains('linseed') || c.contains('alsi')) {
+      return lang == 'hi' ? 'अलसी' : lang == 'mr' ? 'जवस' : 'Linseed';
+    }
+    if (c.contains('safflower') || c.contains('kusum')) {
+      return lang == 'hi' ? 'कुसुम' : lang == 'mr' ? 'करडई' : 'Safflower';
+    }
+    if (c.contains('niger')) {
+      return lang == 'hi' ? 'रामतिल' : lang == 'mr' ? 'कारळा' : 'Niger Seed';
+    }
+    return cropName;
   }
 
   IconData _getCategoryIcon(String cat) {
@@ -388,6 +492,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   }
 
   Widget _buildContent() {
+    final l10n = AppLocalizations.of(context);
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFF15803D)),
@@ -402,14 +508,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             const Icon(Icons.wifi_off_rounded, size: 52, color: Color(0xFF94A3B8)),
             const SizedBox(height: 12),
             Text(
-              'Unable to load Financial Shield',
+              'Unable to load Farmer Wallet',
               style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF15803D)),
               onPressed: _loadWalletData,
-              child: const Text('Retry', style: TextStyle(color: Colors.white)),
+              child: Text(l10n.retry, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -433,7 +539,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         children: [
           // 1. Header
           Text(
-            'Farmer Wallet',
+            l10n.wallet,
             style: GoogleFonts.inter(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -443,8 +549,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           const SizedBox(height: 2),
           Text(
             isPlanningMode
-                ? 'Oilseed Market Data & Regional Intelligence'
-                : 'Financial overview for your farm',
+                ? l10n.planningModeSubtitle
+                : l10n.financialOverviewSubtitle,
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -468,20 +574,20 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             ],
 
             // 2. HERO EXPECTED PROFIT CARD
-            _buildExpectedProfitCard(ps, data),
+            _buildExpectedProfitCard(ps, data, l10n),
             const SizedBox(height: 16),
 
             // 3. FINANCIAL OUTLOOK CARD
-            _buildFinancialOutlookCard(ps),
+            _buildFinancialOutlookCard(ps, l10n),
             const SizedBox(height: 20),
 
             // 4. YOUR FARM COSTS SECTION
-            _buildFarmCostsSection(data),
+            _buildFarmCostsSection(data, l10n),
             const SizedBox(height: 24),
           ],
 
           // 5. OILSEED MARKET TODAY SECTION
-          _buildMarketTodaySection(data),
+          _buildMarketTodaySection(data, l10n),
           const SizedBox(height: 16),
 
           // 6. GEMINI MARKET INSIGHT (Active Crop Only)
@@ -522,10 +628,12 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     );
   }
 
-  Widget _buildExpectedProfitCard(ProfitSummaryModel ps, WalletOverviewModel data) {
+  Widget _buildExpectedProfitCard(ProfitSummaryModel ps, WalletOverviewModel data, AppLocalizations l10n) {
     final cardBg = ps.isLoss
         ? const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFF7F1D1D)])
         : const LinearGradient(colors: [Color(0xFF16834A), Color(0xFF14532D)]);
+
+    final headerTitle = ps.isLoss ? l10n.estimatedLoss : l10n.expectedProfitTitle;
 
     return Container(
       width: double.infinity,
@@ -544,7 +652,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
       child: Column(
         children: [
           Text(
-            ps.displayTitle,
+            headerTitle,
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -552,18 +660,21 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            ps.formattedExpectedProfit,
-            style: GoogleFonts.inter(
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.5,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              ps.formattedExpectedProfit,
+              style: GoogleFonts.inter(
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           const SizedBox(height: 18),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
@@ -571,17 +682,19 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildProfitCol('MINIMUM', ps.formattedMinProfit),
+                Expanded(
+                  child: _buildProfitCol(l10n.minimumExpected.toUpperCase(), ps.formattedMinProfit),
+                ),
                 Container(height: 24, width: 1, color: Colors.white.withOpacity(0.25)),
-                _buildProfitCol('EXPECTED', ps.formattedExpectedProfit),
-                Container(height: 24, width: 1, color: Colors.white.withOpacity(0.25)),
-                _buildProfitCol('MAXIMUM', ps.formattedMaxProfit),
+                Expanded(
+                  child: _buildProfitCol(l10n.maximumExpected.toUpperCase(), ps.formattedMaxProfit),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'Based on predicted yield • 90% confidence range',
+            l10n.confidenceNote,
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -590,7 +703,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
           const SizedBox(height: 2),
           Text(
-            'Estimated financial outlook — actual returns may vary.',
+            l10n.disclaimerNote,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 10,
@@ -608,6 +721,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
       children: [
         Text(
           label,
+          textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -616,19 +730,22 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
         ),
         const SizedBox(height: 3),
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFinancialOutlookCard(ProfitSummaryModel ps) {
+  Widget _buildFinancialOutlookCard(ProfitSummaryModel ps, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -651,12 +768,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             children: [
               const Icon(Icons.shield_outlined, color: Color(0xFF15803D), size: 20),
               const SizedBox(width: 8),
-              Text(
-                'Your Financial Outlook',
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+              Expanded(
+                child: Text(
+                  l10n.financialOutlook,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
                 ),
               ),
             ],
@@ -665,16 +784,22 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Expected Profit',
-                style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
+              Expanded(
+                child: Text(
+                  l10n.expectedProfitTitle,
+                  style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
+                ),
               ),
-              Text(
-                ps.formattedExpectedProfit,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: ps.isLoss ? const Color(0xFFDC2626) : const Color(0xFF15803D),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  ps.formattedExpectedProfit,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: ps.isLoss ? const Color(0xFFDC2626) : const Color(0xFF15803D),
+                  ),
                 ),
               ),
             ],
@@ -683,16 +808,22 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Safe Planning Range',
-                style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
+              Expanded(
+                child: Text(
+                  l10n.safePlanningRange,
+                  style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
+                ),
               ),
-              Text(
-                '${ps.formattedMinProfit} – ${ps.formattedExpectedProfit}',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  '${ps.formattedMinProfit} – ${ps.formattedExpectedProfit}',
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1E293B),
+                  ),
                 ),
               ),
             ],
@@ -706,7 +837,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              '💡 Plan your expenses around the lower estimate to reduce financial risk.',
+              l10n.planExpensesAdvice,
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -719,7 +850,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     );
   }
 
-  Widget _buildFarmCostsSection(WalletOverviewModel data) {
+  Widget _buildFarmCostsSection(WalletOverviewModel data, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -739,25 +870,32 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFF15803D), size: 22),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Your Farm Costs',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFF15803D), size: 22),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.farmCosts,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Text(
-                data.historicalCostBenchmarkNote,
-                style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF94A3B8)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  data.historicalCostBenchmarkNote,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF94A3B8)),
+                ),
               ),
             ],
           ),
@@ -771,7 +909,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             separatorBuilder: (_, __) => const Divider(height: 12, color: Color(0xFFF1F5F9)),
             itemBuilder: (context, index) {
               final item = data.expenses[index];
-              return _buildExpenseRow(item);
+              return _buildExpenseRow(item, l10n);
             },
           ),
 
@@ -787,7 +925,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             onPressed: _showAddExpenseModal,
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF15803D), size: 18),
             label: Text(
-              'Add Expense',
+              l10n.addExpense,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -802,32 +940,75 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
 
           // Total Cost Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Cost',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
+              Expanded(
+                child: Text(
+                  l10n.totalCost,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                  ),
                 ),
               ),
-              Text(
-                _formatIndianCurrency(data.profitSummary.totalCost),
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF15803D),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _formatIndianCurrency(data.profitSummary.totalCost),
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF15803D),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Clear Submit / Save Changes Button
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF15803D),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _isSavingExpenses ? null : _saveExpenses,
+              icon: _isSavingExpenses
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              label: Text(
+                l10n.submit,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildExpenseRow(ExpenseItemModel item) {
+  Widget _buildExpenseRow(ExpenseItemModel item, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -836,7 +1017,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              item.label,
+              _getLocalizedExpenseLabel(l10n, item),
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -844,85 +1025,103 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
               ),
             ),
           ),
-          Text(
-            _formatIndianCurrency(item.amount),
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Decrement Button (-)
-          InkWell(
-            onTap: () => _adjustExpense(item, -500.0),
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 72),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _formatIndianCurrency(item.amount),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
               ),
-              child: const Icon(Icons.remove, size: 18, color: Color(0xFF15803D)),
-            ),
-          ),
-          const SizedBox(width: 6),
+              const SizedBox(width: 8),
 
-          // Increment Button (+)
-          InkWell(
-            onTap: () => _adjustExpense(item, 500.0),
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+              // Decrement Button (-)
+              InkWell(
+                onTap: () => _adjustExpense(item, -500.0),
                 borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.remove, size: 18, color: Color(0xFF15803D)),
+                ),
               ),
-              child: const Icon(Icons.add, size: 18, color: Color(0xFF15803D)),
-            ),
-          ),
-          const SizedBox(width: 4),
+              const SizedBox(width: 6),
 
-          // Delete Button
-          IconButton(
-            onPressed: () => _deleteExpense(item),
-            icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFF94A3B8)),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+              // Increment Button (+)
+              InkWell(
+                onTap: () => _adjustExpense(item, 500.0),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.add, size: 18, color: Color(0xFF15803D)),
+                ),
+              ),
+              const SizedBox(width: 4),
+
+              // Delete Button (RED ICON)
+              IconButton(
+                onPressed: () => _deleteExpense(item),
+                icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFDC2626)),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMarketTodaySection(WalletOverviewModel data) {
+  Widget _buildMarketTodaySection(WalletOverviewModel data, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.trending_up, color: Color(0xFF15803D), size: 22),
-                const SizedBox(width: 8),
-                Text(
-                  'Oilseed Market Data',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.trending_up, color: Color(0xFF15803D), size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.oilseedMarketData,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            Text(
-              '${data.state} • Benchmark dataset',
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF64748B),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                '${data.state} • Benchmark dataset',
+                textAlign: TextAlign.end,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                ),
               ),
             ),
           ],
@@ -935,21 +1134,30 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final item = data.marketItems[index];
-            return _buildMarketCard(item);
+            return _buildMarketCard(item, l10n);
           },
         ),
       ],
     );
   }
 
-  Widget _buildMarketCard(MarketItemModel item) {
-    final isStrong = item.marketStatus.toLowerCase().contains('strong');
-    final isModerate = item.marketStatus.toLowerCase().contains('moderate');
-    final badgeColor = isStrong
+  Widget _buildMarketCard(MarketItemModel item, AppLocalizations l10n) {
+    final isHigh = item.marketStatus.toLowerCase().contains('high') || item.marketStatus.toLowerCase().contains('strong');
+    final isLow = item.marketStatus.toLowerCase().contains('low') || item.marketStatus.toLowerCase().contains('weak') || item.marketStatus.toLowerCase().contains('subdued');
+
+    final badgeColor = isHigh
         ? const Color(0xFF15803D)
-        : isModerate
-            ? const Color(0xFFD97706)
-            : const Color(0xFFDC2626);
+        : isLow
+            ? const Color(0xFFDC2626)
+            : const Color(0xFFD97706);
+
+    final statusText = isHigh
+        ? l10n.highMarket
+        : isLow
+            ? l10n.lowMarket
+            : l10n.moderateMarket;
+
+    final localizedCropName = _getLocalizedCropName(l10n, item.cropName);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -977,7 +1185,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                 radius: 18,
                 backgroundColor: const Color(0xFFF1F5F9),
                 child: Text(
-                  item.cropName.substring(0, 1).toUpperCase(),
+                  localizedCropName.substring(0, 1).toUpperCase(),
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -989,12 +1197,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Text(
-                      item.cropName,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                    Flexible(
+                      child: Text(
+                        localizedCropName,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                     if (item.isFarmerCrop) ...[
@@ -1006,7 +1216,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Your Crop',
+                          l10n.yourCrop,
                           style: GoogleFonts.inter(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -1019,7 +1229,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                 ),
               ),
 
-              // Status Badge
+              // Status Badge (Dynamic: Low Market / Moderate Market / High Market)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -1036,7 +1246,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      item.marketStatus,
+                      statusText,
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -1061,60 +1271,66 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Market Price',
-                      style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
-                    ),
-                    Text(
-                      '₹${item.unitPrice.round()} / quintal',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF15803D),
-                      ),
-                    ),
-                  ],
-                ),
-                if (item.mspPrice != null && item.mspPrice! > 0) ...[
-                  Column(
+                Flexible(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Govt MSP',
+                        l10n.marketPrice,
                         style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
                       ),
                       Text(
-                        '₹${item.mspPrice!.round()} / quintal',
+                        '₹${item.unitPrice.round()} / quintal',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF15803D),
                         ),
                       ),
                     ],
                   ),
-                  if (item.marketVsMspLabel != null)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                ),
+                if (item.mspPrice != null && item.mspPrice! > 0) ...[
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Difference',
+                          l10n.govtMsp,
                           style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
                         ),
                         Text(
-                          item.marketVsMspLabel!,
+                          '₹${item.mspPrice!.round()} / quintal',
                           style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: (item.marketVsMsp ?? 0) >= 0
-                                ? const Color(0xFF15803D)
-                                : const Color(0xFFDC2626),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  if (item.marketVsMspLabel != null)
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            l10n.difference,
+                            style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
+                          ),
+                          Text(
+                            item.marketVsMspLabel!,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: (item.marketVsMsp ?? 0) >= 0
+                                  ? const Color(0xFF15803D)
+                                  : const Color(0xFFDC2626),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ],
@@ -1142,39 +1358,24 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Text('🌱', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 6),
-                  Text(
-                    insight.title,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF166534),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Text('🌱', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        insight.title,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF166534),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              // Manual Refresh Icon Button (Respects 5-min Cooldown)
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF15803D)),
-                onPressed: () async {
-                  try {
-                    final jsonRes = await ApiService.refreshInsight(phoneNumber: _userPhone);
-                    final updatedModel = WalletOverviewModel.fromJson(jsonRes);
-                    setState(() {
-                      _walletData = updatedModel;
-                    });
-                  } catch (e) {
-                    debugPrint('Insight refresh error: $e');
-                  }
-                },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1190,15 +1391,20 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
           const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Source: ${insight.dataSource}',
-                style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF166534).withOpacity(0.7)),
+              Expanded(
+                child: Text(
+                  'Source: ${insight.dataSource}',
+                  style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF166534).withOpacity(0.7)),
+                ),
               ),
-              Text(
-                'Insight generated: $genTimeStr',
-                style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF166534).withOpacity(0.7)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Insight generated: $genTimeStr',
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF166534).withOpacity(0.7)),
+                ),
               ),
             ],
           ),

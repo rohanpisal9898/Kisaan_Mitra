@@ -7,6 +7,7 @@ from app.models.wallet import (
     WalletOverviewResponse,
     AddExpenseRequest,
     UpdateExpenseRequest,
+    SaveExpensesRequest,
 )
 from app.services.wallet_service import wallet_service
 
@@ -21,6 +22,24 @@ async def get_wallet_overview(
     """Fetch complete Farmer Wallet & Financial Shield summary."""
     data = await wallet_service.get_wallet_overview(db, phone_number)
     return WalletOverviewResponse(**data)
+
+
+@router.post("/expenses/save", response_model=WalletOverviewResponse)
+async def save_user_expenses(
+    request: SaveExpensesRequest,
+    phone_number: Optional[str] = Query(None, description="Farmer phone number"),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    """Save/update all expense items for the farmer account."""
+    overview = await wallet_service.get_wallet_overview(db, phone_number)
+    phone = phone_number or overview.get("farmer_name", "guest")
+
+    expenses_dict_list = [item.model_dump() for item in request.expenses]
+    await wallet_service.update_user_expenses(db, phone, expenses_dict_list)
+
+    updated_overview = await wallet_service.get_wallet_overview(db, phone_number)
+    return WalletOverviewResponse(**updated_overview)
+
 
 
 @router.post("/expenses", response_model=WalletOverviewResponse)

@@ -321,6 +321,35 @@ class ApiService {
     }
   }
 
+  /// Save/update full list of expenses for the user.
+  /// POST /api/v1/wallet/expenses/save?phone_number={phoneNumber}
+  static Future<Map<String, dynamic>> saveExpenses({
+    String? phoneNumber,
+    required List<Map<String, dynamic>> expenses,
+  }) async {
+    String query = '';
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+    }
+
+    final body = {
+      'expenses': expenses,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/v1/wallet/expenses/save$query'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to save expenses');
+    }
+  }
+
+
   /// Update an existing expense amount.
   /// PUT /api/v1/wallet/expenses/{expenseId}?phone_number={phoneNumber}
   static Future<Map<String, dynamic>> updateExpense({

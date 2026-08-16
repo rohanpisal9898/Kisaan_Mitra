@@ -75,8 +75,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => DashboardScreen(
-            language: widget.language,
+            language: user['language'] ?? widget.language,
           ),
+
         ),
       );
     } catch (e) {

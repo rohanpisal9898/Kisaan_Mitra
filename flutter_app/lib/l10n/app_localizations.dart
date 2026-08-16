@@ -178,7 +178,47 @@ class AppLocalizations {
       'nav_scan': 'Scan',
       'nav_advisory': 'Advisory',
       'nav_more': 'More',
+
+      // Farmer Wallet
+      'wallet': 'Farmer Wallet',
+      'farmCosts': 'Your Farm Costs',
+      'seeds': 'Seeds',
+      'fertilizer': 'Fertilizer',
+      'labour': 'Labour',
+      'machinery': 'Machinery',
+      'irrigation': 'Irrigation',
+      'pestControl': 'Pest Control',
+      'other': 'Other',
+      'submit': 'Submit / Save Changes',
+      'saveSuccess': 'Expenses updated successfully.',
+      'expectedProfit': 'Expected',
+      'minimumExpected': 'Minimum Expected',
+      'maximumExpected': 'Maximum Expected',
+      'lowMarket': 'Low Market',
+      'moderateMarket': 'Moderate Market',
+      'highMarket': 'High Market',
+      'totalCost': 'Total Cost',
+      'addExpense': 'Add Expense',
+      'oilseedMarketData': 'Oilseed Market Data',
+      'yourCrop': 'Your Crop',
+      'marketPrice': 'Market Price',
+      'govtMsp': 'Govt MSP',
+      'difference': 'Difference',
+      'financialOutlook': 'Your Financial Outlook',
+      'safePlanningRange': 'Safe Planning Range',
+      'customCategoryName': 'Custom Category Name',
+      'category': 'Category',
+      'amount': 'Amount (₹)',
+      'saveExpense': 'Save Expense',
+      'estimatedLoss': 'Estimated Loss',
+      'expectedProfitTitle': 'Expected Profit',
+      'financialOverviewSubtitle': 'Financial overview for your farm',
+      'planningModeSubtitle': 'Oilseed Market Data & Regional Intelligence',
+      'confidenceNote': 'Based on predicted yield • 90% confidence range',
+      'disclaimerNote': 'Estimated financial outlook — actual returns may vary.',
+      'planExpensesAdvice': '💡 Plan your expenses around the lower estimate to reduce financial risk.',
     },
+
 
     'hi': {
       // Splash
@@ -341,7 +381,47 @@ class AppLocalizations {
       'nav_scan': 'स्कैन',
       'nav_advisory': 'सलाह',
       'nav_more': 'अधिक',
+
+      // Farmer Wallet
+      'wallet': 'किसान वॉलेट',
+      'farmCosts': 'आपके खेत के खर्चे',
+      'seeds': 'बीज',
+      'fertilizer': 'उर्वरक / खाद',
+      'labour': 'मजदूरी',
+      'machinery': 'मशीनरी',
+      'irrigation': 'सिंचाई',
+      'pestControl': 'कीट नियंत्रण',
+      'other': 'अन्य',
+      'submit': 'सबमिट / बदलाव सहेजें',
+      'saveSuccess': 'खर्चे सफलतापूर्वक अद्यतन किए गए।',
+      'expectedProfit': 'अनुमानित',
+      'minimumExpected': 'न्यूनतम अनुमानित',
+      'maximumExpected': 'अधिकतम अनुमानित',
+      'lowMarket': 'कम बाजार',
+      'moderateMarket': 'मध्यम बाजार',
+      'highMarket': 'उच्च बाजार',
+      'totalCost': 'कुल लागत',
+      'addExpense': 'खर्च जोड़ें',
+      'oilseedMarketData': 'तिलहन बाजार डेटा',
+      'yourCrop': 'आपकी फसल',
+      'marketPrice': 'बाजार भाव',
+      'govtMsp': 'सरकारी एमएसपी',
+      'difference': 'अंतर',
+      'financialOutlook': 'आपका वित्तीय दृष्टिकोण',
+      'safePlanningRange': 'सुरक्षित नियोजन सीमा',
+      'customCategoryName': 'कस्टम श्रेणी का नाम',
+      'category': 'श्रेणी',
+      'amount': 'राशि (₹)',
+      'saveExpense': 'खर्च सहेजें',
+      'estimatedLoss': 'अनुमानित नुकसान',
+      'expectedProfitTitle': 'अनुमानित लाभ',
+      'financialOverviewSubtitle': 'आपके खेत के लिए वित्तीय अवलोकन',
+      'planningModeSubtitle': 'तिलहन बाजार डेटा और क्षेत्रीय खुफिया जानकारी',
+      'confidenceNote': 'अनुमानित उपज के आधार पर • 90% विश्वास सीमा',
+      'disclaimerNote': 'अनुमानित वित्तीय दृष्टिकोण — वास्तविक लाभ भिन्न हो सकता है।',
+      'planExpensesAdvice': '💡 वित्तीय जोखिम कम करने के लिए निचले अनुमान के आधार पर खर्चों की योजना बनाएं।',
     },
+
 
     'mr': {
       // Splash
@@ -504,6 +584,45 @@ class AppLocalizations {
       'nav_scan': 'स्कॅन',
       'nav_advisory': 'सल्ला',
       'nav_more': 'अधिक',
+
+      // Farmer Wallet
+      'wallet': 'शेतकरी वॉलेट',
+      'farmCosts': 'तुमच्या शेताचे खर्च',
+      'seeds': 'बियाणे',
+      'fertilizer': 'खते',
+      'labour': 'मजुरी',
+      'machinery': 'यंत्रसामग्री',
+      'irrigation': 'सिंचन',
+      'pestControl': 'कीड नियंत्रण',
+      'other': 'इतर',
+      'submit': 'सबमिट / बदल जतन करा',
+      'saveSuccess': 'खर्च यशस्वीरित्या अद्यतनित केले.',
+      'expectedProfit': 'अपेक्षित',
+      'minimumExpected': 'किमान अपेक्षित',
+      'maximumExpected': 'कमाल अपेक्षित',
+      'lowMarket': 'कमी बाजार',
+      'moderateMarket': 'मध्यम बाजार',
+      'highMarket': 'उच्च बाजार',
+      'totalCost': 'एकूण खर्च',
+      'addExpense': 'खर्च जोडा',
+      'oilseedMarketData': 'गळित धान्य बाजार माहिती',
+      'yourCrop': 'तुमचे पीक',
+      'marketPrice': 'बाजार भाव',
+      'govtMsp': 'शासकीय एमएसपी',
+      'difference': 'फरक',
+      'financialOutlook': 'तुमचा आर्थिक दृष्टिकोन',
+      'safePlanningRange': 'सुरक्षित नियोजन श्रेणी',
+      'customCategoryName': 'सानुकूल श्रेणी नाव',
+      'category': 'वर्ग',
+      'amount': 'रक्कम (₹)',
+      'saveExpense': 'खर्च जतन करा',
+      'estimatedLoss': 'अंदाजे तोटा',
+      'expectedProfitTitle': 'अपेक्षित नफा',
+      'financialOverviewSubtitle': 'तुमच्या शेताचे आर्थिक विहंगावलोकन',
+      'planningModeSubtitle': 'गळित धान्य बाजार डेटा आणि प्रादेशिक माहिती',
+      'confidenceNote': 'अंदाजित उत्पादनावर आधारित • 90% विश्वास श्रेणी',
+      'disclaimerNote': 'अंदाजित आर्थिक दृष्टिकोन — प्रत्यक्ष परतावा बदलू शकतो.',
+      'planExpensesAdvice': '💡 आर्थिक धोका कमी करण्यासाठी कमी अंदाजाभोवती खर्चाचे नियोजन करा.',
     },
   };
 
@@ -643,7 +762,47 @@ class AppLocalizations {
   String get navScan => get('nav_scan');
   String get navAdvisory => get('nav_advisory');
   String get navMore => get('nav_more');
+
+  // Farmer Wallet getters
+  String get wallet => get('wallet');
+  String get farmCosts => get('farmCosts');
+  String get seeds => get('seeds');
+  String get fertilizer => get('fertilizer');
+  String get labour => get('labour');
+  String get machinery => get('machinery');
+  String get irrigation => get('irrigation');
+  String get pestControl => get('pestControl');
+  String get other => get('other');
+  String get submit => get('submit');
+  String get saveSuccess => get('saveSuccess');
+  String get expectedProfit => get('expectedProfit');
+  String get minimumExpected => get('minimumExpected');
+  String get maximumExpected => get('maximumExpected');
+  String get lowMarket => get('lowMarket');
+  String get moderateMarket => get('moderateMarket');
+  String get highMarket => get('highMarket');
+  String get totalCost => get('totalCost');
+  String get addExpense => get('addExpense');
+  String get oilseedMarketData => get('oilseedMarketData');
+  String get yourCrop => get('yourCrop');
+  String get marketPrice => get('marketPrice');
+  String get govtMsp => get('govtMsp');
+  String get difference => get('difference');
+  String get financialOutlook => get('financialOutlook');
+  String get safePlanningRange => get('safePlanningRange');
+  String get customCategoryName => get('customCategoryName');
+  String get category => get('category');
+  String get amount => get('amount');
+  String get saveExpense => get('saveExpense');
+  String get estimatedLoss => get('estimatedLoss');
+  String get expectedProfitTitle => get('expectedProfitTitle');
+  String get financialOverviewSubtitle => get('financialOverviewSubtitle');
+  String get planningModeSubtitle => get('planningModeSubtitle');
+  String get confidenceNote => get('confidenceNote');
+  String get disclaimerNote => get('disclaimerNote');
+  String get planExpensesAdvice => get('planExpensesAdvice');
 }
+
 
 class _AppLocalizationsDelegate
     extends LocalizationsDelegate<AppLocalizations> {

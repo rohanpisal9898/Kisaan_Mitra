@@ -633,12 +633,21 @@ class WalletService:
             diff_label = f"{'+' if diff >= 0 else ''}₹{round(diff):,} / quintal" if diff is not None else None
 
             mid = (floor + ceil) / 2.0 if (floor + ceil) > 0 else modal
-            if modal >= mid * 1.02:
-                status = "Strong Market"
-            elif modal >= mid * 0.95:
-                status = "Moderate Market"
+            if msp and msp > 0:
+                if modal >= msp * 1.05 or modal >= mid * 1.03:
+                    status = "High Market"
+                elif modal < msp or modal < mid * 0.97:
+                    status = "Low Market"
+                else:
+                    status = "Moderate Market"
             else:
-                status = "Subdued Market"
+                if modal >= mid * 1.03:
+                    status = "High Market"
+                elif modal < mid * 0.97:
+                    status = "Low Market"
+                else:
+                    status = "Moderate Market"
+
 
             c_norm = self._normalize_crop_name(c_raw)
             item_crop_id = self._get_canonical_crop_id(c_raw)

@@ -124,3 +124,8 @@ class AddExpenseRequest(BaseModel):
 
 class UpdateExpenseRequest(BaseModel):
     amount: float = Field(..., ge=0, description="New amount in INR")
+
+
+class SaveExpensesRequest(BaseModel):
+    expenses: List[ExpenseItem] = Field(..., description="Full list of updated expense items to persist")
+
