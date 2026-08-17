@@ -16,12 +16,23 @@ flutter_app/.flutter-plugins-dependencies
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Python virtual environments
 venv/
 .venv/
 env/
-.env
+ENV/
 backend/venv/
 backend/.venv/
+backend/test_venv/
+
+.env
 backend/__pycache__/
 backend/*.pyc
 backend/uploads/
