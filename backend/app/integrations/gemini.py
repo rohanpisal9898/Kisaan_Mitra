@@ -113,11 +113,10 @@ async def get_gemini_recommendations(
         return None
 
     model_names = [
-        "gemini-2.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-        "gemini-3.6-flash-lite",
-        "gemini-3.6-lite",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
     ]
 
     context_str = json.dumps(farm_context, indent=2, default=str)
@@ -284,11 +283,10 @@ async def get_gemini_pest_questions(
     )
 
     model_names = [
-        "gemini-2.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-        "gemini-3.6-flash-lite",
-        "gemini-3.6-lite",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
     ]
 
     for model_name in model_names:
@@ -509,11 +507,10 @@ async def get_gemini_pest_diagnosis(
     )
 
     model_names = [
-        "gemini-2.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-        "gemini-3.6-flash-lite",
-        "gemini-3.6-lite",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
     ]
 
     for model_name in model_names:
@@ -613,11 +610,10 @@ async def get_gemini_government_schemes(
     )
 
     model_names = [
-        "gemini-2.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-        "gemini-3.6-flash-lite",
-        "gemini-3.6-lite",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
     ]
 
     for model_name in model_names:
@@ -658,7 +654,15 @@ async def get_gemini_government_schemes(
                                     gov_level = "Central"
 
                                 official_url = str(s.get("officialUrl", "")).strip()
-                                if not (official_url.startswith("http://") or official_url.startswith("https://")):
+                                if official_url:
+                                    if not (official_url.startswith("http://") or official_url.startswith("https://")):
+                                        if official_url.startswith("www.") or "." in official_url:
+                                            official_url = f"https://{official_url}"
+                                        elif gov_level == "State":
+                                            official_url = f"https://krishi.{farmer_state.lower().replace(' ', '')}.gov.in/" if farmer_state.lower() != "maharashtra" else "https://krishi.maharashtra.gov.in/"
+                                        else:
+                                            official_url = "https://myscheme.gov.in/"
+                                else:
                                     if gov_level == "State":
                                         official_url = f"https://krishi.{farmer_state.lower().replace(' ', '')}.gov.in/" if farmer_state.lower() != "maharashtra" else "https://krishi.maharashtra.gov.in/"
                                     else:

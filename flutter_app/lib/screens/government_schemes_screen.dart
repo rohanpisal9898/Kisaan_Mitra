@@ -79,6 +79,15 @@ class _GovernmentSchemesScreenState extends State<GovernmentSchemesScreen> {
     }
   }
 
+  String _normalizeUrl(String rawUrl) {
+    String trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) return '';
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return 'https://$trimmed';
+    }
+    return trimmed;
+  }
+
   Future<void> _launchOfficialUrl(String? urlString) async {
     final l10n = AppLocalizations.of(context);
     if (urlString == null || urlString.trim().isEmpty) {
@@ -86,30 +95,33 @@ class _GovernmentSchemesScreenState extends State<GovernmentSchemesScreen> {
       return;
     }
 
-    final trimmedUrl = urlString.trim();
-    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+    final sanitizedUrl = _normalizeUrl(urlString);
+    if (sanitizedUrl.isEmpty || !sanitizedUrl.contains('.')) {
       _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
       return;
     }
 
-    final Uri uri = Uri.parse(trimmedUrl);
     try {
-      bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!launched) {
-        launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-      }
-      if (!launched) {
-        _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
-      }
-    } catch (_) {
+      final Uri uri = Uri.parse(sanitizedUrl);
+      bool launched = false;
+
+      // 1. Force opening in system external browser (Chrome / Safari)
       try {
-        final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-        if (!launched) {
-          _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
-        }
-      } catch (e) {
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+
+      // 2. Fallback to platform default external browser handler
+      if (!launched) {
+        try {
+          launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+        } catch (_) {}
+      }
+
+      if (!launched) {
         _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
       }
+    } catch (e) {
+      _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
     }
   }
 
@@ -315,9 +327,9 @@ class _GovernmentSchemesScreenState extends State<GovernmentSchemesScreen> {
     final String description = scheme['description'] ?? '';
     final String govLevel = (scheme['governmentLevel'] ?? 'Central').toString();
     final String status = scheme['status'] ?? l10n.statusActive;
-    final String officialUrl = scheme['officialUrl'] ?? '';
-    final bool hasValidUrl = officialUrl.trim().startsWith('http://') ||
-        officialUrl.trim().startsWith('https://');
+    final String rawOfficialUrl = scheme['officialUrl'] ?? '';
+    final String officialUrl = _normalizeUrl(rawOfficialUrl);
+    final bool hasValidUrl = officialUrl.isNotEmpty && officialUrl.contains('.');
 
     final bool isState = govLevel.toLowerCase() == 'state';
 
