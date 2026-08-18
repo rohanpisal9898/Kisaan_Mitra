@@ -113,10 +113,11 @@ async def get_gemini_recommendations(
         return None
 
     model_names = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
     ]
 
     context_str = json.dumps(farm_context, indent=2, default=str)
@@ -283,10 +284,11 @@ async def get_gemini_pest_questions(
     )
 
     model_names = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
     ]
 
     for model_name in model_names:
@@ -507,10 +509,11 @@ async def get_gemini_pest_diagnosis(
     )
 
     model_names = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
     ]
 
     for model_name in model_names:
@@ -610,10 +613,11 @@ async def get_gemini_government_schemes(
     )
 
     model_names = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
     ]
 
     for model_name in model_names:

@@ -178,10 +178,11 @@ class WalletService:
         crop_norm_req = self._normalize_crop_name(crop)
 
         model_names = [
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-lite",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-8b",
+            "gemini-2.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-3.6-flash-lite",
+            "gemini-3.6-lite",
         ]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
@@ -759,10 +760,11 @@ class WalletService:
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
             model_names = [
-                "gemini-2.0-flash",
-                "gemini-2.0-flash-lite",
-                "gemini-1.5-flash",
-                "gemini-1.5-flash-8b",
+                "gemini-2.5-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.6-flash",
+                "gemini-3.6-flash-lite",
+                "gemini-3.6-lite",
             ]
             for model_name in model_names:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"

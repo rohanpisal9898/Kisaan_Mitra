@@ -205,10 +205,11 @@ class CropRecommendationService:
             return None
 
         model_names = [
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-lite",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-8b",
+            "gemini-2.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-3.6-flash-lite",
+            "gemini-3.6-lite",
         ]
         prompt = (
             f"You are an APMC agricultural market demand analyst in India.\n"
