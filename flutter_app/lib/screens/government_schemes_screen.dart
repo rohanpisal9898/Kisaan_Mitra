@@ -94,14 +94,22 @@ class _GovernmentSchemesScreenState extends State<GovernmentSchemesScreen> {
 
     final Uri uri = Uri.parse(trimmedUrl);
     try {
-      final canLaunch = await canLaunchUrl(uri);
-      if (canLaunch) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
+      bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+      if (!launched) {
         _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
       }
-    } catch (e) {
-      _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
+    } catch (_) {
+      try {
+        final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+        if (!launched) {
+          _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
+        }
+      } catch (e) {
+        _showUrlErrorSnackBar(l10n.officialLinkUnavailable);
+      }
     }
   }
 

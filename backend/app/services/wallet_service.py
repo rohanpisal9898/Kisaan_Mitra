@@ -177,7 +177,13 @@ class WalletService:
         state_norm_req = self._normalize_location_name(state)
         crop_norm_req = self._normalize_crop_name(crop)
 
-        model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
+        model_names = [
+            "gemini-2.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-3.6-flash-lite",
+            "gemini-3.6-lite",
+        ]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
             f"Find the latest available mandi/market modal price for crop '{crop}' specifically in '{district}' district, '{state}', India in INR per quintal.\n"
@@ -753,26 +759,36 @@ class WalletService:
                 f"Crop: {crop}\nState: {state}\nMarket Price: ₹{modal_price}/quintal (Range: ₹{floor_price} - ₹{ceiling_price})\n"
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 120}
-            }
+            model_names = [
+                "gemini-2.5-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.6-flash",
+                "gemini-3.6-flash-lite",
+                "gemini-3.6-lite",
+            ]
+            for model_name in model_names:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 120}
+                }
 
-            try:
-                async with httpx.AsyncClient(timeout=8.0) as client:
-                    resp = await client.post(url, json=payload)
-                    if resp.status_code == 200:
-                        res_json = resp.json()
-                        candidates = res_json.get("candidates", [])
-                        if candidates and "content" in candidates[0]:
-                            parts = candidates[0]["content"].get("parts", [])
-                            if parts and "text" in parts[0]:
-                                text = parts[0]["text"].strip()
-                                if text:
-                                    insight_text = text
-            except Exception as e:
-                print(f"[GEMINI REFRESH ERROR] Gemini API call exception: {e}")
+                try:
+                    async with httpx.AsyncClient(timeout=8.0) as client:
+                        resp = await client.post(url, json=payload)
+                        if resp.status_code == 200:
+                            res_json = resp.json()
+                            candidates = res_json.get("candidates", [])
+                            if candidates and "content" in candidates[0]:
+                                parts = candidates[0]["content"].get("parts", [])
+                                if parts and "text" in parts[0]:
+                                    text = parts[0]["text"].strip()
+                                    if text:
+                                        insight_text = text
+                                        break
+                except Exception as e:
+                    print(f"[GEMINI REFRESH ERROR] {model_name} exception: {e}")
+                    continue
 
         # 3. Upsert into MongoDB `market_insights` collection
         insight_doc = {

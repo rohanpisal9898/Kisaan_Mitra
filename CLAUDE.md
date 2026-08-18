@@ -63,7 +63,7 @@ district_coords.csv → seed_districts.py → MongoDB → FastAPI → Flutter
 - **Database**: MongoDB Atlas (database: `kisaan_mitra`)
 - **Frontend**: Flutter (Dart)
 - **ML Models**: CatBoost (to be added)
-- **LLM**: Google Gemini API (to be added)
+- **LLM**: Google Gemini API (gemini-2.5-flash, gemini-3.5-flash-lite, gemini-3.6-flash, gemini-3.6-flash-lite, gemini-3.6-lite)
 
 ## API Endpoints
 
@@ -77,6 +77,7 @@ district_coords.csv → seed_districts.py → MongoDB → FastAPI → Flutter
 | `/api/v1/users/register` | POST | Register/update user |
 | `/api/v1/users/{phone}` | GET | Get user by phone |
 | `/api/v1/users/{phone}` | PUT | Update user |
+| `/api/v1/schemes` | GET | Fetch Central & State govt schemes (Gemini + 1-Week MongoDB TTL Cache) |
 
 ## Commands
 

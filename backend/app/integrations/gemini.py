@@ -114,7 +114,10 @@ async def get_gemini_recommendations(
 
     model_names = [
         "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
         "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
     ]
 
     context_str = json.dumps(farm_context, indent=2, default=str)
@@ -280,7 +283,13 @@ async def get_gemini_pest_questions(
         f"4. Return ONLY valid JSON in this format: {{\x22questions\x22: [{{\x22id\x22: \x22q1\x22, \x22question\x22: \x22...\x22, \x22helper_text\x22: \x22...\x22}}]}}"
     )
 
-    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
+    model_names = [
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
+    ]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -499,7 +508,13 @@ async def get_gemini_pest_diagnosis(
         f"}}"
     )
 
-    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
+    model_names = [
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
+    ]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -597,7 +612,13 @@ async def get_gemini_government_schemes(
         f"]"
     )
 
-    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
+    model_names = [
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
+    ]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -638,7 +659,10 @@ async def get_gemini_government_schemes(
 
                                 official_url = str(s.get("officialUrl", "")).strip()
                                 if not (official_url.startswith("http://") or official_url.startswith("https://")):
-                                    official_url = ""
+                                    if gov_level == "State":
+                                        official_url = f"https://krishi.{farmer_state.lower().replace(' ', '')}.gov.in/" if farmer_state.lower() != "maharashtra" else "https://krishi.maharashtra.gov.in/"
+                                    else:
+                                        official_url = "https://myscheme.gov.in/"
 
                                 if name and desc:
                                     validated.append({
