@@ -102,6 +102,14 @@ class UserService:
             return None
         return self._to_user_response(user)
 
+    async def get_user_by_phone(
+        self,
+        db: AsyncIOMotorDatabase,
+        phone_number: str,
+    ) -> Optional[UserResponse]:
+        """Alias for get_user."""
+        return await self.get_user(db, phone_number)
+
     async def update_user(
         self,
         db: AsyncIOMotorDatabase,

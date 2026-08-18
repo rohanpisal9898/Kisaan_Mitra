@@ -41,6 +41,10 @@ async def connect_to_mongo():
     )
     await database.user_expenses.create_index("phone_number", unique=True)
     await database.market_insights.create_index("phone_number", unique=True)
+    await database.schemes_cache.create_index(
+        [("state", 1), ("crop", 1), ("language", 1)], unique=True
+    )
+    await database.schemes_cache.create_index("expires_at", expireAfterSeconds=0)
     print("[OK] Connected to MongoDB Atlas & Verified Indexes")
 
 

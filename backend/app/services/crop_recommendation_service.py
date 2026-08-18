@@ -204,7 +204,7 @@ class CropRecommendationService:
         if not api_key or api_key == "your_gemini_api_key_here":
             return None
 
-        model_names = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash"]
+        model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
         prompt = (
             f"You are an APMC agricultural market demand analyst in India.\n"
             f"For location '{district}', '{state}', India, evaluate current market demand and price attractiveness for these 9 oilseed crops:\n"

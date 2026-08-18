@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query
 from typing import Optional, Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -18,13 +19,14 @@ async def get_government_schemes(
     """
     Get government agricultural schemes (Central and State) using Gemini integration.
     Respects farmer's actual state and requested language.
+    Includes a 1-Week (168-Hour) MongoDB TTL cache to optimize performance and LLM budget.
     """
     farmer_state = state or "Maharashtra"
     farmer_district = ""
     farmer_crop = ""
 
     if phone_number:
-        user = await user_service.get_user_by_phone(db, phone_number)
+        user = await user_service.get_user(db, phone_number)
         if user:
             farmer_state = user.state or farmer_state
             farmer_district = user.district or ""
@@ -36,9 +38,59 @@ async def get_government_schemes(
         "crop": farmer_crop,
     }
 
+    now_dt = datetime.now()
+    ttl_days = 7.0  # 1-Week TTL requirement
+
+    # Step 1: Check MongoDB 1-Week TTL Cache
+    if db is not None:
+        try:
+            cached_doc = await db.schemes_cache.find_one({
+                "state": farmer_state,
+                "crop": farmer_crop,
+                "language": language,
+            })
+            if cached_doc:
+                fetched_at_str = cached_doc.get("fetched_at")
+                if fetched_at_str:
+                    f_dt = datetime.fromisoformat(fetched_at_str)
+                    if (now_dt - f_dt).total_seconds() < (ttl_days * 86400):
+                        print(f"[SCHEMES ROUTER] 1-Week TTL Cache HIT for state={farmer_state}, crop={farmer_crop}, language={language}")
+                        return {
+                            "success": True,
+                            "source": "cache",
+                            "state": farmer_state,
+                            "schemes": cached_doc.get("schemes", []),
+                        }
+        except Exception as e:
+            print(f"[SCHEMES ROUTER] Error reading schemes cache: {e}")
+
+    # Step 2: Query Gemini AI for fresh government schemes
     schemes = await get_gemini_government_schemes(farmer_context, language)
 
     if schemes:
+        # Step 3: Save to MongoDB 1-Week TTL Cache
+        if db is not None:
+            try:
+                await db.schemes_cache.update_one(
+                    {
+                        "state": farmer_state,
+                        "crop": farmer_crop,
+                        "language": language,
+                    },
+                    {"$set": {
+                        "state": farmer_state,
+                        "crop": farmer_crop,
+                        "language": language,
+                        "schemes": schemes,
+                        "fetched_at": now_dt.isoformat(),
+                        "expires_at": (now_dt + timedelta(days=ttl_days)).isoformat(),
+                    }},
+                    upsert=True,
+                )
+                print(f"[SCHEMES ROUTER] Saved schemes to MongoDB 1-Week TTL cache for state={farmer_state}, crop={farmer_crop}")
+            except Exception as e:
+                print(f"[SCHEMES ROUTER] Error saving schemes cache: {e}")
+
         return {
             "success": True,
             "source": "gemini",
@@ -46,7 +98,7 @@ async def get_government_schemes(
             "schemes": schemes,
         }
 
-    # Fallback schemes if Gemini API key is missing or call fails
+    # Step 4: Fallback schemes if Gemini API key is missing or call fails
     fallbacks = _get_fallback_schemes(farmer_state, language)
     return {
         "success": True,

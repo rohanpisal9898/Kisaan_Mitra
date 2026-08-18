@@ -142,31 +142,54 @@ class DashboardService:
                 needs_gee_fetch = True
 
         if needs_gee_fetch:
-            print(f"[DASHBOARD DEBUG] Attempting GEE satellite fetch for lat={latitude}, lon={longitude}...")
-            gee_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
-            if gee_res.get("satellite_available"):
-                satellite_data = gee_res.get("satellite_data")
-                satellite_date = gee_res.get("satellite_date")
-                satellite_source = gee_res.get("satellite_source", "gee")
-
-                if db is not None and user_doc.get("phone_number"):
+            if satellite_data and satellite_date:
+                # Non-blocking Stale-While-Revalidate: return existing satellite data instantly, refresh GEE in background
+                print(f"[DASHBOARD DEBUG] Returning cached GEE data ({satellite_date}) & triggering background refresh for lat={latitude}, lon={longitude}")
+                async def _background_gee_refresh():
                     try:
-                        await db.users.update_one(
-                            {"phone_number": user_doc["phone_number"]},
-                            {"$set": {
-                                "satellite_data": satellite_data,
-                                "satellite_date": satellite_date,
-                                "satellite_source": satellite_source,
-                                "updated_at": datetime.utcnow()
-                            }}
-                        )
-                        print(f"[DASHBOARD DEBUG] Persisted GEE satellite data to DB for {user_doc['phone_number']}")
+                        g_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
+                        if g_res.get("satellite_available") and db is not None and user_doc.get("phone_number"):
+                            await db.users.update_one(
+                                {"phone_number": user_doc["phone_number"]},
+                                {"$set": {
+                                    "satellite_data": g_res.get("satellite_data"),
+                                    "satellite_date": g_res.get("satellite_date"),
+                                    "satellite_source": g_res.get("satellite_source", "gee"),
+                                    "updated_at": datetime.utcnow()
+                                }}
+                            )
+                            print(f"[DASHBOARD BACKGROUND GEE] Persisted fresh satellite data for {user_doc['phone_number']}")
                     except Exception as ex:
-                        print(f"[DASHBOARD WARNING] DB update for GEE satellite failed: {ex}")
+                        print(f"[DASHBOARD BACKGROUND GEE WARNING] {ex}")
+
+                import asyncio
+                asyncio.create_task(_background_gee_refresh())
             else:
-                satellite_data = None
-                satellite_date = None
-                satellite_source = "unavailable"
+                print(f"[DASHBOARD DEBUG] Attempting initial GEE satellite fetch for lat={latitude}, lon={longitude}...")
+                gee_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
+                if gee_res.get("satellite_available"):
+                    satellite_data = gee_res.get("satellite_data")
+                    satellite_date = gee_res.get("satellite_date")
+                    satellite_source = gee_res.get("satellite_source", "gee")
+
+                    if db is not None and user_doc.get("phone_number"):
+                        try:
+                            await db.users.update_one(
+                                {"phone_number": user_doc["phone_number"]},
+                                {"$set": {
+                                    "satellite_data": satellite_data,
+                                    "satellite_date": satellite_date,
+                                    "satellite_source": satellite_source,
+                                    "updated_at": datetime.utcnow()
+                                }}
+                            )
+                            print(f"[DASHBOARD DEBUG] Persisted GEE satellite data to DB for {user_doc['phone_number']}")
+                        except Exception as ex:
+                            print(f"[DASHBOARD WARNING] DB update for GEE satellite failed: {ex}")
+                else:
+                    satellite_data = None
+                    satellite_date = None
+                    satellite_source = "unavailable"
 
         # Compute stage at satellite acquisition date if available
         health_stage_id = stage_res.get("stage_id", "flowering")

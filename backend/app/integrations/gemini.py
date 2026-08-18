@@ -113,11 +113,8 @@ async def get_gemini_recommendations(
         return None
 
     model_names = [
-        "gemini-3.1-flash-lite",
-        "gemini-3.5-flash-lite",
-        "gemini-flash-lite-latest",
-        "gemini-3.6-flash",
         "gemini-2.5-flash",
+        "gemini-3.6-flash",
     ]
 
     context_str = json.dumps(farm_context, indent=2, default=str)
@@ -213,6 +210,9 @@ async def get_gemini_recommendations(
                                 return validated
                             else:
                                 print(f"[GEMINI DEBUG] model={model_name} validation failed: categories found={seen_categories}")
+                elif response.status_code == 429:
+                    print(f"[GEMINI DEBUG] HTTP 429 Quota/Rate Limit Exceeded - using local fallback")
+                    break
                 else:
                     print(f"[GEMINI DEBUG] model={model_name} HTTP {response.status_code} Body: {response.text[:200]}")
         except Exception as e:
@@ -280,7 +280,7 @@ async def get_gemini_pest_questions(
         f"4. Return ONLY valid JSON in this format: {{\x22questions\x22: [{{\x22id\x22: \x22q1\x22, \x22question\x22: \x22...\x22, \x22helper_text\x22: \x22...\x22}}]}}"
     )
 
-    model_names = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-2.5-flash"]
+    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -499,7 +499,7 @@ async def get_gemini_pest_diagnosis(
         f"}}"
     )
 
-    model_names = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-2.5-flash"]
+    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -597,7 +597,7 @@ async def get_gemini_government_schemes(
         f"]"
     )
 
-    model_names = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-2.5-flash"]
+    model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
 
     for model_name in model_names:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"

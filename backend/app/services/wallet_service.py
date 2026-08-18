@@ -177,7 +177,7 @@ class WalletService:
         state_norm_req = self._normalize_location_name(state)
         crop_norm_req = self._normalize_crop_name(crop)
 
-        model_names = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-2.5-flash"]
+        model_names = ["gemini-2.5-flash", "gemini-3.6-flash"]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
             f"Find the latest available mandi/market modal price for crop '{crop}' specifically in '{district}' district, '{state}', India in INR per quintal.\n"
@@ -753,7 +753,7 @@ class WalletService:
                 f"Crop: {crop}\nState: {state}\nMarket Price: ₹{modal_price}/quintal (Range: ₹{floor_price} - ₹{ceiling_price})\n"
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": 0.2, "maxOutputTokens": 120}

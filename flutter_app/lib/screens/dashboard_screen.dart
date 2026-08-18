@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -68,11 +69,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       final activeLang = _activeLanguage ?? widget.language;
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = 'cached_dashboard_${phone ?? "guest"}';
+
+      // Load cached local data instantly if present for instant rendering
+      final cachedJsonStr = prefs.getString(cacheKey);
+      if (cachedJsonStr != null && cachedJsonStr.isNotEmpty && _overviewData == null) {
+        try {
+          final cachedMap = json.decode(cachedJsonStr);
+          setState(() {
+            _overviewData = DashboardOverviewModel.fromJson(cachedMap);
+            _isLoading = false;
+          });
+        } catch (_) {}
+      }
+
       final jsonResponse = await ApiService.fetchDashboardOverview(
         phoneNumber: phone,
         language: activeLang,
       );
       final model = DashboardOverviewModel.fromJson(jsonResponse);
+
+      // Persist updated JSON response to local storage
+      await prefs.setString(cacheKey, json.encode(jsonResponse));
 
       if (!mounted) return;
       setState(() {
@@ -82,7 +101,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Failed to load farm dashboard data.';
+        if (_overviewData == null) {
+          _errorMessage = 'Failed to load farm dashboard data.';
+        }
         _isLoading = false;
       });
     }
@@ -108,19 +129,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (BuildContext context) {
+      builder: (context) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
+          builder: (context, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
                 left: 20,
                 right: 20,
                 top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
                     child: Container(
@@ -229,6 +250,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         elevation: 0,
                       ),
                       onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
 
                         String? phone = widget.phoneNumber;
@@ -245,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               'sowing_date': formattedDate,
                             });
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 SnackBar(
                                   content: Text('🌾 ${l10n.switchedCropSuccess} ${item.crop}!'),
                                   backgroundColor: const Color(0xFF15803D),
@@ -255,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             }
                           } catch (e) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 SnackBar(
                                   content: Text('Failed to update crop: $e'),
                                   backgroundColor: Colors.red.shade700,
@@ -291,19 +313,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: _currentIndex == 1
-          ? const PestDetectionScreen()
-          : _currentIndex == 2
-              ? FarmerWalletScreen(phoneNumber: widget.phoneNumber)
-              : _currentIndex == 3
-                  ? const GovernmentSchemesScreen()
-                  : SafeArea(
-                      child: RefreshIndicator(
-                        onRefresh: _loadDashboardData,
-                        color: const Color(0xFF15803D),
-                        child: _buildDashboardContent(l10n),
-                      ),
-                    ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _loadDashboardData,
+              color: const Color(0xFF15803D),
+              child: _buildDashboardContent(l10n),
+            ),
+          ),
+          const PestDetectionScreen(),
+          FarmerWalletScreen(phoneNumber: widget.phoneNumber),
+          const GovernmentSchemesScreen(),
+        ],
+      ),
 
       // Bottom Navigation Bar
       bottomNavigationBar: SizedBox(

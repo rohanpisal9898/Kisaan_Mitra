@@ -1008,16 +1008,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             ),
             onPressed: _showAddExpenseModal,
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF15803D), size: 18),
-            label: Flexible(
-              child: Text(
-                l10n.addExpense,
-                textAlign: TextAlign.center,
-                softWrap: true,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF15803D),
-                ),
+            label: Text(
+              l10n.addExpense,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF15803D),
               ),
             ),
           ),
@@ -1082,16 +1080,14 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-              label: Flexible(
-                child: Text(
-                  l10n.submit,
-                  textAlign: TextAlign.center,
-                  softWrap: true,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+              label: Text(
+                l10n.submit,
+                textAlign: TextAlign.center,
+                softWrap: true,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
             ),
