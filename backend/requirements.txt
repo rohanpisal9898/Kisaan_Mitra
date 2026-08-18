@@ -12,4 +12,4 @@ httpx==0.26.0
 google-generativeai>=0.3.0
 python-multipart==0.0.9
 catboost>=1.2.2
-
+earthengine-api>=0.1.380

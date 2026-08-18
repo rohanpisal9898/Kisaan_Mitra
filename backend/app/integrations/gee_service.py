@@ -49,7 +49,12 @@ class GEEService:
 
         project_id = settings.gee_project_id or "kisaanapp-505311"
         try:
-            ee.Initialize(project=project_id)
+            if settings.gee_service_account and settings.gee_private_key:
+                private_key = settings.gee_private_key.replace("\\n", "\n")
+                credentials = ee.ServiceAccountCredentials(settings.gee_service_account, key_data=private_key)
+                ee.Initialize(credentials=credentials, project=project_id)
+            else:
+                ee.Initialize(project=project_id)
             self._gee_initialized = True
             print(f"[GEE DEBUG] Successfully initialized Earth Engine with project: {project_id}")
             return True
