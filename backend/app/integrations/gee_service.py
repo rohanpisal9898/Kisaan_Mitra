@@ -49,7 +49,56 @@ class GEEService:
 
         project_id = settings.gee_project_id or "kisaanapp-505311"
         try:
-            if settings.gee_service_account and settings.gee_private_key:
+            if settings.gee_credentials_json:
+                import json
+                raw_json = settings.gee_credentials_json.strip()
+                if raw_json.startswith("'") and raw_json.endswith("'"):
+                    raw_json = raw_json[1:-1]
+                
+                try:
+                    cred_dict = json.loads(raw_json)
+                except Exception:
+                    import ast
+                    cred_dict = ast.literal_eval(raw_json)
+
+                if isinstance(cred_dict, dict) and "client_email" in cred_dict and "private_key" in cred_dict:
+                    sa_email = cred_dict["client_email"]
+                    p_key = cred_dict["private_key"].replace("\\n", "\n")
+                    credentials = ee.ServiceAccountCredentials(sa_email, key_data=p_key)
+                    ee.Initialize(credentials=credentials, project=project_id)
+                elif isinstance(cred_dict, dict) and "refresh_token" in cred_dict:
+                    # Write to Earth Engine's standard credentials location on Linux (~/.config/earthengine/credentials)
+                    try:
+                        cred_dir = os.path.expanduser("~/.config/earthengine")
+                        os.makedirs(cred_dir, exist_ok=True)
+                        cred_file = os.path.join(cred_dir, "credentials")
+                        with open(cred_file, "w") as f:
+                            json.dump(cred_dict, f)
+                        print(f"[GEE DEBUG] Saved credentials to {cred_file}")
+                    except Exception as err:
+                        print(f"[GEE DEBUG] Could not write credentials file: {err}")
+
+                    client_id = cred_dict.get("client_id")
+                    client_secret = cred_dict.get("client_secret")
+                    if not client_id and hasattr(ee, "oauth"):
+                        client_id = getattr(ee.oauth, "CLIENT_ID", None)
+                        client_secret = getattr(ee.oauth, "CLIENT_SECRET", None)
+
+                    if client_id and client_secret:
+                        from google.oauth2.credentials import Credentials
+                        credentials = Credentials(
+                            token=None,
+                            refresh_token=cred_dict["refresh_token"],
+                            client_id=client_id,
+                            client_secret=client_secret,
+                            token_uri="https://oauth2.googleapis.com/token",
+                        )
+                        ee.Initialize(credentials=credentials, project=project_id)
+                    else:
+                        ee.Initialize(project=project_id)
+                else:
+                    ee.Initialize(project=project_id)
+            elif settings.gee_service_account and settings.gee_private_key:
                 private_key = settings.gee_private_key.replace("\\n", "\n")
                 credentials = ee.ServiceAccountCredentials(settings.gee_service_account, key_data=private_key)
                 ee.Initialize(credentials=credentials, project=project_id)

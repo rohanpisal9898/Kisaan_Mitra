@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     gee_project_id: str = ""
     gee_service_account: str = ""
     gee_private_key: str = ""
+    gee_credentials_json: str = ""
 
     # External API base URLs
     nasa_power_base_url: str = "https://power.larc.nasa.gov/api/temporal/daily/point"
