@@ -90,6 +90,10 @@ class AppLocalizations {
       'farmer_details': 'Farmer Details',
       'farm_information': 'Farm Information',
       'language_card': 'Language',
+      'sign_out': 'Sign Out',
+      'sign_out_confirm_title': 'Sign Out',
+      'sign_out_confirm_message': 'Are you sure you want to sign out?',
+      'nav_schemes': 'Government\nSchemes',
       'name_label': 'Name',
       'farmer_role': 'Farmer',
       'not_available': 'Not available',
@@ -259,6 +263,25 @@ class AppLocalizations {
       'confidenceNote': 'Based on predicted yield • 90% confidence range',
       'disclaimerNote': 'Estimated financial outlook — actual returns may vary.',
       'planExpensesAdvice': '💡 Plan your expenses around the lower estimate to reduce financial risk.',
+
+      // Government Schemes
+      'govt_schemes_title': 'Government Schemes',
+      'govt_schemes_subtitle': 'Explore schemes that support farmers and strengthen agriculture.',
+      'filter_all_schemes': 'All Schemes',
+      'filter_central_govt': 'Central Government',
+      'filter_state_govt': 'State Government',
+      'central_govt_schemes': 'Central Government Schemes',
+      'state_govt_schemes': 'State Government Schemes',
+      'learn_more': 'Learn More',
+      'status_active': 'Active',
+      'view_all_schemes': 'View All Schemes',
+      'cant_find_looking_for': "Can't find what you're looking for?",
+      'cant_find_subtitle': 'Check all schemes or use filters to find the right scheme for you.',
+      'about_these_schemes': 'About These Schemes',
+      'about_schemes_desc': 'These schemes are provided through official government sources.',
+      'loading_schemes': 'Loading schemes...',
+      'unable_to_load_schemes': 'Unable to load schemes right now.',
+      'official_link_unavailable': 'Official link unavailable',
     },
 
 
@@ -329,6 +352,10 @@ class AppLocalizations {
       'farmer_details': 'किसान विवरण',
       'farm_information': 'खेत की जानकारी',
       'language_card': 'भाषा',
+      'sign_out': 'साइन आउट',
+      'sign_out_confirm_title': 'साइन आउट',
+      'sign_out_confirm_message': 'क्या आप वाकई साइन आउट करना चाहते हैं?',
+      'nav_schemes': 'सरकारी\nयोजनाएं',
       'name_label': 'नाम',
       'farmer_role': 'किसान',
       'not_available': 'उपलब्ध नहीं',
@@ -498,6 +525,25 @@ class AppLocalizations {
       'confidenceNote': 'अनुमानित उपज के आधार पर • 90% विश्वास सीमा',
       'disclaimerNote': 'अनुमानित वित्तीय दृष्टिकोण — वास्तविक लाभ भिन्न हो सकता है।',
       'planExpensesAdvice': '💡 वित्तीय जोखिम कम करने के लिए निचले अनुमान के आधार पर खर्चों की योजना बनाएं।',
+
+      // Government Schemes
+      'govt_schemes_title': 'सरकारी योजनाएं',
+      'govt_schemes_subtitle': 'किसानों का समर्थन करने और कृषि को मजबूत करने वाली योजनाओं की खोज करें।',
+      'filter_all_schemes': 'सभी योजनाएं',
+      'filter_central_govt': 'केंद्र सरकार',
+      'filter_state_govt': 'राज्य सरकार',
+      'central_govt_schemes': 'केंद्र सरकार की योजनाएं',
+      'state_govt_schemes': 'राज्य सरकार की योजनाएं',
+      'learn_more': 'अधिक जानें',
+      'status_active': 'सक्रिय',
+      'view_all_schemes': 'सभी योजनाएं देखें',
+      'cant_find_looking_for': 'क्या आप जो खोज रहे हैं वह नहीं मिला?',
+      'cant_find_subtitle': 'अपने लिए सही योजना खोजने के लिए सभी योजनाएं देखें या फ़िल्टर का उपयोग करें।',
+      'about_these_schemes': 'इन योजनाओं के बारे में',
+      'about_schemes_desc': 'ये योजनाएं आधिकारिक सरकारी स्रोतों के माध्यम से प्रदान की जाती हैं।',
+      'loading_schemes': 'योजनाएं लोड हो रही हैं...',
+      'unable_to_load_schemes': 'अभी योजनाएं लोड करने में असमर्थ।',
+      'official_link_unavailable': 'आधिकारिक लिंक उपलब्ध नहीं है',
     },
 
 
@@ -568,6 +614,10 @@ class AppLocalizations {
       'farmer_details': 'शेतकरी तपशील',
       'farm_information': 'शेताची माहिती',
       'language_card': 'भाषा',
+      'sign_out': 'साइन आउट',
+      'sign_out_confirm_title': 'साइन आउट',
+      'sign_out_confirm_message': 'तुम्हाला नक्की साइन आउट करायचे आहे का?',
+      'nav_schemes': 'शासकीय\nयोजना',
       'name_label': 'नाव',
       'farmer_role': 'शेतकरी',
       'not_available': 'उपलब्ध नाही',
@@ -737,6 +787,25 @@ class AppLocalizations {
       'confidenceNote': 'अंदाजित उत्पादनावर आधारित • 90% विश्वास श्रेणी',
       'disclaimerNote': 'अंदाजित आर्थिक दृष्टिकोन — प्रत्यक्ष परतावा बदलू शकतो.',
       'planExpensesAdvice': '💡 आर्थिक धोका कमी करण्यासाठी कमी अंदाजाभोवती खर्चाचे नियोजन करा.',
+
+      // Government Schemes
+      'govt_schemes_title': 'शासकीय योजना',
+      'govt_schemes_subtitle': 'शेतकऱ्यांना पाठिंबा देणाऱ्या आणि शेतीला बळकट करणाऱ्या योजना पहा.',
+      'filter_all_schemes': 'सर्व योजना',
+      'filter_central_govt': 'केंद्र शासन',
+      'filter_state_govt': 'राज्य शासन',
+      'central_govt_schemes': 'केंद्र शासन योजना',
+      'state_govt_schemes': 'राज्य शासन योजना',
+      'learn_more': 'अधिक माहिती',
+      'status_active': 'सक्रिय',
+      'view_all_schemes': 'सर्व योजना पहा',
+      'cant_find_looking_for': 'तुम्हाला हवे ते सापडले नाही का?',
+      'cant_find_subtitle': 'तुमच्यासाठी योग्य योजना शोधण्यासाठी सर्व योजना पहा किंवा फिल्टर वापरा.',
+      'about_these_schemes': 'या योजनांबद्दल',
+      'about_schemes_desc': 'या योजना अधिकृत शासकीय स्रोतांद्वारे प्रदान केल्या जातात.',
+      'loading_schemes': 'योजना लोड होत आहेत...',
+      'unable_to_load_schemes': 'सध्या योजना लोड करणे शक्य नाही.',
+      'official_link_unavailable': 'अधिकृत लिंक उपलब्ध नाही',
     },
   };
 
@@ -809,6 +878,10 @@ class AppLocalizations {
   String get farmerDetails => get('farmer_details');
   String get farmInformation => get('farm_information');
   String get languageCard => get('language_card');
+  String get signOut => get('sign_out');
+  String get signOutConfirmTitle => get('sign_out_confirm_title');
+  String get signOutConfirmMessage => get('sign_out_confirm_message');
+  String get navSchemes => get('nav_schemes');
   String get nameLabel => get('name_label');
   String get farmerRole => get('farmer_role');
   String get notAvailable => get('not_available');
@@ -951,6 +1024,25 @@ class AppLocalizations {
   String get confidenceNote => get('confidenceNote');
   String get disclaimerNote => get('disclaimerNote');
   String get planExpensesAdvice => get('planExpensesAdvice');
+
+  // Government Schemes getters
+  String get govtSchemesTitle => get('govt_schemes_title');
+  String get govtSchemesSubtitle => get('govt_schemes_subtitle');
+  String get filterAllSchemes => get('filter_all_schemes');
+  String get filterCentralGovt => get('filter_central_govt');
+  String get filterStateGovt => get('filter_state_govt');
+  String get centralGovtSchemes => get('central_govt_schemes');
+  String get stateGovtSchemes => get('state_govt_schemes');
+  String get learnMore => get('learn_more');
+  String get statusActive => get('status_active');
+  String get viewAllSchemes => get('view_all_schemes');
+  String get cantFindLookingFor => get('cant_find_looking_for');
+  String get cantFindSubtitle => get('cant_find_subtitle');
+  String get aboutTheseSchemes => get('about_these_schemes');
+  String get aboutSchemesDesc => get('about_schemes_desc');
+  String get loadingSchemes => get('loading_schemes');
+  String get unableToLoadSchemes => get('unable_to_load_schemes');
+  String get officialLinkUnavailable => get('official_link_unavailable');
 }
 
 

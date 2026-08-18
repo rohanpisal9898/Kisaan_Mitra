@@ -546,4 +546,120 @@ async def get_gemini_pest_diagnosis(
     return fallback_data
 
 
+async def get_gemini_government_schemes(
+    farmer_context: Optional[Dict[str, Any]] = None,
+    language: str = "English",
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Fetch structured Indian agricultural government schemes (Central & State) using Gemini API.
+    Returns scheme details localized in the requested language (English, Hindi, Marathi).
+    Official website URLs are preserved as valid URLs without translation.
+    """
+    api_key = settings.gemini_api_key
+
+    lang_key = "English"
+    if "hi" in language.lower() or "hindi" in language.lower():
+        lang_key = "Hindi"
+    elif "mr" in language.lower() or "marathi" in language.lower():
+        lang_key = "Marathi"
+
+    farmer_state = (farmer_context or {}).get("state", "Maharashtra")
+    farmer_crop = (farmer_context or {}).get("crop", "Soybean")
+    farmer_district = (farmer_context or {}).get("district", "")
+
+    if not api_key or api_key == "your_gemini_api_key_here":
+        print("[GEMINI SCHEMES] No API Key found, returning None for fallback")
+        return None
+
+    prompt = (
+        f"You are Kisaan Mitra, an expert Indian agricultural scheme advisory assistant.\n"
+        f"Provide a structured list of 6 real, official government agricultural schemes for an Indian farmer.\n"
+        f"Farmer details: State = '{farmer_state}', District = '{farmer_district}', Crop = '{farmer_crop}'.\n"
+        f"Language requested: {lang_key}.\n\n"
+        f"Requirements:\n"
+        f"1. Generate EXACTLY 6 schemes: 3 Central Government schemes and 3 State Government schemes for '{farmer_state}'.\n"
+        f"2. Translate all user-facing text ('name', 'category', 'description', 'status') to {lang_key}.\n"
+        f"3. 'governmentLevel' MUST be either 'Central' or 'State'.\n"
+        f"4. 'officialUrl' MUST be an authentic, valid official government website URL (e.g. https://pmkisan.gov.in/, https://pmfby.gov.in/, https://pmksy.gov.in/, https://myscheme.gov.in/, https://krishi.maharashtra.gov.in/).\n"
+        f"5. DO NOT translate officialUrl. DO NOT invent fake URLs. If official URL is unavailable, use empty string ''.\n"
+        f"6. Return ONLY valid JSON array matching this exact format:\n"
+        f"[\n"
+        f"  {{\n"
+        f"    \"id\": \"scheme_1\",\n"
+        f"    \"name\": \"Scheme Name in {lang_key}\",\n"
+        f"    \"category\": \"Category Name in {lang_key}\",\n"
+        f"    \"description\": \"Concise benefit description in {lang_key}\",\n"
+        f"    \"governmentLevel\": \"Central\",\n"
+        f"    \"state\": \"All\",\n"
+        f"    \"status\": \"Active\",\n"
+        f"    \"officialUrl\": \"https://...\"\n"
+        f"  }}\n"
+        f"]"
+    )
+
+    model_names = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-2.5-flash"]
+
+    for model_name in model_names:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.2,
+                "maxOutputTokens": 2048,
+                "responseMimeType": "application/json",
+            }
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=12.0) as client:
+                response = await client.post(url, json=payload)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    candidates = res_json.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts = candidates[0]["content"].get("parts", [])
+                        if parts and "text" in parts[0]:
+                            text = parts[0]["text"].strip()
+                            parsed = _clean_and_parse_json(text)
+                            if isinstance(parsed, dict):
+                                schemes = parsed.get("schemes", [])
+                            elif isinstance(parsed, list):
+                                schemes = parsed
+                            else:
+                                schemes = []
+
+                            validated = []
+                            for idx, s in enumerate(schemes, 1):
+                                name = str(s.get("name", "")).strip()
+                                desc = str(s.get("description", "")).strip()
+                                gov_level = str(s.get("governmentLevel", "Central")).strip().capitalize()
+                                if gov_level not in ["Central", "State"]:
+                                    gov_level = "Central"
+
+                                official_url = str(s.get("officialUrl", "")).strip()
+                                if not (official_url.startswith("http://") or official_url.startswith("https://")):
+                                    official_url = ""
+
+                                if name and desc:
+                                    validated.append({
+                                        "id": f"scheme_{idx}",
+                                        "name": name,
+                                        "category": str(s.get("category", "Agriculture Support")).strip(),
+                                        "description": desc,
+                                        "governmentLevel": gov_level,
+                                        "state": str(s.get("state", farmer_state if gov_level == "State" else "All")).strip(),
+                                        "status": str(s.get("status", "Active")).strip(),
+                                        "officialUrl": official_url,
+                                    })
+
+                            if len(validated) >= 3:
+                                print(f"[GEMINI SCHEMES] Generated {len(validated)} schemes using {model_name}")
+                                return validated
+        except Exception as e:
+            print(f"[GEMINI SCHEMES ERROR] {model_name} failed: {e}")
+            continue
+
+    return None
+
+
 

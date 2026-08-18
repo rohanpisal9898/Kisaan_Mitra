@@ -13,8 +13,13 @@ import 'dashboard_screen.dart';
 /// Collects: Farmer Name, Phone Number, Password, Village (for registration) or Phone + Password (for Sign In).
 class FarmerProfileScreen extends StatefulWidget {
   final String language;
+  final bool isSignInMode;
 
-  const FarmerProfileScreen({super.key, required this.language});
+  const FarmerProfileScreen({
+    super.key,
+    required this.language,
+    this.isSignInMode = false,
+  });
 
   @override
   State<FarmerProfileScreen> createState() => _FarmerProfileScreenState();
@@ -35,6 +40,7 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   void initState() {
     super.initState();
     _l10n = AppLocalizations(widget.language);
+    _isSignInMode = widget.isSignInMode;
   }
 
   Future<void> _handleSignIn() async {

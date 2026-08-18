@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
 import '../main.dart';
+import 'farmer_profile_screen.dart';
 
 /// Clean mobile-first farmer profile page for Kisaan Mitra.
 class ProfileScreen extends StatefulWidget {
@@ -248,10 +249,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
                 child: Column(
                   children: [
-                    // Top Row: Title
+                    // Top Row: Back Button & Title
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(width: 12),
                         Text(
                           l10n.profileTitle,
                           style: GoogleFonts.inter(
@@ -321,11 +329,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: AppColors.primaryLight,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            locationText,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.75),
+                          Flexible(
+                            child: Text(
+                              locationText,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: Colors.white.withValues(alpha: 0.75),
+                              ),
                             ),
                           ),
                         ],
@@ -382,6 +393,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // 3. LANGUAGE CARD (ONLY DROPDOWN)
                 _buildLanguageCard(l10n, currentLangCode),
+
+                const SizedBox(height: 14),
+
+                // 4. SIGN OUT CARD
+                _buildSignOutCard(l10n),
 
                 const SizedBox(height: 24),
               ],
@@ -598,24 +614,172 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ─── HELPER ROW WIDGETS ──────────────────────────────────────────
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
+  // ─── SIGN OUT CARD & DIALOG ───────────────────────────────────────
+  Widget _buildSignOutCard(AppLocalizations l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => _showSignOutConfirmationDialog(l10n),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.logout,
+                  color: Color(0xFFDC2626),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  l10n.signOut,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSignOutConfirmationDialog(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            l10n.signOutConfirmTitle,
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          content: Text(
+            l10n.signOutConfirmMessage,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
           ),
-          Flexible(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                l10n.cancelBtn,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _handleSignOut();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                l10n.signOut,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleSignOut() async {
+    final currentLangCode = Localizations.localeOf(context).languageCode;
+    final prefs = await SharedPreferences.getInstance();
+
+    // Clear session token / user phone number
+    await prefs.remove('user_phone');
+
+    if (!mounted) return;
+
+    // Navigate to Login screen and remove back stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => FarmerProfileScreen(
+          language: currentLangCode,
+          isSignInMode: true,
+        ),
+      ),
+      (route) => false,
+    );
+  }
+
+  // ─── HELPER ROW WIDGETS ──────────────────────────────────────────
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 5,
             child: Text(
               value,
               textAlign: TextAlign.end,
+              softWrap: true,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

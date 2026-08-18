@@ -20,6 +20,7 @@ import '../widgets/top_crop_recommendations_card.dart';
 import 'profile_screen.dart';
 import 'pest_detection_screen.dart';
 import 'farmer_wallet_screen.dart';
+import 'government_schemes_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String language;
@@ -84,6 +85,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _errorMessage = 'Failed to load farm dashboard data.';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _openProfileScreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+    );
+    if (mounted) {
+      _loadDashboardData();
     }
   }
 
@@ -286,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           : _currentIndex == 2
               ? FarmerWalletScreen(phoneNumber: widget.phoneNumber)
               : _currentIndex == 3
-                  ? const ProfileScreen()
+                  ? const GovernmentSchemesScreen()
                   : SafeArea(
                       child: RefreshIndicator(
                         onRefresh: _loadDashboardData,
@@ -296,60 +306,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
 
       // Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            if (index == 0) {
-              _loadDashboardData();
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF15803D),
-          unselectedItemColor: const Color(0xFF94A3B8),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedLabelStyle: GoogleFonts.dmSans(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+      bottomNavigationBar: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
-          unselectedLabelStyle: GoogleFonts.dmSans(
-            fontSize: 11,
-            fontWeight: FontWeight.w400,
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() => _currentIndex = index);
+              if (index == 0) {
+                _loadDashboardData();
+              }
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: const Color(0xFF15803D),
+            unselectedItemColor: const Color(0xFF94A3B8),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedLabelStyle: GoogleFonts.dmSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              height: 1.1,
+            ),
+            unselectedLabelStyle: GoogleFonts.dmSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              height: 1.1,
+            ),
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home_outlined),
+                activeIcon: const Icon(Icons.home),
+                label: l10n.navHome,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.bug_report_outlined),
+                activeIcon: const Icon(Icons.bug_report),
+                label: l10n.navPest,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.account_balance_wallet_outlined),
+                activeIcon: const Icon(Icons.account_balance_wallet),
+                label: l10n.navWallet,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.account_balance_outlined),
+                activeIcon: const Icon(Icons.account_balance),
+                label: l10n.navSchemes,
+              ),
+            ],
           ),
-          items: [
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined),
-              activeIcon: const Icon(Icons.home),
-              label: l10n.navHome,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.bug_report_outlined),
-              activeIcon: const Icon(Icons.bug_report),
-              label: l10n.navPest,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: const Icon(Icons.account_balance_wallet),
-              label: l10n.navWallet,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.person_outline),
-              activeIcon: const Icon(Icons.person),
-              label: l10n.navProfile,
-            ),
-          ],
         ),
       ),
     );
@@ -437,7 +452,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               farmer: data.farmer,
               crop: data.crop,
               onNotificationTap: () {},
-              onProfileTap: () => setState(() => _currentIndex = 3),
+              onProfileTap: _openProfileScreen,
             ),
             const SizedBox(height: 20),
             WeatherCardWidget(weather: data.weather),
@@ -480,7 +495,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? CropInfoModel(id: '', name: overview.previousCrop!.name, sowingDate: overview.previousCrop!.sowingDate)
                 : null,
             onNotificationTap: () {},
-            onProfileTap: () => setState(() => _currentIndex = 3),
+            onProfileTap: _openProfileScreen,
           ),
           const SizedBox(height: 20),
 
@@ -492,7 +507,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           PlanningDashboardCardWidget(
             dashboardState: overview.dashboardState,
             previousCropName: overview.previousCrop?.name,
-            onPlanCropTap: () => setState(() => _currentIndex = 3),
+            onPlanCropTap: _openProfileScreen,
           ),
           const SizedBox(height: 22),
 

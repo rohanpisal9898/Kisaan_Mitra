@@ -65,13 +65,14 @@ os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Import and include routers
-from app.routers import locations, users, pest_detection, dashboard, wallet
+from app.routers import locations, users, pest_detection, dashboard, wallet, schemes
 
 app.include_router(locations.router)
 app.include_router(users.router)
 app.include_router(pest_detection.router)
 app.include_router(dashboard.router)
 app.include_router(wallet.router)
+app.include_router(schemes.router)
 
 
 if __name__ == "__main__":
