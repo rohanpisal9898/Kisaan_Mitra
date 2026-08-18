@@ -23,6 +23,57 @@ import 'pest_detection_screen.dart';
 import 'farmer_wallet_screen.dart';
 import 'government_schemes_screen.dart';
 
+class _SupportedCropItem {
+  final String cropId;
+  final String name;
+  final String icon;
+  final String sowingWindow;
+
+  const _SupportedCropItem({
+    required this.cropId,
+    required this.name,
+    required this.icon,
+    required this.sowingWindow,
+  });
+}
+
+const List<_SupportedCropItem> _allSupportedCrops = [
+  _SupportedCropItem(cropId: 'groundnut', name: 'Groundnut', icon: '🌿', sowingWindow: 'June – July'),
+  _SupportedCropItem(cropId: 'soybean', name: 'Soybean', icon: '🌱', sowingWindow: 'June – July'),
+  _SupportedCropItem(cropId: 'castor', name: 'Castor seed', icon: '🌱', sowingWindow: 'July – August'),
+  _SupportedCropItem(cropId: 'sunflower', name: 'Sunflower', icon: '🌻', sowingWindow: 'June – July'),
+  _SupportedCropItem(cropId: 'sesame', name: 'Sesamum', icon: '🌿', sowingWindow: 'June – July'),
+  _SupportedCropItem(cropId: 'rapeseed_mustard', name: 'Rapeseed &Mustard', icon: '🌾', sowingWindow: 'October – November'),
+  _SupportedCropItem(cropId: 'linseed', name: 'Linseed', icon: '🌿', sowingWindow: 'October – November'),
+  _SupportedCropItem(cropId: 'safflower', name: 'Safflower', icon: '🌼', sowingWindow: 'September – October'),
+  _SupportedCropItem(cropId: 'niger', name: 'Niger seed', icon: '🌻', sowingWindow: 'June – July'),
+];
+
+String _normalizeCropId(String cropIdOrName) {
+  final lower = cropIdOrName.toLowerCase().trim();
+  if (lower == 'soyabean' || lower == 'soya bean') return 'soybean';
+  if (lower == 'castor seed') return 'castor';
+  if (lower == 'sesamum' || lower == 'til') return 'sesame';
+  if (lower.contains('mustard') || lower.contains('rapeseed')) return 'rapeseed_mustard';
+  if (lower == 'niger seed') return 'niger';
+  return lower;
+}
+
+String _getLocalizedCropName(AppLocalizations l10n, String cropId) {
+  final c = _normalizeCropId(cropId);
+  final lang = l10n.languageCode;
+  if (c == 'groundnut') return lang == 'hi' ? 'मूंगफली' : lang == 'mr' ? 'भुईमूग' : 'Groundnut';
+  if (c == 'soybean') return lang == 'hi' ? 'सोयाबीन' : lang == 'mr' ? 'सोयाबीन' : 'Soybean';
+  if (c == 'castor') return lang == 'hi' ? 'अरंडी' : lang == 'mr' ? 'एरंडी' : 'Castor seed';
+  if (c == 'sunflower') return lang == 'hi' ? 'सूरजमुखी' : lang == 'mr' ? 'सूर्यफूल' : 'Sunflower';
+  if (c == 'sesame') return lang == 'hi' ? 'तिल' : lang == 'mr' ? 'तीळ' : 'Sesamum';
+  if (c == 'rapeseed_mustard') return lang == 'hi' ? 'सरसों / रायडा' : lang == 'mr' ? 'मोहरी' : 'Rapeseed & Mustard';
+  if (c == 'linseed') return lang == 'hi' ? 'अलसी' : lang == 'mr' ? 'जवस' : 'Linseed';
+  if (c == 'safflower') return lang == 'hi' ? 'कुसुम' : lang == 'mr' ? 'करडई' : 'Safflower';
+  if (c == 'niger') return lang == 'hi' ? 'रामतिल' : lang == 'mr' ? 'कारळा' : 'Niger seed';
+  return cropId;
+}
+
 class DashboardScreen extends StatefulWidget {
   final String language;
   final String? phoneNumber;
@@ -307,6 +358,220 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showOtherCropSelectionModal(List<TopCropRecommendationModel> recommendations) {
+    final l10n = AppLocalizations.of(context);
+    final recIds = recommendations.map((r) => _normalizeCropId(r.cropId)).toSet();
+    final availableCrops = _allSupportedCrops
+        .where((c) => !recIds.contains(_normalizeCropId(c.cropId)))
+        .toList();
+
+    _SupportedCropItem? selectedCrop;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.selectCropTitle,
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.selectCropSubtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  if (availableCrops.isEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        l10n.noOtherCrops,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.45,
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: availableCrops.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final item = availableCrops[index];
+                          final isSelected = selectedCrop?.cropId == item.cropId;
+                          final localizedName = _getLocalizedCropName(l10n, item.cropId);
+
+                          return GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                selectedCrop = item;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isSelected ? const Color(0xFF15803D) : const Color(0xFFCBD5E1),
+                                  width: isSelected ? 1.8 : 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(item.icon, style: const TextStyle(fontSize: 22)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          localizedName,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF0F172A),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '📅 ${l10n.recommendedSowing}: ${item.sowingWindow}',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF64748B),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                                    color: isSelected ? const Color(0xFF15803D) : const Color(0xFF94A3B8),
+                                    size: 22,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF15803D),
+                          disabledBackgroundColor: const Color(0xFFCBD5E1),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: selectedCrop == null
+                            ? null
+                            : () {
+                                final chosen = selectedCrop!;
+                                Navigator.pop(context);
+                                final model = TopCropRecommendationModel(
+                                  rank: 0,
+                                  crop: chosen.name,
+                                  cropId: chosen.cropId,
+                                  icon: chosen.icon,
+                                  score: 0,
+                                  suitabilityPercentage: '',
+                                  netReturnFormatted: '',
+                                  waterLevel: '',
+                                  waterRequirementFormatted: '',
+                                  recommendedSowing: chosen.sowingWindow,
+                                );
+                                _showSowingDateSelectionModal(model);
+                              },
+                        icon: Icon(
+                          Icons.arrow_forward_rounded,
+                          color: selectedCrop == null ? const Color(0xFF94A3B8) : Colors.white,
+                          size: 20,
+                        ),
+                        label: Text(
+                          l10n.continueBtn,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: selectedCrop == null ? const Color(0xFF94A3B8) : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -539,6 +804,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           TopCropRecommendationsCardWidget(
             recommendations: topRecs,
             onCropSelected: (selectedItem) => _showSowingDateSelectionModal(selectedItem),
+            onOtherTap: () => _showOtherCropSelectionModal(topRecs),
           ),
           const SizedBox(height: 24),
         ],

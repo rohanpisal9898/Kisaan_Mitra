@@ -50,11 +50,13 @@ class TopCropRecommendationModel {
 class TopCropRecommendationsCardWidget extends StatelessWidget {
   final List<TopCropRecommendationModel> recommendations;
   final Function(TopCropRecommendationModel)? onCropSelected;
+  final VoidCallback? onOtherTap;
 
   const TopCropRecommendationsCardWidget({
     super.key,
     required this.recommendations,
     this.onCropSelected,
+    this.onOtherTap,
   });
 
   @override
@@ -160,6 +162,72 @@ class TopCropRecommendationsCardWidget extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+
+        // Other Crop Option Card
+        const SizedBox(height: 14),
+        GestureDetector(
+          onTap: onOtherTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text('🌾', style: TextStyle(fontSize: 20)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.otherCropOption,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.chooseAnotherCrop,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Color(0xFF15803D),
+                ),
+              ],
+            ),
           ),
         ),
       ],

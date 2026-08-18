@@ -156,6 +156,11 @@ class AppLocalizations {
       'suitable': 'Suitable',
       'personalized_recs_info': 'These recommendations are personalized for your farm.',
       'ranking_factors': 'Ranking considers: Market Demand • Water Requirement • Sowing Period',
+      'other_crop_option': 'Other',
+      'choose_another_crop': 'Choose another crop',
+      'select_crop_title': 'Select Crop',
+      'select_crop_subtitle': "Choose a crop that isn't in your recommendations.",
+      'no_other_crops': 'No other crops are available.',
 
       // Sowing Date Modal & Recommendation Modal
       'plan_crop': 'Plan',
@@ -418,6 +423,11 @@ class AppLocalizations {
       'suitable': 'उपयुक्त',
       'personalized_recs_info': 'ये सिफारिशें आपके खेत के लिए व्यक्तिगत हैं।',
       'ranking_factors': 'रैंकिंग का आधार: बाजार मांग • पानी की आवश्यकता • बुवाई का समय',
+      'other_crop_option': 'अन्य',
+      'choose_another_crop': 'दूसरी फसल चुनें',
+      'select_crop_title': 'फसल चुनें',
+      'select_crop_subtitle': 'ऐसी फसल चुनें जो आपकी सिफारिशों में नहीं है।',
+      'no_other_crops': 'कोई अन्य फसल उपलब्ध नहीं है।',
 
       // Sowing Date Modal & Recommendation Modal
       'plan_crop': 'योजना बनाएं',
@@ -680,6 +690,11 @@ class AppLocalizations {
       'suitable': 'योग्य',
       'personalized_recs_info': 'या शिफारसी तुमच्या शेतासाठी वैयक्तिकृत आहेत.',
       'ranking_factors': 'रँकिंगचे निकष: बाजार मागणी • पाण्याची गरज • पेरणीचा काळ',
+      'other_crop_option': 'इतर',
+      'choose_another_crop': 'दुसरे पीक निवडा',
+      'select_crop_title': 'पीक निवडा',
+      'select_crop_subtitle': 'तुमच्या शिफारशींमध्ये नसलेले पीक निवडा.',
+      'no_other_crops': 'इतर कोणतेही पिके उपलब्ध नाहीत।',
 
       // Sowing Date Modal & Recommendation Modal
       'plan_crop': 'नियोजन करा',
@@ -919,6 +934,11 @@ class AppLocalizations {
   String get suitable => get('suitable');
   String get personalizedRecsInfo => get('personalized_recs_info');
   String get rankingFactors => get('ranking_factors');
+  String get otherCropOption => get('other_crop_option');
+  String get chooseAnotherCrop => get('choose_another_crop');
+  String get selectCropTitle => get('select_crop_title');
+  String get selectCropSubtitle => get('select_crop_subtitle');
+  String get noOtherCrops => get('no_other_crops');
   String get planCrop => get('plan_crop');
   String get selectSowingDate => get('select_sowing_date');
   String get confirmStartGrowing => get('confirm_start_growing');
