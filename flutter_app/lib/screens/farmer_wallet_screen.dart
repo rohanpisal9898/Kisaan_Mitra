@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   String? _errorMessage;
   WalletOverviewModel? _walletData;
   String? _userPhone;
+  String? _editingExpenseId;
+  TextEditingController? _expenseEditorController;
 
   @override
   void initState() {
@@ -144,25 +147,70 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   }
 
   void _adjustExpense(ExpenseItemModel item, double delta) {
+    _commitExpenseEdit();
     final newAmount = (item.amount + delta).clamp(0.0, 10000000.0);
     if (newAmount == item.amount) return;
 
-    setState(() {
-      item.amount = newAmount;
-      _recalculateProfit();
-    });
+    item.amount = newAmount;
+    _recalculateProfit();
   }
 
   void _deleteExpense(ExpenseItemModel item) {
+    _commitExpenseEdit();
+    _walletData?.expenses.removeWhere((e) => e.id == item.id);
+    _recalculateProfit();
+  }
+
+  void _startExpenseEdit(ExpenseItemModel item) {
+    if (_editingExpenseId == item.id) return;
+
+    _commitExpenseEdit();
+    final controller = TextEditingController(
+      text: item.amount.round().toString(),
+    );
+    controller.selection = TextSelection.collapsed(offset: controller.text.length);
+
     setState(() {
-      _walletData?.expenses.removeWhere((e) => e.id == item.id);
-      _recalculateProfit();
+      _editingExpenseId = item.id;
+      _expenseEditorController = controller;
     });
+  }
+
+  void _commitExpenseEdit() {
+    final editingId = _editingExpenseId;
+    final controller = _expenseEditorController;
+    if (editingId == null || controller == null) return;
+
+    ExpenseItemModel? item;
+    for (final expense in _walletData?.expenses ?? <ExpenseItemModel>[]) {
+      if (expense.id == editingId) {
+        item = expense;
+        break;
+      }
+    }
+
+    final parsedAmount = double.tryParse(controller.text.trim());
+    final newAmount = parsedAmount?.clamp(0.0, 10000000.0);
+    final shouldUpdate = item != null && newAmount != null && newAmount != item.amount;
+
+    _editingExpenseId = null;
+    _expenseEditorController = null;
+    controller.dispose();
+
+    if (item != null && newAmount != null && shouldUpdate) {
+      item.amount = newAmount;
+      _recalculateProfit();
+    } else if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _saveExpenses() async {
     if (_walletData == null) return;
     final l10n = AppLocalizations.of(context);
+
+    // Persist the value currently being edited before taking the snapshot.
+    _commitExpenseEdit();
 
     setState(() {
       _isSavingExpenses = true;
@@ -170,15 +218,13 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
 
     try {
       final expensesList = _walletData!.expenses.map((e) => e.toJson()).toList();
-      final jsonResponse = await ApiService.saveExpenses(
+      await ApiService.saveExpenses(
         phoneNumber: _userPhone,
         expenses: expensesList,
       );
-      final updatedModel = WalletOverviewModel.fromJson(jsonResponse);
 
       if (!mounted) return;
       setState(() {
-        _walletData = updatedModel;
         _isSavingExpenses = false;
       });
 
@@ -212,6 +258,12 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
         ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _expenseEditorController?.dispose();
+    super.dispose();
   }
 
   void _showAddExpenseModal() {
@@ -249,10 +301,11 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                 top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -343,6 +396,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   TextField(
                     controller: amountController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       prefixText: '₹ ',
                       hintText: '0',
@@ -356,10 +410,11 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 54,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF15803D),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -389,6 +444,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                       },
                       child: Text(
                         l10n.saveExpense,
+                        textAlign: TextAlign.center,
+                        softWrap: true,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -397,7 +454,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                       ),
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -637,7 +695,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: cardBg,
         borderRadius: BorderRadius.circular(20),
@@ -649,8 +707,30 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/oilseed_field.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: ps.isLoss
+                      ? [const Color(0xE6991B1B), const Color(0xF07F1D1D)]
+                      : [const Color(0xE616834A), const Color(0xF014532D)],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
           Text(
             headerTitle,
             style: GoogleFonts.inter(
@@ -709,6 +789,9 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
               fontSize: 10,
               fontStyle: FontStyle.italic,
               color: Colors.white.withOpacity(0.65),
+            ),
+          ),
+              ],
             ),
           ),
         ],
@@ -918,18 +1001,23 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           // Add Expense Button
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 44),
+              minimumSize: const Size(double.infinity, 52),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               side: const BorderSide(color: Color(0xFF15803D), width: 1.2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: _showAddExpenseModal,
             icon: const Icon(Icons.add_circle_outline, color: Color(0xFF15803D), size: 18),
-            label: Text(
-              l10n.addExpense,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF15803D),
+            label: Flexible(
+              child: Text(
+                l10n.addExpense,
+                textAlign: TextAlign.center,
+                softWrap: true,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF15803D),
+                ),
               ),
             ),
           ),
@@ -976,11 +1064,12 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           // Clear Submit / Save Changes Button
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 56,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF15803D),
                 elevation: 2,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -993,12 +1082,16 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-              label: Text(
-                l10n.submit,
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              label: Flexible(
+                child: Text(
+                  l10n.submit,
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -1009,6 +1102,8 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   }
 
   Widget _buildExpenseRow(ExpenseItemModel item, AppLocalizations l10n) {
+    final isEditing = _editingExpenseId == item.id && _expenseEditorController != null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1028,20 +1123,55 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 72),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    _formatIndianCurrency(item.amount),
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+              if (isEditing)
+                SizedBox(
+                  width: 82,
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (!hasFocus) _commitExpenseEdit();
+                    },
+                    child: TextField(
+                      controller: _expenseEditorController,
+                      autofocus: true,
+                      textAlign: TextAlign.end,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      onSubmitted: (_) => _commitExpenseEdit(),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F172A),
+                      ),
+                      decoration: const InputDecoration(
+                        prefixText: '₹ ',
+                        isDense: true,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                GestureDetector(
+                  onTap: () => _startExpenseEdit(item),
+                  child: SizedBox(
+                    width: 82,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _formatIndianCurrency(item.amount),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(width: 8),
 
               // Decrement Button (-)

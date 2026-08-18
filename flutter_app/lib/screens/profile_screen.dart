@@ -253,13 +253,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 12),
                         Text(
                           l10n.profileTitle,
                           style: GoogleFonts.inter(
@@ -267,6 +260,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: l10n.navHome,
+                          icon: const Icon(Icons.home_outlined, color: Colors.white),
+                          onPressed: () => Navigator.of(context).pop(),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                         ),
                       ],
                     ),

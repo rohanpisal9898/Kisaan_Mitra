@@ -592,7 +592,13 @@ class WalletService:
         }
 
     async def get_oilseed_markets_from_db(
-        self, db: AsyncIOMotorDatabase, state: str, farmer_crop: Optional[str] = None, district: Optional[str] = None
+        self,
+        db: AsyncIOMotorDatabase,
+        state: str,
+        farmer_crop: Optional[str] = None,
+        district: Optional[str] = None,
+        prefetched_mandi: Optional[Dict[str, Any]] = None,
+        prefetched_msp: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Fetches top oilseed market & MSP comparisons from MongoDB.
@@ -617,13 +623,23 @@ class WalletService:
             else:
                 candidate_crops.insert(0, farmer_norm)
 
+        prefetched_crop_norm = self._normalize_crop_name(farmer_crop or "Soybean")
         results = []
         for c_raw in candidate_crops:
-            mandi_info = await self.get_mandi_price_with_fallback(db, state, c_raw, district)
+            c_norm = self._normalize_crop_name(c_raw)
+            mandi_info = (
+                prefetched_mandi
+                if prefetched_mandi is not None and c_norm == prefetched_crop_norm
+                else await self.get_mandi_price_with_fallback(db, state, c_raw, district)
+            )
             if not mandi_info.get("available") or mandi_info.get("modal_price", 0) <= 0:
                 continue
 
-            msp_info = await self.get_msp_price_from_db(db, c_raw)
+            msp_info = (
+                prefetched_msp
+                if prefetched_msp is not None and c_norm == prefetched_crop_norm
+                else await self.get_msp_price_from_db(db, c_raw)
+            )
             modal = mandi_info["modal_price"]
             floor = mandi_info["floor_price"]
             ceil = mandi_info["ceiling_price"]
@@ -648,8 +664,6 @@ class WalletService:
                 else:
                     status = "Moderate Market"
 
-
-            c_norm = self._normalize_crop_name(c_raw)
             item_crop_id = self._get_canonical_crop_id(c_raw)
             crop_display = c_raw
             if c_norm == "Soybean":
@@ -836,21 +850,37 @@ class WalletService:
             "satellite_data": user_doc.get("satellite_data"),
         }
 
-        try:
-            yield_res = await yield_service.predict_yield(farm_context)
-            has_yield = yield_res.get("available", True) and has_crop
-        except Exception as e:
-            print(f"[WALLET SERVICE] Yield service error: {e}")
-            yield_res = {"yield_predicted": 0.0, "yield_lower": 0.0, "yield_upper": 0.0, "unit": "tonnes_per_hectare", "model_used": "nosat", "available": False}
-            has_yield = False
+        async def predict_yield_safely() -> Dict[str, Any]:
+            try:
+                return await yield_service.predict_yield(farm_context)
+            except Exception as e:
+                print(f"[WALLET SERVICE] Yield service error: {e}")
+                return {
+                    "yield_predicted": 0.0,
+                    "yield_lower": 0.0,
+                    "yield_upper": 0.0,
+                    "unit": "tonnes_per_hectare",
+                    "model_used": "nosat",
+                    "available": False,
+                }
+
+        async def read_saved_expenses() -> Optional[Dict[str, Any]]:
+            if db is not None and phone != "guest":
+                return await db.user_expenses.find_one({"phone_number": phone})
+            return None
+
+        # Yield/model work and independent market/expense reads can run together.
+        yield_res, mandi_info, msp_info, saved_doc = await asyncio.gather(
+            predict_yield_safely(),
+            self.get_mandi_price_with_fallback(db, state, lookup_crop, district),
+            self.get_msp_price_from_db(db, lookup_crop),
+            read_saved_expenses(),
+        )
+        has_yield = yield_res.get("available", True) and has_crop
 
         yield_pred = float(yield_res.get("yield_predicted", 0.0))
         yield_low = float(yield_res.get("yield_lower", 0.0))
         yield_upp = float(yield_res.get("yield_upper", 0.0))
-
-        # 2. Mandi Market Price & MSP Lookup (Gemini First -> MongoDB Cache -> Benchmark Default)
-        mandi_info = await self.get_mandi_price_with_fallback(db, state, lookup_crop, district)
-        msp_info = await self.get_msp_price_from_db(db, lookup_crop)
 
         modal_price = mandi_info.get("modal_price", 0.0)
         has_market_price = mandi_info.get("available", False) and modal_price > 0
@@ -861,10 +891,8 @@ class WalletService:
 
         # 3. User Expenses from MongoDB `user_expenses` collection
         expense_items = []
-        if db is not None and phone != "guest":
-            saved_doc = await db.user_expenses.find_one({"phone_number": phone})
-            if saved_doc and "expenses" in saved_doc and isinstance(saved_doc["expenses"], list):
-                expense_items = saved_doc["expenses"]
+        if saved_doc and "expenses" in saved_doc and isinstance(saved_doc["expenses"], list):
+            expense_items = saved_doc["expenses"]
 
         if not expense_items:
             # Seed initial expenses from MongoDB `crop_costs` collection
@@ -919,7 +947,14 @@ class WalletService:
         }
 
         # 5. Market Items & MSP comparisons from MongoDB
-        market_items = await self.get_oilseed_markets_from_db(db, state, current_crop, district)
+        market_items = await self.get_oilseed_markets_from_db(
+            db,
+            state,
+            current_crop,
+            district,
+            prefetched_mandi=mandi_info,
+            prefetched_msp=msp_info,
+        )
 
         # 6. Read Stored Gemini Insight directly from MongoDB `market_insights` (Zero Gemini API call)
         insight_res = None

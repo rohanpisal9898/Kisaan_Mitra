@@ -129,3 +129,7 @@ class UpdateExpenseRequest(BaseModel):
 class SaveExpensesRequest(BaseModel):
     expenses: List[ExpenseItem] = Field(..., description="Full list of updated expense items to persist")
 
+
+class SaveExpensesResponse(BaseModel):
+    saved: bool = True
+    updated_at: str

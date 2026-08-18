@@ -10,11 +10,18 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final imageCacheWidth =
+        (mediaQuery.size.width * mediaQuery.devicePixelRatio).round();
+    final imageCacheHeight =
+        (screenHeight * mediaQuery.devicePixelRatio).round();
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background gradient (simulating the plant/crop image)
+          // Keep the approved dark background visible below the hero image.
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -25,6 +32,40 @@ class SplashScreen extends StatelessWidget {
                   Color(0xFF1A3A0F),  // Darker green
                   Color(0xFF0D1F08),  // Very dark bottom
                 ],
+              ),
+            ),
+          ),
+
+          // Full-screen farmer/farm photography. Cover preserves the photo's
+          // aspect ratio while filling every mobile screen size.
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/farmer_hero.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              cacheWidth: imageCacheWidth,
+              cacheHeight: imageCacheHeight,
+              filterQuality: FilterQuality.low,
+            ),
+          ),
+
+          // Fade the photograph into the existing dark palette for readability.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.transparent,
+                      const Color(0xFF0D1F08).withValues(alpha: 0.72),
+                      const Color(0xFF050B03).withValues(alpha: 0.98),
+                    ],
+                    stops: const [0.0, 0.36, 0.68, 1.0],
+                  ),
+                ),
               ),
             ),
           ),
@@ -53,33 +94,9 @@ class SplashScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 24),
 
-                  // App logo/name
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.eco,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Kisaan Mitra',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // The reference-matched hero asset already carries the
+                  // approved logo/name at this position.
+                  const SizedBox(height: 40),
 
                   const Spacer(),
 

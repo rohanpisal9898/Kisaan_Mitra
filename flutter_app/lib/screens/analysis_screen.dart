@@ -150,6 +150,10 @@ class _AnalysisScreenState extends State<AnalysisScreen>
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final imageCacheWidth =
+        (mediaQuery.size.width * mediaQuery.devicePixelRatio).round();
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -165,6 +169,20 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                   Color(0xFF0D1F08),
                   Color(0xFF060F04),
                 ],
+              ),
+            ),
+          ),
+
+          // Oilseed farm visual kept behind the existing analysis content.
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.18,
+              child: Image.asset(
+                'assets/images/oilseed_field.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                cacheWidth: imageCacheWidth,
+                filterQuality: FilterQuality.low,
               ),
             ),
           ),

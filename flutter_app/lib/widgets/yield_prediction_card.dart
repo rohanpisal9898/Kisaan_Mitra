@@ -17,7 +17,7 @@ class YieldPredictionCardWidget extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: const Color(0xFF143823), // Dark green background matching reference image
         borderRadius: BorderRadius.circular(20),
@@ -29,9 +29,23 @@ class YieldPredictionCardWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/oilseed_field.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(color: const Color(0xC9143823)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // AI PREDICTION Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -150,6 +164,9 @@ class YieldPredictionCardWidget extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+              ],
+            ),
           ),
         ],
       ),
