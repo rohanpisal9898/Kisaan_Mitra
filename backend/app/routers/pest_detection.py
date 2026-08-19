@@ -122,6 +122,7 @@ async def create_pest_scan(body: PestScanJsonRequest):
     # Generate dynamic Yes/No questions via Gemini
     questions = await get_gemini_pest_questions(image_base64=raw_b64, language=requested_lang)
 
+    created_at = datetime.utcnow()
 
     scan_doc = {
         "scan_id": scan_id,
