@@ -117,9 +117,13 @@ class _PestAiAnalysisWidgetState extends State<PestAiAnalysisWidget>
       final errStr = e.toString();
       if (errStr.contains('INVALID_CROP_IMAGE')) {
         String category = 'random_object';
-        if (errStr.contains('INVALID_CROP_IMAGE:')) {
-          category = errStr.split('INVALID_CROP_IMAGE:')[1].split('"')[0].split('}')[0].trim();
-        }
+        try {
+          final match = RegExp(r'INVALID_CROP_IMAGE:([^\"}]+)').firstMatch(errStr);
+          if (match != null) {
+            category = match.group(1)!.trim();
+          }
+        } catch (_) {}
+
         if (widget.onInvalidImage != null) {
           widget.onInvalidImage!(category);
           return;

@@ -7,13 +7,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   /// Dynamic base URL: localhost for Web/Windows, 10.0.2.2 for Android emulator
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:8000';
-    } else if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8000';
-    } else {
-      return 'http://127.0.0.1:8000';
-    }
+    return 'https://kisaan-mitra-y65q.onrender.com';
   }
 
   // ─── Location APIs ─────────────────────────────────────
