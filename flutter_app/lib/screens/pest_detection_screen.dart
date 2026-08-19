@@ -7,6 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
+import '../services/pest_history_service.dart';
+import '../screens/pest_history_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/pest_ai_analysis_widget.dart';
 import '../widgets/pest_questions_widget.dart';
@@ -55,6 +57,14 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
       answers: answers,
       language: l10n.localeName,
     );
+
+    // Save report locally & remotely to history
+    await PestHistoryService.saveReport({
+      'scan_id': scanId,
+      'image_url': _scanResult?['image_url'],
+      'diagnosis': report,
+      'created_at': DateTime.now().toIso8601String(),
+    });
 
     if (mounted) {
       setState(() {
@@ -314,30 +324,45 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
                             children: [
                               // Top Bar: Back Arrow + "Pest Detection"
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: const Icon(
-                                      Icons.arrow_back,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                    onPressed: () {
-                                      if (Navigator.canPop(context)) {
-                                        Navigator.pop(context);
-                                      }
-                                    },
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(
+                                          Icons.arrow_back,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                        onPressed: () {
+                                          if (Navigator.canPop(context)) {
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Text(
+                                        l10n.pestDetectionTitle,
+                                        style: GoogleFonts.dmSans(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.1,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 14),
-                                  Text(
-                                    l10n.pestDetectionTitle,
-                                    style: GoogleFonts.dmSans(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.1,
-                                    ),
+                                  IconButton(
+                                    icon: const Icon(Icons.history, color: Colors.white, size: 24),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (ctx) => const PestHistoryScreen()),
+                                      );
+                                    },
+                                    tooltip: l10n.reportHistoryTitle,
                                   ),
                                 ],
                               ),

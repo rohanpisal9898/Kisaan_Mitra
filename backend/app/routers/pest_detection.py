@@ -110,6 +110,7 @@ async def create_pest_scan(body: PestScanJsonRequest):
 
 class PestDiagnosisRequest(BaseModel):
     scan_id: Optional[str] = None
+    user_id: Optional[str] = "guest"
     image_base64: Optional[str] = None
     answers: Optional[Dict[str, str]] = None
     language: Optional[str] = "English"
@@ -121,7 +122,8 @@ class PestDiagnosisRequest(BaseModel):
 )
 async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
     """
-    Generates dynamic Diagnosis Report details using Gemini integration.
+    Generates dynamic Diagnosis Report details using Gemini integration,
+    and persists full diagnosis results to MongoDB scan record.
     """
     requested_lang = body.language or "English"
     report = await get_gemini_pest_diagnosis(
@@ -130,10 +132,92 @@ async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
         language=requested_lang,
     )
 
+    scan_id = body.scan_id or f"scan_{uuid.uuid4().hex[:12]}"
+    now = datetime.utcnow()
+
+    db = await get_database()
+    # Update existing scan record if present or create record
+    update_data = {
+        "diagnosis": report,
+        "answers": body.answers,
+        "language": requested_lang,
+        "status": "completed",
+        "updated_at": now,
+    }
+    if body.user_id:
+        update_data["user_id"] = body.user_id
+
+    result = await db.pest_scans.find_one_and_update(
+        {"scan_id": scan_id},
+        {"$set": update_data},
+        return_document=True,
+    )
+
+    image_url = result.get("image_url") if result else None
+
     return {
         "status": "success",
-        "scan_id": body.scan_id or "demo_scan",
+        "scan_id": scan_id,
+        "image_url": image_url,
         "diagnosis": report,
+    }
+
+
+@router.get(
+    "/history",
+    summary="Fetch past pest scan reports for user",
+)
+async def get_pest_history_endpoint(user_id: Optional[str] = "guest", limit: int = 50):
+    """
+    Returns list of saved pest scan reports for a given user sorted by timestamp descending.
+    """
+    db = await get_database()
+    query = {}
+    if user_id and user_id != "all":
+        query["user_id"] = user_id
+
+    cursor = db.pest_scans.find(query).sort("created_at", -1).limit(limit)
+    scans = []
+    async for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        if "created_at" in doc and isinstance(doc["created_at"], datetime):
+            doc["created_at"] = doc["created_at"].isoformat()
+        if "updated_at" in doc and isinstance(doc["updated_at"], datetime):
+            doc["updated_at"] = doc["updated_at"].isoformat()
+        scans.append(doc)
+
+    return {
+        "status": "success",
+        "count": len(scans),
+        "reports": scans,
+    }
+
+
+@router.get(
+    "/scans/{scan_id}",
+    summary="Fetch single pest scan report details by scan ID",
+)
+async def get_pest_scan_by_id_endpoint(scan_id: str):
+    """
+    Returns full scan record and diagnosis data for a given scan_id.
+    """
+    db = await get_database()
+    doc = await db.pest_scans.find_one({"scan_id": scan_id})
+    if not doc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Pest scan report with ID {scan_id} not found",
+        )
+
+    doc["_id"] = str(doc["_id"])
+    if "created_at" in doc and isinstance(doc["created_at"], datetime):
+        doc["created_at"] = doc["created_at"].isoformat()
+    if "updated_at" in doc and isinstance(doc["updated_at"], datetime):
+        doc["updated_at"] = doc["updated_at"].isoformat()
+
+    return {
+        "status": "success",
+        "scan": doc,
     }
 
 

@@ -30,4 +30,8 @@ class PestScanDocument(BaseModel):
     image_url: str
     source: str  # "camera" or "gallery"
     status: str = "created"
+    diagnosis: Optional[dict] = None
+    answers: Optional[dict] = None
+    language: Optional[str] = "English"
     created_at: datetime
+    updated_at: Optional[datetime] = None

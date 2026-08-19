@@ -258,6 +258,41 @@ class ApiService {
     return {};
   }
 
+  /// Fetch list of saved pest scan reports for user.
+  /// GET /api/v1/pest-detection/history?user_id={userId}
+  static Future<List<Map<String, dynamic>>> fetchPestHistory({
+    String userId = 'guest',
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/history?user_id=${Uri.encodeComponent(userId)}');
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        final list = decoded['reports'] as List? ?? [];
+        return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+    } catch (e) {
+      print('[API SERVICE PEST HISTORY ERROR] $e');
+    }
+    return [];
+  }
+
+  /// Fetch single pest scan report details by scan ID.
+  /// GET /api/v1/pest-detection/scans/{scanId}
+  static Future<Map<String, dynamic>?> fetchPestReportById(String scanId) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/scans/${Uri.encodeComponent(scanId)}');
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return (decoded['scan'] as Map<String, dynamic>?) ?? {};
+      }
+    } catch (e) {
+      print('[API SERVICE PEST REPORT BY ID ERROR] $e');
+    }
+    return null;
+  }
+
   /// Fetch multi-state Dashboard Overview (no_crop, growing, crop_matured) from FastAPI.
   /// GET /api/v1/dashboard/overview?phone_number={phoneNumber}&language={language}
   static Future<Map<String, dynamic>> fetchDashboardOverview({
