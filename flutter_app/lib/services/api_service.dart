@@ -190,7 +190,50 @@ class ApiService {
 
   // ─── Pest Detection APIs ─────────────────────────────────
 
+  /// Validate whether uploaded image is relevant for crop pest diagnosis.
+  /// POST /api/v1/pest-detection/validate
+  static Future<Map<String, dynamic>> validatePestImage({
+    required dynamic imageFile,
+    String? language,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/validate');
+      final bytes = await imageFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      final body = {
+        'image_base64': base64Image,
+        'language': language ?? 'English',
+      };
+
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return (decoded['validation'] as Map<String, dynamic>?) ?? {
+          'is_valid_for_pest_detection': true,
+          'category': 'crop_plant',
+          'reason': 'Default validation pass',
+        };
+      }
+    } catch (e) {
+      print('[VALIDATE IMAGE ERROR] $e');
+    }
+    // Return fallback pass on error so temporary API issues don't block legitimate users
+    return {
+      'is_valid_for_pest_detection': true,
+      'category': 'crop_plant',
+      'reason': 'Validation fallback due to error',
+      'is_error': true,
+    };
+  }
+
   /// Upload pest scan image (camera or gallery) to FastAPI backend & MongoDB.
+
   /// POST /api/v1/pest-detection/scan
   static Future<Map<String, dynamic>> uploadPestImage({
     required dynamic imageFile, // XFile from image_picker

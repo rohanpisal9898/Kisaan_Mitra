@@ -19,6 +19,7 @@ class PestAiAnalysisWidget extends StatefulWidget {
   final String source;
   final VoidCallback onBack;
   final Function(Map<String, dynamic> scanResult)? onComplete;
+  final Function(String category)? onInvalidImage;
 
   const PestAiAnalysisWidget({
     super.key,
@@ -26,7 +27,9 @@ class PestAiAnalysisWidget extends StatefulWidget {
     required this.source,
     required this.onBack,
     this.onComplete,
+    this.onInvalidImage,
   });
+
 
   @override
   State<PestAiAnalysisWidget> createState() => _PestAiAnalysisWidgetState();
@@ -110,12 +113,26 @@ class _PestAiAnalysisWidgetState extends State<PestAiAnalysisWidget>
     } catch (e) {
       if (!mounted) return;
       _progressController.stop();
+
+      final errStr = e.toString();
+      if (errStr.contains('INVALID_CROP_IMAGE')) {
+        String category = 'random_object';
+        if (errStr.contains('INVALID_CROP_IMAGE:')) {
+          category = errStr.split('INVALID_CROP_IMAGE:')[1].split('"')[0].split('}')[0].trim();
+        }
+        if (widget.onInvalidImage != null) {
+          widget.onInvalidImage!(category);
+          return;
+        }
+      }
+
       setState(() {
         _isUploading = false;
         _hasError = true;
         _errorMessage = e.toString();
       });
     }
+
   }
 
   @override

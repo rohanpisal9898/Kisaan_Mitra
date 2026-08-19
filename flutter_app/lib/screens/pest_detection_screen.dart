@@ -35,6 +35,7 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
   Map<String, String> _userAnswers = {};
   Map<String, dynamic>? _diagnosisData;
   bool _isUploading = false;
+  bool _isValidating = false;
 
   /// Fetches AI Diagnosis Report based on scan result, user image, and 5 Yes/No answers.
   Future<void> _fetchAndShowDiagnosisReport(Map<String, String> answers) async {
@@ -102,7 +103,7 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
     await _pickAndUploadImage(ImageSource.gallery);
   }
 
-  /// Picks image from [source] and transitions to Page 2 (AI Analysis).
+  /// Picks image from [source], validates crop/plant relevance, and transitions to Page 2 (AI Analysis).
   Future<void> _pickAndUploadImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -115,13 +116,42 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
 
       if (pickedFile == null) return;
 
+      final l10n = AppLocalizations.of(context);
+
       setState(() {
-        _selectedImage = pickedFile;
-        _selectedSource = source == ImageSource.camera ? 'camera' : 'gallery';
-        _currentPage = 1; // Transition to Page 2 (AI Analysis)
+        _isValidating = true;
       });
+
+      // Lightweight Gemini Vision relevance validation
+      final validation = await ApiService.validatePestImage(
+        imageFile: pickedFile,
+        language: l10n.localeName,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isValidating = false;
+      });
+
+      final bool isValid = validation['is_valid_for_pest_detection'] == true;
+      final String category = (validation['category'] ?? 'crop_plant').toString().toLowerCase();
+
+      if (isValid) {
+        // VALID: Continue to existing AI Analysis flow
+        setState(() {
+          _selectedImage = pickedFile;
+          _selectedSource = source == ImageSource.camera ? 'camera' : 'gallery';
+          _currentPage = 1; // Transition to Page 2 (AI Analysis)
+        });
+      } else {
+        // INVALID: Do NOT continue to Gemini pest diagnosis; show farmer-friendly localized bottom sheet
+        _showInvalidImageBottomSheet(category);
+      }
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _isValidating = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to select image: ${e.toString()}'),
@@ -132,7 +162,167 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
     }
   }
 
+  /// Shows farmer-friendly, localized modal bottom sheet when an uploaded photo is invalid/unrelated.
+  void _showInvalidImageBottomSheet(String category) {
+    final l10n = AppLocalizations.of(context);
+
+    String title = l10n.pleaseUploadCropPhoto;
+    String description = l10n.uploadCropPhotoDesc;
+    String buttonText = l10n.tryAnotherPhoto;
+
+    if (category == 'person' || category == 'selfie') {
+      title = l10n.photoNotACrop;
+      description = l10n.photoNotACropDesc;
+      buttonText = l10n.tryAnotherPhoto;
+    } else if (category == 'unclear_photo') {
+      title = l10n.photoNotClear;
+      description = l10n.photoNotClearDesc;
+      buttonText = l10n.takeAnotherPhoto;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top drag indicator
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Circular icon badge
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEF2F2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.no_photography_outlined,
+                    color: Color(0xFFDC2626),
+                    size: 30,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.dmSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Description
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF475569),
+                  height: 1.45,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Tips Box (✓ Leaf or plant, ✓ Visible crop damage, ✓ Pest on a crop)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFDCFCE7), width: 1.2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.validExamplesTitle,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF14532D),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.tipLeafOrPlant,
+                      style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF166534)),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      l10n.tipVisibleDamage,
+                      style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF166534)),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      l10n.tipPestOnCrop,
+                      style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF166534)),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Action Button: "Try Another Photo"
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF15803D),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                  },
+                  child: Text(
+                    buttonText,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Shows clear farmer-friendly dialog if camera permission is permanently denied.
+
   void _showPermissionDeniedDialog() {
     final l10n = AppLocalizations.of(context);
     showDialog(
@@ -202,8 +392,15 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
             _currentPage = 2; // Transition to Page 3 (Questions)
           });
         },
+        onInvalidImage: (category) {
+          setState(() {
+            _currentPage = 0; // Return to Page 1
+          });
+          _showInvalidImageBottomSheet(category);
+        },
       );
     }
+
 
     if (_currentPage == 2) {
       return PestQuestionsWidget(
@@ -616,6 +813,36 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
             ),
           ),
 
+          // Validating overlay indicator
+          if (_isValidating)
+            Container(
+              color: Colors.black.withOpacity(0.4),
+              child: Center(
+                child: Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(color: Color(0xFF15803D)),
+                        const SizedBox(height: 14),
+                        Text(
+                          l10n.validatingPhoto,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // Uploading overlay indicator
           if (_isUploading)
             Container(
@@ -650,3 +877,4 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
     );
   }
 }
+

@@ -320,6 +320,23 @@ class AppLocalizations {
       'loading_schemes': 'Loading schemes...',
       'unable_to_load_schemes': 'Unable to load schemes right now.',
       'official_link_unavailable': 'Official link unavailable',
+
+      // Image Validation
+      'photo_cannot_be_analyzed': 'This photo can’t be analyzed',
+      'photo_not_a_crop': 'This photo is not a crop image',
+      'photo_not_a_crop_desc': 'Please upload a clear photo of the affected crop, leaf, plant part, or visible pest.',
+      'please_upload_crop_photo': 'Please upload a crop photo',
+      'upload_crop_photo_desc': 'For pest detection, take or upload a clear photo of a crop, leaf, stem, fruit, flower, or affected plant part.',
+      'photo_not_clear': 'Photo is not clear enough',
+      'photo_not_clear_desc': 'Please take a closer, clearer photo of the affected crop or plant part.',
+      'try_another_photo': 'Try Another Photo',
+      'take_another_photo': 'Take Another Photo',
+      'valid_examples_title': 'Tips for best results:',
+      'tip_leaf_or_plant': '✓ Leaf, stem, fruit, or plant',
+      'tip_visible_damage': '✓ Visible crop damage or symptoms',
+      'tip_pest_on_crop': '✓ Visible pest or insect on crop',
+      'unable_to_check_photo': 'Unable to check this photo right now. Please try again.',
+      'validating_photo': 'Checking photo relevance...',
     },
 
 
@@ -620,6 +637,23 @@ class AppLocalizations {
       'loading_schemes': 'योजनाएं लोड हो रही हैं...',
       'unable_to_load_schemes': 'अभी योजनाएं लोड करने में असमर्थ।',
       'official_link_unavailable': 'आधिकारिक लिंक उपलब्ध नहीं है',
+
+      // Image Validation
+      'photo_cannot_be_analyzed': 'यह फ़ोटो विश्लेषण के लिए उपयुक्त नहीं है',
+      'photo_not_a_crop': 'यह फ़ोटो फसल की नहीं है',
+      'photo_not_a_crop_desc': 'कृपया प्रभावित फसल, पत्ती, पौधे का हिस्सा या दिखाई देने वाले कीड़े की स्पष्ट फ़ोटो अपलोड करें।',
+      'please_upload_crop_photo': 'कृपया फसल की फ़ोटो अपलोड करें',
+      'upload_crop_photo_desc': 'कीट पहचान के लिए फसल, पत्ती, तना, फल, फूल या प्रभावित पौधे के हिस्से की स्पष्ट फ़ोटो लें या अपलोड करें।',
+      'photo_not_clear': 'फ़ोटो पर्याप्त स्पष्ट नहीं है',
+      'photo_not_clear_desc': 'कृपया प्रभावित फसल या पौधे के हिस्से की पास से और स्पष्ट फ़ोटो लें।',
+      'try_another_photo': 'दूसरी फ़ोटो चुनें',
+      'take_another_photo': 'दूसरी फ़ोटो लें',
+      'valid_examples_title': 'सर्वोत्तम परिणाम के लिए सुझाव:',
+      'tip_leaf_or_plant': '✓ पत्ती, तना, फल या पौधा',
+      'tip_visible_damage': '✓ फसल की क्षति या लक्षण',
+      'tip_pest_on_crop': '✓ फसल पर दिखाई देने वाला कीट',
+      'unable_to_check_photo': 'अभी इस फ़ोटो की जांच नहीं की जा सकी। कृपया पुनः प्रयास करें।',
+      'validating_photo': 'फ़ोटो की जांच हो रही है...',
     },
 
 
@@ -920,6 +954,23 @@ class AppLocalizations {
       'loading_schemes': 'योजना लोड होत आहेत...',
       'unable_to_load_schemes': 'सध्या योजना लोड करणे शक्य नाही.',
       'official_link_unavailable': 'अधिकृत लिंक उपलब्ध नाही',
+
+      // Image Validation
+      'photo_cannot_be_analyzed': 'हा फोटो विश्लेषणासाठी योग्य नाही',
+      'photo_not_a_crop': 'हा फोटो पिकाचा नाही',
+      'photo_not_a_crop_desc': 'कृपया बाधित पीक, पान, वनस्पतीचा भाग किंवा दिसणाऱ्या कीटकाचा स्पष्ट फोटो अपलोड करा.',
+      'please_upload_crop_photo': 'कृपया पिकाचा फोटो अपलोड करा',
+      'upload_crop_photo_desc': 'कीड ओळखीसाठी पीक, पान, खोड, फळ, फूल किंवा बाधित भागाचा स्पष्ट फोटो घ्या किंवा अपलोड करा.',
+      'photo_not_clear': 'फोटो पुरेसा स्पष्ट नाही',
+      'photo_not_clear_desc': 'कृपया बाधित पिकाचा किंवा वनस्पतीच्या भागाचा जवळून आणि स्पष्ट फोटो घ्या.',
+      'try_another_photo': 'दूसरा फोटो निवडा',
+      'take_another_photo': 'दूसरा फोटो घ्या',
+      'valid_examples_title': 'उत्तम निकालासाठी टिप्स:',
+      'tip_leaf_or_plant': '✓ पान, खोड, फळ किंवा रोप',
+      'tip_visible_damage': '✓ पिकाचे नुकसान किंवा लक्षणे',
+      'tip_pest_on_crop': '✓ पिकावर दिसणारा कीटक',
+      'unable_to_check_photo': 'सध्या हा फोटो तपासता आला नाही. कृपया पुन्हा प्रयत्न करा.',
+      'validating_photo': 'फोटो तपासत आहे...',
     },
   };
 
@@ -1193,7 +1244,25 @@ class AppLocalizations {
   String get loadingSchemes => get('loading_schemes');
   String get unableToLoadSchemes => get('unable_to_load_schemes');
   String get officialLinkUnavailable => get('official_link_unavailable');
+
+  // Image Validation getters
+  String get photoCannotBeAnalyzed => get('photo_cannot_be_analyzed');
+  String get photoNotACrop => get('photo_not_a_crop');
+  String get photoNotACropDesc => get('photo_not_a_crop_desc');
+  String get pleaseUploadCropPhoto => get('please_upload_crop_photo');
+  String get uploadCropPhotoDesc => get('upload_crop_photo_desc');
+  String get photoNotClear => get('photo_not_clear');
+  String get photoNotClearDesc => get('photo_not_clear_desc');
+  String get tryAnotherPhoto => get('try_another_photo');
+  String get takeAnotherPhoto => get('take_another_photo');
+  String get validExamplesTitle => get('valid_examples_title');
+  String get tipLeafOrPlant => get('tip_leaf_or_plant');
+  String get tipVisibleDamage => get('tip_visible_damage');
+  String get tipPestOnCrop => get('tip_pest_on_crop');
+  String get unableToCheckPhoto => get('unable_to_check_photo');
+  String get validatingPhoto => get('validating_photo');
 }
+
 
 
 class _AppLocalizationsDelegate

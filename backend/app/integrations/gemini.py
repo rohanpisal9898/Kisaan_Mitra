@@ -373,6 +373,19 @@ async def get_gemini_pest_diagnosis(
     elif "mr" in language.lower() or "marathi" in language.lower():
         lang_key = "Marathi"
 
+    # Pre-validation check: Reject non-crop images (documents, paper, reports, selfies, cars, etc.)
+    if image_base64:
+        val = await validate_crop_image(image_base64=image_base64, language=language)
+        if not val.get("is_valid_for_pest_detection", True):
+            print(f"[GEMINI PEST DIAGNOSIS REJECTED] category={val.get('category')} reason={val.get('reason')}")
+            return {
+                "status": "invalid_image",
+                "is_valid": False,
+                "category": val.get("category", "random_object"),
+                "reason": val.get("reason", "Not a crop subject"),
+            }
+
+
     # Default localized fallbacks matching reference image data
     fallbacks = {
         "Hindi": {
@@ -692,6 +705,108 @@ async def get_gemini_government_schemes(
             continue
 
     return None
+
+
+async def validate_crop_image(
+    image_base64: Optional[str] = None,
+    language: str = "English",
+) -> Dict[str, Any]:
+    """
+    Lightweight Gemini Vision validation to inspect if the primary subject of an image is
+    an agricultural crop, plant, leaf, stem, fruit, flower, crop damage, or pest.
+    Rejects unrelated images (person, selfie, car, building, document, screen, random object, dark/blurred photo).
+    """
+    api_key = settings.gemini_api_key
+
+    fallback_valid = {
+        "is_valid_for_pest_detection": True,
+        "category": "crop_plant",
+        "reason": "Default validation pass",
+    }
+
+    if not api_key or api_key == "your_gemini_api_key_here" or not image_base64:
+        return fallback_valid
+
+    prompt = (
+        "You are Kisaan Mitra AI, a strict agricultural crop image relevance validator.\n"
+        "Analyze the provided image and determine if it is a real, live agricultural crop/plant image suitable for pest/disease diagnosis.\n\n"
+        "STRICT REJECTION CRITERIA (is_valid_for_pest_detection MUST BE FALSE):\n"
+        "1. DOCUMENTS, REPORTS & TEXT: If the image contains a paper document, report (e.g. medical report, DBSCAN report, lab report, PDF scan), text page, certificate, chart, diagram, book, code, or phone/computer screen screenshot -> REJECT IMMEDIATELY (is_valid_for_pest_detection = false, category = 'random_object').\n"
+        "2. HUMANS & SELFIES: If the image primarily shows a human face, selfie, person, body part, or crowd -> REJECT IMMEDIATELY (is_valid_for_pest_detection = false, category = 'person').\n"
+        "3. NON-CROP OBJECTS: If the image shows a vehicle, building, furniture, gadget, tool, indoor room, dish, or non-crop item -> REJECT IMMEDIATELY (is_valid_for_pest_detection = false, category = 'random_object').\n"
+        "4. UNCLEAR / BLURRED: If the image is completely pitch dark, extremely blurry, or unidentifiable -> REJECT IMMEDIATELY (is_valid_for_pest_detection = false, category = 'unclear_photo').\n\n"
+        "ALLOW CRITERIA (is_valid_for_pest_detection MUST BE TRUE):\n"
+        "- ONLY allow if the photo clearly shows an actual agricultural crop, farm plant, leaf, stem, fruit, flower, crop field, crop damage, or an insect/pest on a plant.\n"
+        "- DO NOT reject if it is a real plant photo even if healthy or without visible pests.\n\n"
+        "Return ONLY valid JSON matching this exact structure:\n"
+        "{\n"
+        "  \"is_valid_for_pest_detection\": true/false,\n"
+        "  \"category\": \"crop_leaf\" | \"crop_plant\" | \"crop_part\" | \"person\" | \"random_object\" | \"unclear_photo\",\n"
+        "  \"reason\": \"Short 1-sentence explanation of decision\"\n"
+        "}"
+    )
+
+
+    clean_b64 = image_base64.split(",", 1)[1] if "," in image_base64 else image_base64
+
+    model_names = [
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.6-flash-lite",
+        "gemini-3.6-lite",
+    ]
+
+    for model_name in model_names:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": clean_b64,
+                            }
+                        },
+                        {"text": prompt},
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 512,
+                "responseMimeType": "application/json",
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                response = await client.post(url, json=payload)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    candidates = res_json.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts = candidates[0]["content"].get("parts", [])
+                        if parts and "text" in parts[0]:
+                            text = parts[0]["text"].strip()
+                            parsed = _clean_and_parse_json(text)
+                            if isinstance(parsed, dict) and "is_valid_for_pest_detection" in parsed:
+                                is_valid = bool(parsed.get("is_valid_for_pest_detection"))
+                                cat = str(parsed.get("category", "crop_plant")).lower()
+                                reason = str(parsed.get("reason", ""))
+                                print(f"[GEMINI VALIDATION] model={model_name} is_valid={is_valid} category={cat}")
+                                return {
+                                    "is_valid_for_pest_detection": is_valid,
+                                    "category": cat,
+                                    "reason": reason,
+                                }
+        except Exception as e:
+            print(f"[GEMINI VALIDATION ERROR] {model_name} failed: {e}")
+            continue
+
+    return fallback_valid
+
 
 
 

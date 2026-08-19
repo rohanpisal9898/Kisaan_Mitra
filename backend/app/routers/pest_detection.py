@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, status
 from app.database import get_database
 from app.models.pest_scan import PestScanJsonRequest, PestScanCreateResponse
-from app.integrations.gemini import get_gemini_pest_questions, get_gemini_pest_diagnosis
+from app.integrations.gemini import get_gemini_pest_questions, get_gemini_pest_diagnosis, validate_crop_image
 
 router = APIRouter(
     prefix="/api/v1/pest-detection",
@@ -18,11 +18,42 @@ UPLOAD_DIR = os.path.join(os.getcwd(), "uploads", "pest_scans")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+class PestValidationRequest(BaseModel):
+    image_base64: str
+    language: Optional[str] = "English"
+
+
+@router.post(
+    "/validate",
+    summary="Validate whether uploaded image is relevant for crop pest diagnosis",
+)
+async def validate_pest_image_endpoint(body: PestValidationRequest):
+    """
+    Lightweight validation endpoint to check image relevance before full pest scan.
+    """
+    if not body.image_base64:
+        raise HTTPException(
+            status_code=400,
+            detail="Image base64 content is required",
+        )
+
+    raw_b64 = body.image_base64
+    if "," in raw_b64:
+        raw_b64 = raw_b64.split(",", 1)[1]
+
+    result = await validate_crop_image(image_base64=raw_b64, language=body.language or "English")
+    return {
+        "status": "success",
+        "validation": result,
+    }
+
+
 @router.post(
     "/scan",
     response_model=PestScanCreateResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Upload image via JSON Base64 and create new pest scan record in MongoDB",
+
 )
 async def create_pest_scan(body: PestScanJsonRequest):
     """
@@ -78,11 +109,19 @@ async def create_pest_scan(body: PestScanJsonRequest):
         )
 
     image_url = f"/uploads/pest_scans/{safe_filename}"
-    created_at = datetime.utcnow()
+    # Validate image relevance before generating scan record or questions
+    requested_lang = body.language or "English"
+    val = await validate_crop_image(image_base64=raw_b64, language=requested_lang)
+    if not val.get("is_valid_for_pest_detection", True):
+        cat = val.get("category", "random_object")
+        raise HTTPException(
+            status_code=400,
+            detail=f"INVALID_CROP_IMAGE:{cat}",
+        )
 
     # Generate dynamic Yes/No questions via Gemini
-    requested_lang = body.language or "English"
     questions = await get_gemini_pest_questions(image_base64=raw_b64, language=requested_lang)
+
 
     scan_doc = {
         "scan_id": scan_id,
