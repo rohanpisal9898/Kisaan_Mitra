@@ -205,7 +205,7 @@ class CropRecommendationService:
             return None
 
         model_names = [
-            "gemini-flash-latest",
+            "gemini-3.1-flash-lite",
             "gemini-3.6-flash",
         ]
         prompt = (
