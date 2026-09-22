@@ -206,10 +206,7 @@ class CropRecommendationService:
 
         model_names = [
             "gemini-flash-latest",
-            "gemini-flash-lite-latest",
             "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-pro-latest",
         ]
         prompt = (
             f"You are an APMC agricultural market demand analyst in India.\n"

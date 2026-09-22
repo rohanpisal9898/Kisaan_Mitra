@@ -190,10 +190,7 @@ class WalletService:
 
         model_names = [
             "gemini-flash-latest",
-            "gemini-flash-lite-latest",
             "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-pro-latest",
         ]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
@@ -225,7 +222,7 @@ class WalletService:
                 }
             }
             try:
-                async with httpx.AsyncClient(timeout=6.0) as client:
+                async with httpx.AsyncClient(timeout=2.5) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code == 200:
                         res_json = resp.json()
@@ -647,7 +644,7 @@ class WalletService:
             mandi_info = (
                 prefetched_mandi
                 if prefetched_mandi is not None and c_norm == prefetched_crop_norm
-                else await self.get_mandi_price_with_fallback(db, state, c_raw, district)
+                else await self.get_mandi_price_from_db(db, state, c_raw)
             )
             if not mandi_info.get("available") or mandi_info.get("modal_price", 0) <= 0:
                 continue
