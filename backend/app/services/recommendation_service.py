@@ -31,7 +31,12 @@ class RecommendationService:
         crop = farm_context.get("crop_name", "Soyabean")
         stage = farm_context.get("crop_stage", "Flowering")
         phone = farm_context.get("phone_number", "default")
-        lang_code = language.lower()[:2]
+        
+        lang_str = str(language).lower().strip()
+        is_hi = "hi" in lang_str or "hindi" in lang_str or "हिं" in lang_str
+        is_mr = "mr" in lang_str or "marathi" in lang_str or "मरा" in lang_str
+        lang_code = "hi" if is_hi else ("mr" if is_mr else "en")
+        lang_name = "Hindi" if is_hi else ("Marathi" if is_mr else "English")
 
         cache_key = f"{phone}_{crop}_{stage}_{lang_code}"
 
@@ -55,8 +60,8 @@ class RecommendationService:
             "yield": farm_context.get("yield_summary", {}),
         }
 
-        # Try Gemini AI engine
-        ai_recs = await get_gemini_recommendations(gemini_context, language)
+        # Try Gemini AI engine with normalized language
+        ai_recs = await get_gemini_recommendations(gemini_context, lang_name)
         if ai_recs and len(ai_recs) == 3:
             self._cache[cache_key] = {
                 "timestamp": datetime.now(),
@@ -65,7 +70,7 @@ class RecommendationService:
             return ai_recs
 
         # Fallback: Rich 3-Category Rule Engine
-        fallback_recs = self._rule_based_recommendations(farm_context, language)
+        fallback_recs = self._rule_based_recommendations(farm_context, lang_name)
         self._cache[cache_key] = {
             "timestamp": datetime.now(),
             "recommendations": fallback_recs,
@@ -88,8 +93,14 @@ class RecommendationService:
         rain_mm = weather.get("rain_mm", 0.0)
         water_status = water.get("status", "")
 
-        is_hi = "hi" in language.lower() or "hindi" in language.lower()
-        is_mr = "mr" in language.lower() or "marathi" in language.lower()
+        is_hi = "hi" in language.lower() or "hindi" in language.lower() or "हिं" in language
+        is_mr = "mr" in language.lower() or "marathi" in language.lower() or "मरा" in language
+
+        # Localized Crop Names
+        crop_hi_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "मूंगफली", "Mustard": "सरसों", "Sunflower": "सूरजमुखी", "Sesame": "तिल", "Linseed": "अलसी", "Castor": "अरंडी"}
+        crop_mr_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "भुईमूग", "Mustard": "मोहरी", "Sunflower": "सूर्यफूल", "Sesame": "तीळ", "Linseed": "जवस", "Castor": "एरंडी"}
+        
+        display_crop = crop_hi_map.get(crop, crop) if is_hi else (crop_mr_map.get(crop, crop) if is_mr else crop)
 
         recs = []
 
@@ -97,10 +108,10 @@ class RecommendationService:
         if net_irr <= 0 or water_status in ("rain_sufficient", "no_irrigation") or rain_mm >= 5.0:
             if is_hi:
                 title = "सिंचाई की आवश्यकता नहीं"
-                desc = f"हाल ही में हुई बारिश आपके {crop} की पानी की मांग के लिए पर्याप्त है। फिर से पानी देने से पहले मिट्टी की नमी जांचें।"
+                desc = f"हाल ही में हुई बारिश आपके {display_crop} की पानी की मांग के लिए पर्याप्त है। फिर से पानी देने से पहले मिट्टी की नमी जांचें।"
             elif is_mr:
                 title = "सिंचनाची गरज नाही"
-                desc = f"नुकताच झालेला पाऊस तुमच्या {crop} पिकासाठी पुरेसा आहे. पुन्हा पाणी देण्यापूर्वी मातीची ओल तपासा."
+                desc = f"नुकताच झालेला पाऊस तुमच्या {display_crop} पिकासाठी पुरेसा आहे. पुन्हा पाणी देण्यापूर्वी मातीची ओल तपासा."
             else:
                 title = "No Irrigation Needed"
                 desc = f"Recent rainfall is sufficient for your {crop}'s water requirement. Check soil moisture before watering."
@@ -117,10 +128,10 @@ class RecommendationService:
         else:
             if is_hi:
                 title = f"खेत की सिंचाई करें (~{round(net_irr)} मिमी)"
-                desc = f"{district} में आपके {crop} की पानी की मांग वर्षा से अधिक है। जड़ों के पास हल्की सिंचाई करें।"
+                desc = f"{district} में आपके {display_crop} की पानी की मांग वर्षा से अधिक है। जड़ों के पास हल्की सिंचाई करें।"
             elif is_mr:
                 title = f"शेताला पाणी द्या (~{round(net_irr)} मिमी)"
-                desc = f"{district} मध्ये तुमच्या {crop} पिकाची पाण्याची गरज पावसापेक्षा जास्त आहे. हलके सिंचन करा."
+                desc = f"{district} मध्ये तुमच्या {display_crop} पिकाची पाण्याची गरज पावसापेक्षा जास्त आहे. हलके सिंचन करा."
             else:
                 title = f"Irrigate Field Soon (~{round(net_irr)} mm)"
                 desc = f"Water requirement for {crop} in {district} exceeds rainfall. Apply estimated irrigation."
@@ -137,10 +148,10 @@ class RecommendationService:
 
         # ─── CATEGORY 2: PEST / DISEASE ──────────────────────────────────
         if is_hi:
-            title = f"{crop} में कीटों पर नजर रखें"
+            title = f"{display_crop} में कीटों पर नजर रखें"
             desc = f"विकास के इस चरण (दिन {das}) में पत्तियों और नई शाखाओं पर रस चूसने वाले कीटों या धब्बों की जांच करें।"
         elif is_mr:
-            title = f"{crop} वरील किडींवर लक्ष ठेवा"
+            title = f"{display_crop} वरील किडींवर लक्ष ठेवा"
             desc = f"वाढीच्या या टप्प्यावर (दिवस {das}) पानांवर आणि नव्या कोंभांवर कीड किंवा डागांची पाहणी करा."
         else:
             title = f"Monitor for Sucking Pests"

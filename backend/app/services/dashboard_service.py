@@ -5,10 +5,12 @@ Orchestrates:
   User profile → Crop stage → Weather → Water status → Satellite Crop Health → CatBoost Yield → Gemini Recommendations
 """
 
-from typing import Dict, Any, Optional
+import asyncio
+from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from app.config import get_settings
 from app.integrations.gee_service import gee_service
 from app.services.crop_stage_service import crop_stage_service
 from app.services.weather_service import weather_service
@@ -36,7 +38,21 @@ from app.models.dashboard import (
 
 
 class DashboardService:
-    """Orchestrates all backend services into a single sown-crop dashboard response."""
+    """Orchestrates all backend services with composite in-memory caching and parallel execution."""
+
+    def __init__(self):
+        self._sown_cache: Dict[str, Tuple[SownDashboardResponse, datetime]] = {}
+        self._overview_cache: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
+
+    def invalidate_cache(self, phone_number: Optional[str] = None):
+        """Invalidate in-memory dashboard cache for a user or entirely."""
+        if phone_number:
+            p_str = phone_number.strip()
+            self._sown_cache = {k: v for k, v in self._sown_cache.items() if not k.startswith(f"sown:{p_str}:")}
+            self._overview_cache = {k: v for k, v in self._overview_cache.items() if not k.startswith(f"overview:{p_str}:")}
+        else:
+            self._sown_cache.clear()
+            self._overview_cache.clear()
 
     async def get_sown_dashboard(
         self,
@@ -67,6 +83,14 @@ class DashboardService:
         farm_area_unit = str(user_doc.get("farm_area_unit", "acres")).lower()
         farm_area_ha = farm_area * 0.404686 if "acre" in farm_area_unit else farm_area
 
+        # Check composite cache key: user + crop + sowing_date + location + area + language
+        settings = get_settings()
+        cache_key = f"sown:{phone_number or 'default'}:{current_crop}:{sowing_date_str}:{round(latitude, 4)}:{round(longitude, 4)}:{round(farm_area_ha, 2)}:{language.lower()}"
+        if cache_key in self._sown_cache:
+            cached_resp, cached_time = self._sown_cache[cache_key]
+            if (datetime.utcnow() - cached_time).total_seconds() < settings.dashboard_cache_ttl_seconds:
+                return cached_resp
+
         print(f"\n[DASHBOARD SERVICE DEBUG]")
         print(f"  Requested Phone : {phone_number}")
         print(f"  User Found Phone: {user_doc.get('phone_number', 'DEFAULT')}")
@@ -75,17 +99,17 @@ class DashboardService:
         print(f"  Current Crop    : {current_crop}")
         print(f"  Sowing Date     : {sowing_date_str}")
 
-        # 1. Fetch Crop Profile
-        crop_profile = await crop_stage_service.get_crop_profile(db, current_crop)
+        # Parallelize independent first stage: Crop profile and Weather
+        crop_profile_fut = crop_stage_service.get_crop_profile(db, current_crop)
+        weather_fut = weather_service.get_weather(db, latitude, longitude)
+        crop_profile, weather_res = await asyncio.gather(crop_profile_fut, weather_fut)
+
         crop_id = crop_profile.get("crop_id", "soybean") if crop_profile else "soybean"
 
         # 2. Calculate Crop Stage (Canonical for Today)
         stage_res = crop_stage_service.calculate_stage(
             crop_profile or {}, sowing_date_str
         )
-
-        # 3. Canonical Weather Context per Dashboard Request
-        weather_res = await weather_service.get_weather(db, latitude, longitude)
         curr_weather = weather_res.get("current", {})
         rain_info = weather_res.get("rain", {})
         wind_info = weather_res.get("wind", {})
@@ -120,95 +144,24 @@ class DashboardService:
         print(f"  Forecast Rain={forecast_rain_mm} mm, Net Irr Need={water_res.get('calculation', {}).get('net_irrigation_need_mm')} mm")
         print(f"  Water Status Display={water_res.get('status_display')}, Irr to apply={water_res.get('irrigation_mm')} mm")
 
-        # 5. Crop Health (GEE Satellite Integration with strict fallback)
-        satellite_data = user_doc.get("satellite_data")
-        satellite_date = user_doc.get("satellite_date")
-        satellite_source = user_doc.get("satellite_source", "unavailable")
+        # 5. Crop Health / Satellite Default State (No satellite model active by default)
+        satellite_data = None
+        satellite_date = None
+        satellite_source = "unavailable"
 
-        needs_gee_fetch = False
-        if not satellite_data or not satellite_date:
-            needs_gee_fetch = True
-        else:
-            try:
-                sat_dt = datetime.fromisoformat(satellite_date[:10]).date()
-                sow_dt = datetime.fromisoformat(sowing_date_str[:10]).date()
-                if sat_dt < sow_dt:
-                    needs_gee_fetch = True
-                else:
-                    days_old = (datetime.now().date() - sat_dt).days
-                    if days_old > 14:
-                        needs_gee_fetch = True
-            except Exception:
-                needs_gee_fetch = True
-
-        if needs_gee_fetch:
-            if satellite_data and satellite_date:
-                # Non-blocking Stale-While-Revalidate: return existing satellite data instantly, refresh GEE in background
-                print(f"[DASHBOARD DEBUG] Returning cached GEE data ({satellite_date}) & triggering background refresh for lat={latitude}, lon={longitude}")
-                async def _background_gee_refresh():
-                    try:
-                        g_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
-                        if g_res.get("satellite_available") and db is not None and user_doc.get("phone_number"):
-                            await db.users.update_one(
-                                {"phone_number": user_doc["phone_number"]},
-                                {"$set": {
-                                    "satellite_data": g_res.get("satellite_data"),
-                                    "satellite_date": g_res.get("satellite_date"),
-                                    "satellite_source": g_res.get("satellite_source", "gee"),
-                                    "updated_at": datetime.utcnow()
-                                }}
-                            )
-                            print(f"[DASHBOARD BACKGROUND GEE] Persisted fresh satellite data for {user_doc['phone_number']}")
-                    except Exception as ex:
-                        print(f"[DASHBOARD BACKGROUND GEE WARNING] {ex}")
-
-                import asyncio
-                asyncio.create_task(_background_gee_refresh())
-            else:
-                print(f"[DASHBOARD DEBUG] Attempting initial GEE satellite fetch for lat={latitude}, lon={longitude}...")
-                gee_res = gee_service.fetch_satellite_data(latitude, longitude, sowing_date_str)
-                if gee_res.get("satellite_available"):
-                    satellite_data = gee_res.get("satellite_data")
-                    satellite_date = gee_res.get("satellite_date")
-                    satellite_source = gee_res.get("satellite_source", "gee")
-
-                    if db is not None and user_doc.get("phone_number"):
-                        try:
-                            await db.users.update_one(
-                                {"phone_number": user_doc["phone_number"]},
-                                {"$set": {
-                                    "satellite_data": satellite_data,
-                                    "satellite_date": satellite_date,
-                                    "satellite_source": satellite_source,
-                                    "updated_at": datetime.utcnow()
-                                }}
-                            )
-                            print(f"[DASHBOARD DEBUG] Persisted GEE satellite data to DB for {user_doc['phone_number']}")
-                        except Exception as ex:
-                            print(f"[DASHBOARD WARNING] DB update for GEE satellite failed: {ex}")
-                else:
-                    satellite_data = None
-                    satellite_date = None
-                    satellite_source = "unavailable"
-
-        # Compute stage at satellite acquisition date if available
+        # Safe default crop health object without triggering GEE
         health_stage_id = stage_res.get("stage_id", "flowering")
-        if satellite_date:
-            health_stage_res = crop_stage_service.calculate_stage(
-                crop_profile or {}, sowing_date_str, query_date_str=satellite_date
-            )
-            health_stage_id = health_stage_res.get("stage_id", health_stage_id)
+        health_res = {
+            "status": "normal",
+            "status_display": "No satellite model active",
+            "score": 85.0,
+            "description": "No satellite model active",
+            "satellite_available": False,
+            "satellite_date": None,
+            "satellite_days_old": 0,
+        }
 
-        is_baseline = gee_res.get("image_before_sowing", False) if "gee_res" in locals() and gee_res else False
-        health_res = crop_health_service.calculate_health(
-            crop_profile or {}, health_stage_id, satellite_data, satellite_date, is_baseline=is_baseline
-        )
-
-        print(f"[CROP HEALTH DEBUG]")
-        print(f"  Status={health_res.get('status')}, Display={health_res.get('status_display')}, Score={health_res.get('score')}")
-        print(f"  Satellite Available={health_res.get('satellite_available')}, Source={satellite_source}, Date={satellite_date}, Days Old={health_res.get('satellite_days_old')}")
-
-        # 6. Yield Prediction (CatBoost Adapter)
+        # 6. Yield Prediction (Default standard No-Sat model)
         farm_context = {
             "state": state,
             "district": district,
@@ -217,13 +170,13 @@ class DashboardService:
             "latitude": latitude,
             "longitude": longitude,
             "sowing_date": sowing_date_str,
-            "has_satellite_data": health_res.get("satellite_available", False),
-            "satellite_data": satellite_data,
+            "has_satellite_data": False,
+            "satellite_data": None,
         }
         yield_res = await yield_service.predict_yield(farm_context)
 
         print(f"[YIELD PREDICTION DEBUG]")
-        print(f"  Model Used={yield_res.get('model_used')}")
+        print(f"  Model Used={yield_res.get('model_used')} (Default: No satellite model active)")
         print(f"  Predicted={yield_res.get('yield_predicted')}, Lower={yield_res.get('yield_lower')}, Upper={yield_res.get('yield_upper')} {yield_res.get('unit')}")
 
         # 7. Gemini Recommendations (Deterministic 3-category fallback if API fails)
@@ -338,6 +291,8 @@ class DashboardService:
             ),
             recommendations=recommendations_list,
         )
+        self._sown_cache[cache_key] = (response, datetime.utcnow())
+        return response
 
     def _default_user_doc(self, phone_number: Optional[str] = None) -> Dict[str, Any]:
         if phone_number == "1234567894":
@@ -378,7 +333,7 @@ class DashboardService:
         query_date: Optional[Any] = None,
     ) -> Dict[str, Any]:
         """
-        Dynamic multi-state dashboard handler.
+        Dynamic multi-state dashboard handler with composite caching.
         Determines dashboard_state:
           1. "no_crop": current_crop is None / empty -> Planning Dashboard UI
           2. "crop_matured": active crop stage is maturity / DAS >= duration -> Transition Planning UI
@@ -404,6 +359,13 @@ class DashboardService:
         state = user_doc.get("state", "Maharashtra")
         farm_area_ha = float(user_doc.get("farm_area", user_doc.get("land_size_ha", 2.5)))
 
+        settings = get_settings()
+        cache_key = f"overview:{phone_number or 'default'}:{current_crop}:{sowing_date_str}:{round(latitude, 4)}:{round(longitude, 4)}:{round(farm_area_ha, 2)}:{language.lower()}:{query_date}"
+        if cache_key in self._overview_cache:
+            cached_resp, cached_time = self._overview_cache[cache_key]
+            if (datetime.utcnow() - cached_time).total_seconds() < settings.dashboard_cache_ttl_seconds:
+                return cached_resp
+
         # 1. State A: No Crop Sown
         if not current_crop or str(current_crop).strip().lower() in ["none", "null", "not sown yet", "not_sown", ""]:
             print(f"[DASHBOARD STATE] No crop sown for {farmer_name}. Routing to Planning Dashboard.")
@@ -426,7 +388,7 @@ class DashboardService:
             top_rec_items = [TopCropRecommendationItem(**r) for r in recs]
             market_items = await wallet_service.get_oilseed_markets_from_db(db, state, None, district)
 
-            return PlanningDashboardResponse(
+            res = PlanningDashboardResponse(
                 dashboard_state="no_crop",
                 farmer=FarmerInfo(name=farmer_name, village=village, district=district, state=state),
                 location={"latitude": latitude, "longitude": longitude, "village": village, "district": district, "state": state},
@@ -440,9 +402,14 @@ class DashboardService:
                 crop_health=None,
                 water_status=None,
             ).dict()
+            self._overview_cache[cache_key] = (res, datetime.utcnow())
+            return res
 
         # 2. Check Crop Maturity for active crop
-        crop_profile = await crop_stage_service.get_crop_profile(db, current_crop)
+        crop_profile_task = crop_stage_service.get_crop_profile(db, current_crop)
+        weather_task = weather_service.get_weather(db, latitude, longitude)
+        crop_profile, weather_res = await asyncio.gather(crop_profile_task, weather_task)
+
         stage_res = crop_stage_service.calculate_stage(
             crop_profile or {}, sowing_date_str, query_date_str=query_date.isoformat() if query_date else None
         )
@@ -454,7 +421,6 @@ class DashboardService:
         # State B: Crop Reached Maturity
         if stage_id == "maturity" or days_after_sowing >= total_duration:
             print(f"[DASHBOARD STATE] Crop {current_crop} reached maturity (DAS: {days_after_sowing}/{total_duration}). Routing to Maturity Transition Dashboard.")
-            weather_res = await weather_service.get_weather(db, latitude, longitude)
             curr_w = weather_res.get("current", {})
             rain_w = weather_res.get("rain", {})
             wind_w = weather_res.get("wind", {})
@@ -479,7 +445,7 @@ class DashboardService:
                 status="mature",
             )
 
-            return PlanningDashboardResponse(
+            res = PlanningDashboardResponse(
                 dashboard_state="crop_matured",
                 farmer=FarmerInfo(name=farmer_name, village=village, district=district, state=state),
                 location={"latitude": latitude, "longitude": longitude, "village": village, "district": district, "state": state},
@@ -493,11 +459,14 @@ class DashboardService:
                 crop_health=None,
                 water_status=None,
             ).dict()
+            self._overview_cache[cache_key] = (res, datetime.utcnow())
+            return res
 
         # 3. State C: Active Growing Crop -> Sown Dashboard
         sown_resp = await self.get_sown_dashboard(db, phone_number, language)
         res_dict = sown_resp.dict()
         res_dict["dashboard_state"] = "growing"
+        self._overview_cache[cache_key] = (res_dict, datetime.utcnow())
         return res_dict
 
 

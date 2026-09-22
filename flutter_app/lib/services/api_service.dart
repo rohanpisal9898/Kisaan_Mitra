@@ -1,45 +1,93 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'auth_session_manager.dart';
 
 /// Service to communicate with the FastAPI backend.
 /// Flutter NEVER reads the CSV directly — all data comes through these API calls.
 class ApiService {
-  /// Dynamic base URL: localhost for Web/Windows, 10.0.2.2 for Android emulator
+  /// Dynamic base URL: local backend for development, Render for production
   static String get baseUrl {
+    if (kDebugMode) {
+      if (kIsWeb) return 'http://localhost:8000';
+      if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:8000';
+      return 'http://127.0.0.1:8000';
+    }
     return 'https://kisaan-mitra-y65q.onrender.com';
+  }
+
+  static final Map<String, Future<dynamic>> _inFlightRequests = {};
+  static List<String>? _cachedStates;
+  static final Map<String, List<String>> _cachedDistricts = {};
+
+  /// Deduplicate in-flight requests to avoid redundant simultaneous network calls
+  static Future<T> _deduplicate<T>(String key, Future<T> Function() action) {
+    if (_inFlightRequests.containsKey(key)) {
+      return _inFlightRequests[key] as Future<T>;
+    }
+    final future = action().whenComplete(() {
+      _inFlightRequests.remove(key);
+    });
+    _inFlightRequests[key] = future;
+    return future;
+  }
+
+  /// Helper to get JSON headers with Bearer token if available
+  static Future<Map<String, String>> _getHeaders() async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+    final token = await AuthSessionManager.getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
   }
 
   // ─── Location APIs ─────────────────────────────────────
 
-  /// Fetch all states from MongoDB via FastAPI.
+  /// Fetch all states with in-memory caching and request deduplication.
   /// GET /api/v1/locations/states
   static Future<List<String>> fetchStates() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/v1/locations/states'),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<String>.from(data['states']);
-    } else {
-      throw Exception('Failed to load states');
+    if (_cachedStates != null && _cachedStates!.isNotEmpty) {
+      return _cachedStates!;
     }
+    return _deduplicate('locations_states', () async {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/v1/locations/states'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        _cachedStates = List<String>.from(data['states']);
+        return _cachedStates!;
+      } else {
+        throw Exception('Failed to load states');
+      }
+    });
   }
 
-  /// Fetch districts for a given state from MongoDB via FastAPI.
+  /// Fetch districts for a given state with in-memory caching.
   /// GET /api/v1/locations/districts/{state}
   static Future<List<String>> fetchDistricts(String state) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/v1/locations/districts/${Uri.encodeComponent(state)}'),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<String>.from(data['districts']);
-    } else {
-      throw Exception('Failed to load districts for $state');
+    final stateKey = state.trim().toLowerCase();
+    if (_cachedDistricts.containsKey(stateKey)) {
+      return _cachedDistricts[stateKey]!;
     }
+    return _deduplicate('districts_$stateKey', () async {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/v1/locations/districts/${Uri.encodeComponent(state)}'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final list = List<String>.from(data['districts']);
+        _cachedDistricts[stateKey] = list;
+        return list;
+      } else {
+        throw Exception('Failed to load districts for $state');
+      }
+    });
   }
 
   /// Find nearest district from GPS coordinates.
@@ -61,7 +109,7 @@ class ApiService {
     }
   }
 
-  // ─── User APIs ─────────────────────────────────────────
+  // ─── User & Session APIs ───────────────────────────────
 
   /// Log in an existing user with phone_number & password.
   /// POST /api/v1/users/login
@@ -81,7 +129,18 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      final accessToken = data['access_token']?.toString() ?? '';
+      final refreshToken = data['refresh_token']?.toString() ?? '';
+      final user = (data['user'] as Map<String, dynamic>?) ?? data;
+      if (accessToken.isNotEmpty) {
+        await AuthSessionManager.saveSession(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          user: user,
+        );
+      }
+      return user;
     } else if (response.statusCode == 404) {
       throw Exception('ACCOUNT_NOT_FOUND');
     } else if (response.statusCode == 401) {
@@ -141,17 +200,124 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      final accessToken = data['access_token']?.toString() ?? '';
+      final refreshToken = data['refresh_token']?.toString() ?? '';
+      final user = (data['user'] as Map<String, dynamic>?) ?? data;
+      if (accessToken.isNotEmpty) {
+        await AuthSessionManager.saveSession(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          user: user,
+        );
+      }
+      return user;
     } else {
       throw Exception('Registration failed: ${response.body}');
     }
   }
 
-  /// Get user by phone number.
+  /// Validate current session with backend.
+  /// GET /api/v1/users/me
+  static Future<Map<String, dynamic>?> validateSession() async {
+    final token = await AuthSessionManager.getAccessToken();
+    if (token == null || token.isEmpty) return null;
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/v1/users/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401) {
+      // Attempt token refresh
+      final refreshed = await refreshTokens();
+      if (refreshed) {
+        final newToken = await AuthSessionManager.getAccessToken();
+        if (newToken != null && newToken.isNotEmpty) {
+          final retryRes = await http.get(
+            Uri.parse('$baseUrl/api/v1/users/me'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $newToken',
+            },
+          );
+          if (retryRes.statusCode == 200) {
+            return json.decode(retryRes.body) as Map<String, dynamic>;
+          }
+        }
+      }
+      await AuthSessionManager.clearSession();
+      return null;
+    }
+    return null;
+  }
+
+  /// Exchange refresh token for a fresh access token.
+  /// POST /api/v1/users/refresh
+  static Future<bool> refreshTokens() async {
+    try {
+      final refreshToken = await AuthSessionManager.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return false;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/users/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refresh_token': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final newAccess = data['access_token']?.toString() ?? '';
+        final newRefresh = data['refresh_token']?.toString() ?? '';
+        final user = await AuthSessionManager.getCachedUserProfile() ?? {};
+        if (newAccess.isNotEmpty) {
+          await AuthSessionManager.saveSession(
+            accessToken: newAccess,
+            refreshToken: newRefresh.isNotEmpty ? newRefresh : refreshToken,
+            user: user,
+          );
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('[REFRESH TOKEN ERROR] $e');
+    }
+    return false;
+  }
+
+  /// Permanently delete user account and invalidate session.
+  /// DELETE /api/v1/users/me
+  static Future<bool> deleteAccount() async {
+    final token = await AuthSessionManager.getAccessToken();
+    if (token == null || token.isEmpty) return false;
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/v1/users/me'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      await AuthSessionManager.clearSession();
+      return true;
+    }
+    return false;
+  }
+
+  /// Get user by phone number (backward compatible).
   /// GET /api/v1/users/{phone_number}
   static Future<Map<String, dynamic>?> getUser(String phoneNumber) async {
+    final headers = await _getHeaders();
     final response = await http.get(
       Uri.parse('$baseUrl/api/v1/users/${Uri.encodeComponent(phoneNumber)}'),
+      headers: headers,
     );
 
     if (response.statusCode == 200) {
@@ -164,19 +330,26 @@ class ApiService {
   }
 
   /// Update user details.
-  /// PUT /api/v1/users/{phone_number}
+  /// PUT /api/v1/users/{phone_number} or PUT /api/v1/users/me
   static Future<Map<String, dynamic>?> updateUser(
     String phoneNumber,
     Map<String, dynamic> updateData,
   ) async {
+    final headers = await _getHeaders();
     final response = await http.put(
       Uri.parse('$baseUrl/api/v1/users/${Uri.encodeComponent(phoneNumber)}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(updateData),
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final updated = json.decode(response.body) as Map<String, dynamic>;
+      final aToken = await AuthSessionManager.getAccessToken();
+      final rToken = await AuthSessionManager.getRefreshToken();
+      if (aToken != null && rToken != null) {
+        await AuthSessionManager.saveSession(accessToken: aToken, refreshToken: rToken, user: updated);
+      }
+      return updated;
     } else {
       throw Exception('Failed to update user: ${response.body}');
     }
@@ -227,7 +400,6 @@ class ApiService {
   }
 
   /// Upload pest scan image (camera or gallery) to FastAPI backend & MongoDB.
-
   /// POST /api/v1/pest-detection/scan
   static Future<Map<String, dynamic>> uploadPestImage({
     required dynamic imageFile, // XFile from image_picker
@@ -243,14 +415,15 @@ class ApiService {
     final body = {
       'image_base64': base64Image,
       'source': source,
-      'user_id': userId ?? 'guest',
       'filename': filename,
       'language': language ?? 'English',
     };
 
+    final headers = await _getHeaders();
+
     final response = await http.post(
       uri,
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(body),
     );
 
@@ -278,9 +451,11 @@ class ApiService {
         'language': language,
       };
 
+      final headers = await _getHeaders();
+
       final response = await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: json.encode(body),
       );
 
@@ -295,14 +470,15 @@ class ApiService {
     return {};
   }
 
-  /// Fetch list of saved pest scan reports for user.
-  /// GET /api/v1/pest-detection/history?user_id={userId}
+  /// Fetch list of saved pest scan reports for the authenticated user.
+  /// GET /api/v1/pest-detection/history
   static Future<List<Map<String, dynamic>>> fetchPestHistory({
-    String userId = 'guest',
+    String? userId,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/history?user_id=${Uri.encodeComponent(userId)}');
-      final response = await http.get(uri);
+      final uri = Uri.parse('$baseUrl/api/v1/pest-detection/history');
+      final headers = await _getHeaders();
+      final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final list = decoded['reports'] as List? ?? [];
@@ -319,7 +495,8 @@ class ApiService {
   static Future<Map<String, dynamic>?> fetchPestReportById(String scanId) async {
     try {
       final uri = Uri.parse('$baseUrl/api/v1/pest-detection/scans/${Uri.encodeComponent(scanId)}');
-      final response = await http.get(uri);
+      final headers = await _getHeaders();
+      final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         return (decoded['scan'] as Map<String, dynamic>?) ?? {};
@@ -330,7 +507,7 @@ class ApiService {
     return null;
   }
 
-  /// Fetch multi-state Dashboard Overview (no_crop, growing, crop_matured) from FastAPI.
+  /// Fetch multi-state Dashboard Overview (no_crop, growing, crop_matured) with request deduplication.
   /// GET /api/v1/dashboard/overview?phone_number={phoneNumber}&language={language}
   static Future<Map<String, dynamic>> fetchDashboardOverview({
     String? phoneNumber,
@@ -341,18 +518,21 @@ class ApiService {
       query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/v1/dashboard/overview?$query'),
-    );
+    final key = 'dashboard_overview_${phoneNumber ?? "guest"}_$language';
+    return _deduplicate(key, () async {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/v1/dashboard/overview?$query'),
+      );
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to fetch dashboard overview data');
-    }
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to fetch dashboard overview data');
+      }
+    });
   }
 
-  /// Fetch Sown Dashboard data from FastAPI backend.
+  /// Fetch Sown Dashboard data with request deduplication.
   /// GET /api/v1/dashboard/sown?phone_number={phoneNumber}&language={language}
   static Future<Map<String, dynamic>> fetchSownDashboard({
     String? phoneNumber,
@@ -363,38 +543,45 @@ class ApiService {
       query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/v1/dashboard/sown?$query'),
-    );
+    final key = 'dashboard_sown_${phoneNumber ?? "guest"}_$language';
+    return _deduplicate(key, () async {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/v1/dashboard/sown?$query'),
+      );
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to fetch sown dashboard data');
-    }
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to fetch sown dashboard data');
+      }
+    });
   }
 
   // ─── Wallet APIs ───────────────────────────────────────
 
   /// Fetch Farmer Wallet & Financial Shield summary.
-  /// GET /api/v1/wallet/overview?phone_number={phoneNumber}
+  /// GET /api/v1/wallet/overview?phone_number={phoneNumber}&language={language}
   static Future<Map<String, dynamic>> fetchWalletOverview({
     String? phoneNumber,
+    String language = 'English',
   }) async {
-    String query = '';
+    String query = 'language=${Uri.encodeComponent(language)}';
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+      query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/v1/wallet/overview$query'),
-    );
+    final key = 'wallet_overview_${phoneNumber ?? "guest"}_$language';
+    return _deduplicate(key, () async {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/v1/wallet/overview?$query'),
+      );
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to fetch wallet overview');
-    }
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to fetch wallet overview');
+      }
+    });
   }
 
   /// Add a new custom expense.
@@ -510,17 +697,18 @@ class ApiService {
   }
 
   /// Manually request a fresh Gemini market insight refresh respecting 5-min cooldown.
-  /// POST /api/v1/wallet/insight/refresh?phone_number={phoneNumber}
+  /// POST /api/v1/wallet/insight/refresh?phone_number={phoneNumber}&language={language}
   static Future<Map<String, dynamic>> refreshInsight({
     String? phoneNumber,
+    String language = 'English',
   }) async {
-    String query = '';
+    String query = 'language=${Uri.encodeComponent(language)}';
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      query = '?phone_number=${Uri.encodeComponent(phoneNumber)}';
+      query += '&phone_number=${Uri.encodeComponent(phoneNumber)}';
     }
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/v1/wallet/insight/refresh$query'),
+      Uri.parse('$baseUrl/api/v1/wallet/insight/refresh?$query'),
     );
 
     if (response.statusCode == 200) {

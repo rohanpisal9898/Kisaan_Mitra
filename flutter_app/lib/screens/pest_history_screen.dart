@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../services/pest_history_service.dart';
 import '../services/pest_pdf_service.dart';
 import '../widgets/pest_diagnosis_report_widget.dart';
+import '../widgets/pest_treatment_guide_widget.dart';
 
 /// Pest Report History Screen.
 /// Displays past diagnosis reports saved locally and on the backend.
@@ -44,7 +45,6 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
   void _openReportDetails(Map<String, dynamic> item) {
     final Map<String, dynamic>? diagnosis = (item['diagnosis'] as Map<String, dynamic>?) ?? item;
     final String? imageUrl = item['image_url']?.toString();
-    final String? scanId = item['scan_id']?.toString();
 
     Navigator.push(
       context,
@@ -55,7 +55,18 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
             diagnosisData: diagnosis,
             onBack: () => Navigator.pop(ctx),
             onViewTreatmentGuide: () {
-              Navigator.pop(ctx);
+              Navigator.push(
+                ctx,
+                MaterialPageRoute(
+                  builder: (guideCtx) => Scaffold(
+                    body: PestTreatmentGuideWidget(
+                      diagnosisData: diagnosis,
+                      onBack: () => Navigator.pop(guideCtx),
+                      onSaveAndDone: () => Navigator.pop(guideCtx),
+                    ),
+                  ),
+                ),
+              );
             },
           ),
         ),
@@ -180,7 +191,6 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
     final String scientificName = diagnosis?['scientific_name']?.toString() ?? 'Obereopsis brevis';
     final String severity = diagnosis?['severity']?.toString() ?? l10n.moderateConcern;
     final String? imageUrl = item['image_url']?.toString();
-    final String scanId = item['scan_id']?.toString() ?? 'scan_demo';
 
     String formattedDate = '';
     if (item['created_at'] != null) {
@@ -223,18 +233,19 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
           Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Crop Thumbnail
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    width: 72,
-                    height: 72,
+                    width: 68,
+                    height: 68,
                     color: const Color(0xFFDCFCE7),
                     child: _buildThumbnail(imageUrl),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 // Diagnosis info
                 Expanded(
                   child: Column(
@@ -243,7 +254,7 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
                       Text(
                         pestName,
                         style: GoogleFonts.dmSans(
-                          fontSize: 16,
+                          fontSize: 15.5,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF0F172A),
                         ),
@@ -252,13 +263,16 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
                       Text(
                         scientificName,
                         style: GoogleFonts.dmSans(
-                          fontSize: 12.5,
+                          fontSize: 12,
                           fontStyle: FontStyle.italic,
                           color: const Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -275,7 +289,6 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
                               ),
                             ),
                           ),
-                          const Spacer(),
                           Text(
                             formattedDate,
                             style: GoogleFonts.dmSans(
@@ -293,37 +306,50 @@ class _PestHistoryScreenState extends State<PestHistoryScreen> {
           ),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton.icon(
-                  onPressed: () => _openReportDetails(item),
-                  icon: const Icon(Icons.visibility_outlined, size: 18, color: Color(0xFF15803D)),
-                  label: Text(
-                    'View Details',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF15803D),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                      side: const BorderSide(color: Color(0xFF15803D), width: 1.2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => _openReportDetails(item),
+                    icon: const Icon(Icons.visibility_outlined, size: 16, color: Color(0xFF15803D)),
+                    label: Text(
+                      'View Details',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF15803D),
+                      ),
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF15803D),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () => _downloadReportPdf(item),
-                  icon: const Icon(Icons.file_download_outlined, size: 16, color: Colors.white),
-                  label: Text(
-                    l10n.downloadReport,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF15803D),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => _downloadReportPdf(item),
+                    icon: const Icon(Icons.file_download_outlined, size: 16, color: Colors.white),
+                    label: Text(
+                      l10n.downloadReport,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),

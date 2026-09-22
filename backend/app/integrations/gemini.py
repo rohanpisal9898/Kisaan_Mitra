@@ -13,6 +13,7 @@ import json
 import httpx
 from typing import Optional, Dict, Any, List
 from app.config import get_settings
+from app.utils.http_client import get_http_client
 
 settings = get_settings()
 
@@ -112,6 +113,17 @@ async def get_gemini_recommendations(
         print("[GEMINI DEBUG] enabled=False request_success=False fallback_used=True (No API Key)")
         return None
 
+    lang_lower = str(language).lower().strip()
+    is_hi = "hi" in lang_lower or "hindi" in lang_lower or "हिं" in lang_lower
+    is_mr = "mr" in lang_lower or "marathi" in lang_lower or "मरा" in lang_lower
+
+    if is_hi:
+        full_lang = "Hindi (हिंदी)"
+    elif is_mr:
+        full_lang = "Marathi (मराठी)"
+    else:
+        full_lang = "English"
+
     model_names = [
         "gemini-2.5-flash",
         "gemini-3.5-flash-lite",
@@ -123,8 +135,8 @@ async def get_gemini_recommendations(
     context_str = json.dumps(farm_context, indent=2, default=str)
     user_prompt = (
         f"Farm context:\n{context_str}\n\n"
-        f"Language requested: {language}\n\n"
-        f"Generate exactly 3 structured recommendations for categories [irrigation, pest_disease, fertilizer] in {language}.\n"
+        f"CRITICAL REQUIREMENT: The farmer's language is {full_lang}. All 'title' and 'description' fields MUST BE WRITTEN ENTIRELY IN {full_lang} (using native Devanagari script for Hindi and Marathi).\n\n"
+        f"Generate exactly 3 structured recommendations for categories [irrigation, pest_disease, fertilizer] in {full_lang}.\n"
         f"Return ONLY valid JSON matching the specified format."
     )
 
@@ -148,76 +160,85 @@ async def get_gemini_recommendations(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(url, json=payload)
-                if response.status_code == 200:
-                    res_json = response.json()
-                    candidates = res_json.get("candidates", [])
-                    if candidates and "content" in candidates[0]:
-                        parts = candidates[0]["content"].get("parts", [])
-                        if parts and "text" in parts[0]:
-                            text = parts[0]["text"].strip()
-                            parsed = _clean_and_parse_json(text)
-                            if isinstance(parsed, dict):
-                                recommendations = parsed.get("recommendations", [])
-                            elif isinstance(parsed, list):
-                                recommendations = parsed
-                            else:
-                                recommendations = []
+            client = get_http_client()
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
+                res_json = response.json()
+                candidates = res_json.get("candidates", [])
+                if candidates and "content" in candidates[0]:
+                    parts = candidates[0]["content"].get("parts", [])
+                    if parts and "text" in parts[0]:
+                        text = parts[0]["text"].strip()
+                        parsed = _clean_and_parse_json(text)
+                        if isinstance(parsed, dict):
+                            recommendations = parsed.get("recommendations", [])
+                        elif isinstance(parsed, list):
+                            recommendations = parsed
+                        else:
+                            recommendations = []
 
-                            validated = []
-                            seen_categories = set()
+                        validated = []
+                        seen_categories = set()
 
-                            required_categories = ["irrigation", "pest_disease", "fertilizer"]
-                            default_icons = {
-                                "irrigation": "💧",
-                                "pest_disease": "🐛",
-                                "fertilizer": "🌱",
-                            }
-                            default_types = {
-                                "irrigation": "water",
-                                "pest_disease": "crop_health",
-                                "fertilizer": "crop_stage",
-                            }
+                        required_categories = ["irrigation", "pest_disease", "fertilizer"]
+                        default_icons = {
+                            "irrigation": "💧",
+                            "pest_disease": "🐛",
+                            "fertilizer": "🌱",
+                        }
+                        default_types = {
+                            "irrigation": "water",
+                            "pest_disease": "crop_health",
+                            "fertilizer": "crop_stage",
+                        }
 
-                            for rec in recommendations:
-                                cat = str(rec.get("category", "")).lower().strip()
-                                if cat not in required_categories:
-                                    # Fallback mapping if Gemini returned type or variant
-                                    t = str(rec.get("type", "")).lower()
-                                    if "water" in t or "irrigation" in t:
-                                        cat = "irrigation"
-                                    elif "pest" in t or "disease" in t or "health" in t:
-                                        cat = "pest_disease"
-                                    elif "fert" in t or "nutrit" in t or "stage" in t:
-                                        cat = "fertilizer"
+                        for rec in recommendations:
+                            cat = str(rec.get("category", "")).lower().strip()
+                            if cat not in required_categories:
+                                # Fallback mapping if Gemini returned type or variant
+                                t = str(rec.get("type", "")).lower()
+                                if "water" in t or "irrigation" in t:
+                                    cat = "irrigation"
+                                elif "pest" in t or "disease" in t or "health" in t:
+                                    cat = "pest_disease"
+                                elif "fert" in t or "nutrit" in t or "stage" in t:
+                                    cat = "fertilizer"
 
-                                if cat in required_categories and cat not in seen_categories:
-                                    title = str(rec.get("title", "")).strip()
-                                    desc = str(rec.get("description", "")).strip()
-                                    if title and desc:
-                                        seen_categories.add(cat)
-                                        validated.append({
-                                            "priority": len(validated) + 1,
-                                            "category": cat,
-                                            "type": rec.get("type", default_types[cat]),
-                                            "title": title[:60],
-                                            "description": desc[:140],
-                                            "severity": rec.get("severity", "medium"),
-                                            "icon": default_icons[cat],
-                                        })
+                            if cat in required_categories and cat not in seen_categories:
+                                title = str(rec.get("title", "")).strip()
+                                desc = str(rec.get("description", "")).strip()
+                                if title and desc:
+                                    seen_categories.add(cat)
+                                    validated.append({
+                                        "priority": len(validated) + 1,
+                                        "category": cat,
+                                        "type": rec.get("type", default_types[cat]),
+                                        "title": title[:60],
+                                        "description": desc[:140],
+                                        "severity": rec.get("severity", "medium"),
+                                        "icon": default_icons[cat],
+                                    })
 
-                            # Must have all 3 distinct required categories
-                            if len(validated) == 3 and len(seen_categories) == 3:
-                                print(f"[GEMINI DEBUG] enabled=True model_selected={model_name} request_success=True fallback_used=False")
-                                return validated
-                            else:
-                                print(f"[GEMINI DEBUG] model={model_name} validation failed: categories found={seen_categories}")
-                elif response.status_code == 429:
-                    print(f"[GEMINI DEBUG] HTTP 429 Quota/Rate Limit Exceeded - using local fallback")
-                    break
-                else:
-                    print(f"[GEMINI DEBUG] model={model_name} HTTP {response.status_code} Body: {response.text[:200]}")
+                        # Must have all 3 distinct required categories
+                        if len(validated) == 3 and len(seen_categories) == 3:
+                            if is_hi or is_mr:
+                                has_devanagari = any(
+                                    any(0x0900 <= ord(c) <= 0x097F for c in (v.get("title", "") + v.get("description", "")))
+                                    for v in validated
+                                )
+                                if not has_devanagari:
+                                    print(f"[GEMINI DEBUG] model={model_name} returned English for {full_lang}. Using localized fallback.")
+                                    return None
+
+                            print(f"[GEMINI DEBUG] enabled=True model_selected={model_name} request_success=True fallback_used=False")
+                            return validated
+                        else:
+                            print(f"[GEMINI DEBUG] model={model_name} validation failed: categories found={seen_categories}")
+            elif response.status_code == 429:
+                print(f"[GEMINI DEBUG] HTTP 429 Quota/Rate Limit Exceeded - using local fallback")
+                break
+            else:
+                print(f"[GEMINI DEBUG] model={model_name} HTTP {response.status_code} Body: {response.text[:200]}")
         except Exception as e:
             print(f"[GEMINI DEBUG] model={model_name} exception: {e}")
             continue
@@ -316,9 +337,9 @@ async def get_gemini_pest_questions(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(url, json=payload)
-                if response.status_code == 200:
+            client = get_http_client()
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
                     res_json = response.json()
                     candidates = res_json.get("candidates", [])
                     if candidates and "content" in candidates[0]:
@@ -554,9 +575,9 @@ async def get_gemini_pest_diagnosis(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                response = await client.post(url, json=payload)
-                if response.status_code == 200:
+            client = get_http_client()
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
                     res_json = response.json()
                     candidates = res_json.get("candidates", [])
                     if candidates and "content" in candidates[0]:
@@ -781,9 +802,9 @@ async def validate_crop_image(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                response = await client.post(url, json=payload)
-                if response.status_code == 200:
+            client = get_http_client()
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
                     res_json = response.json()
                     candidates = res_json.get("candidates", [])
                     if candidates and "content" in candidates[0]:

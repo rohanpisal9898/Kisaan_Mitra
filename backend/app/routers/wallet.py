@@ -19,10 +19,11 @@ router = APIRouter(prefix="/api/v1/wallet", tags=["Farmer Wallet"])
 @router.get("/overview", response_model=WalletOverviewResponse)
 async def get_wallet_overview(
     phone_number: Optional[str] = Query(None, description="Farmer phone number"),
+    language: str = Query("English", description="Preferred language for market insights"),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """Fetch complete Farmer Wallet & Financial Shield summary."""
-    data = await wallet_service.get_wallet_overview(db, phone_number)
+    data = await wallet_service.get_wallet_overview(db, phone_number, language)
     return WalletOverviewResponse(**data)
 
 
@@ -119,6 +120,7 @@ async def delete_expense(
 @router.post("/insight/refresh", response_model=WalletOverviewResponse)
 async def refresh_wallet_insight(
     phone_number: Optional[str] = Query(None, description="Farmer phone number"),
+    language: str = Query("English", description="Preferred language for market insights"),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     """
@@ -126,8 +128,8 @@ async def refresh_wallet_insight(
     Enforces a 5-minute cooldown per farmer to prevent duplicate requests.
     """
     if phone_number and phone_number.strip():
-        await wallet_service.refresh_gemini_market_insight_async(db, phone_number.strip())
-    data = await wallet_service.get_wallet_overview(db, phone_number)
+        await wallet_service.refresh_gemini_market_insight_async(db, phone_number.strip(), language=language, force=True)
+    data = await wallet_service.get_wallet_overview(db, phone_number, language=language)
     return WalletOverviewResponse(**data)
 
 

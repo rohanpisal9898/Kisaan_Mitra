@@ -5,12 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
+import '../services/gps_location_service.dart';
 import '../main.dart';
 import 'add_farm_screen.dart';
 import 'dashboard_screen.dart';
 
 /// Account Details / Sign In screen (Step 1 of 2).
-/// Collects: Farmer Name, Phone Number, Password, Village (for registration) or Phone + Password (for Sign In).
+/// Collects: Farmer Name, Phone Number, Password, Village (for registration)
+/// or Phone + Password + GPS-detected State & District (for Sign In).
 class FarmerProfileScreen extends StatefulWidget {
   final String language;
   final bool isSignInMode;
@@ -36,11 +38,110 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
 
+  // ─── Sign-In GPS Location State ──────────────────────────────
+  String? _signInState;
+  String? _signInDistrict;
+  List<String> _states = [];
+  List<String> _districts = [];
+  bool _loadingStates = false;
+  bool _loadingDistricts = false;
+  bool _isDetectingLocation = false;
+  String? _locationStatusMessage;
+  bool _locationDetectedSuccess = false;
+  bool _isLocationServiceDisabled = false;
+  bool _isPermissionDeniedForever = false;
+
   @override
   void initState() {
     super.initState();
     _l10n = AppLocalizations(widget.language);
     _isSignInMode = widget.isSignInMode;
+
+    if (_isSignInMode) {
+      _fetchStates();
+      _detectGpsLocation();
+    }
+  }
+
+  /// Fetch all available states from FastAPI backend for manual fallback
+  Future<void> _fetchStates() async {
+    setState(() => _loadingStates = true);
+    try {
+      final states = await ApiService.fetchStates();
+      if (mounted) {
+        setState(() {
+          _states = states;
+          _loadingStates = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingStates = false);
+      }
+    }
+  }
+
+  /// Fetch districts for a selected state
+  Future<void> _fetchDistricts(String state) async {
+    setState(() {
+      _loadingDistricts = true;
+      _districts = [];
+    });
+
+    try {
+      final districts = await ApiService.fetchDistricts(state);
+      if (mounted) {
+        setState(() {
+          _districts = districts;
+          _loadingDistricts = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingDistricts = false);
+      }
+    }
+  }
+
+  /// Exact Sign-In GPS Auto-Detection Flow:
+  /// Location Services Check → Runtime Permission → Coordinates → State/District Resolution → Form Population
+  Future<void> _detectGpsLocation() async {
+    if (_isDetectingLocation) return;
+
+    setState(() {
+      _isDetectingLocation = true;
+      _locationStatusMessage = null;
+      _locationDetectedSuccess = false;
+      _isLocationServiceDisabled = false;
+      _isPermissionDeniedForever = false;
+    });
+
+    final res = await GpsLocationService.detectLocation();
+
+    if (!mounted) return;
+
+    if (res.success && res.state != null && res.district != null) {
+      setState(() {
+        _signInState = res.state;
+        _signInDistrict = res.district;
+        _locationDetectedSuccess = true;
+        _isDetectingLocation = false;
+        _locationStatusMessage = 'Location detected ✓';
+        _isLocationServiceDisabled = false;
+        _isPermissionDeniedForever = false;
+      });
+
+      // Populate district options for the resolved state
+      _fetchDistricts(res.state!);
+    } else {
+      setState(() {
+        _locationDetectedSuccess = false;
+        _isDetectingLocation = false;
+        _locationStatusMessage = res.errorMessage ?? 'Unable to detect location automatically.';
+        _isLocationServiceDisabled = res.isLocationServiceDisabled;
+        _isPermissionDeniedForever = res.isPermissionDeniedForever;
+      });
+    }
   }
 
   Future<void> _handleSignIn() async {
@@ -83,7 +184,6 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
           builder: (_) => DashboardScreen(
             language: user['language'] ?? widget.language,
           ),
-
         ),
       );
     } catch (e) {
@@ -284,6 +384,20 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                         ),
                       ],
 
+                      // ─── Sign-In GPS Location Detection & State/District Fields ───
+                      if (_isSignInMode) ...[
+                        const SizedBox(height: 20),
+                        _buildSignInGpsLocationSection(),
+                        const SizedBox(height: 16),
+                        _buildLabel(_l10n.state),
+                        const SizedBox(height: 8),
+                        _buildSignInStatePicker(),
+                        const SizedBox(height: 16),
+                        _buildLabel(_l10n.district),
+                        const SizedBox(height: 8),
+                        _buildSignInDistrictPicker(),
+                      ],
+
                       const SizedBox(height: 24),
 
                       // Toggle between Sign In & Create Account
@@ -292,6 +406,10 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                           onPressed: () {
                             setState(() {
                               _isSignInMode = !_isSignInMode;
+                              if (_isSignInMode && _states.isEmpty) {
+                                _fetchStates();
+                                _detectGpsLocation();
+                              }
                             });
                           },
                           child: Text(
@@ -368,6 +486,398 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ─── Sign-In GPS Location UI Section ─────────────────────────────
+
+  Widget _buildSignInGpsLocationSection() {
+    if (_isDetectingLocation) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                color: Color(0xFF15803D),
+                strokeWidth: 2,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Detecting your location via GPS...',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF166534),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_locationDetectedSuccess && _signInState != null && _signInDistrict != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF86EFAC)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF15803D), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Location detected ✓',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF166534),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'State: $_signInState  •  District: $_signInDistrict',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: const Color(0xFF15803D),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: _detectGpsLocation,
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.refresh_rounded, color: Color(0xFF15803D), size: 18),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Failure / Error state or not detected yet
+    if (_locationStatusMessage != null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFDE68A)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline_rounded, color: Color(0xFFB45309), size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _locationStatusMessage!,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF92400E),
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (_isLocationServiceDisabled)
+                  TextButton.icon(
+                    onPressed: () async {
+                      await GpsLocationService.openLocationSettings();
+                    },
+                    icon: const Icon(Icons.settings_outlined, size: 15, color: Color(0xFFB45309)),
+                    label: Text(
+                      'Settings',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                    ),
+                  ),
+                if (_isPermissionDeniedForever)
+                  TextButton.icon(
+                    onPressed: () async {
+                      await GpsLocationService.openAppSettings();
+                    },
+                    icon: const Icon(Icons.settings_outlined, size: 15, color: Color(0xFFB45309)),
+                    label: Text(
+                      'App Settings',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                    ),
+                  ),
+                TextButton.icon(
+                  onPressed: _detectGpsLocation,
+                  icon: const Icon(Icons.my_location_rounded, size: 15, color: Color(0xFF15803D)),
+                  label: Text(
+                    'Retry GPS',
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF15803D)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Default trigger button if not yet detected
+    return InkWell(
+      onTap: _detectGpsLocation,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCBD5E1)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.my_location_rounded, color: Color(0xFF15803D), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Auto-detect State & District via GPS',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF334155),
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B), size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// State Picker Field for Sign-In
+  Widget _buildSignInStatePicker() {
+    if (_loadingStates) {
+      return Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 12),
+            Text(_l10n.loading, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+          ],
+        ),
+      );
+    }
+
+    final isSelected = _signInState != null && _signInState!.isNotEmpty;
+
+    return InkWell(
+      onTap: _states.isEmpty
+          ? _fetchStates
+          : () => _showSearchModal(
+                title: _l10n.selectState,
+                items: _states,
+                selectedItem: _signInState,
+                onSelected: (value) {
+                  setState(() {
+                    _signInState = value;
+                    _signInDistrict = null;
+                  });
+                  _fetchDistricts(value);
+                },
+              ),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.public,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _signInState ?? _l10n.selectState,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// District Picker Field for Sign-In
+  Widget _buildSignInDistrictPicker() {
+    if (_loadingDistricts) {
+      return Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 12),
+            Text(_l10n.loading, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+          ],
+        ),
+      );
+    }
+
+    if (_signInState == null || _signInState!.isEmpty) {
+      return Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.location_on, color: AppColors.textSecondary.withValues(alpha: 0.4), size: 20),
+            const SizedBox(width: 12),
+            Text(
+              _l10n.selectDistrict,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary.withValues(alpha: 0.4),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isSelected = _signInDistrict != null && _signInDistrict!.isNotEmpty;
+
+    return InkWell(
+      onTap: () => _showSearchModal(
+        title: '${_l10n.selectDistrict} ($_signInState)',
+        items: _districts,
+        selectedItem: _signInDistrict,
+        onSelected: (value) {
+          setState(() {
+            _signInDistrict = value;
+          });
+        },
+      ),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.location_on,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _signInDistrict ?? _l10n.selectDistrict,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSearchModal({
+    required String title,
+    required List<String> items,
+    required String? selectedItem,
+    required ValueChanged<String> onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _SearchModalContent(
+        title: title,
+        items: items,
+        selectedItem: selectedItem,
+        onSelected: onSelected,
+        hintText: 'Search...',
       ),
     );
   }
@@ -465,5 +975,196 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     _passwordController.dispose();
     _villageController.dispose();
     super.dispose();
+  }
+}
+
+/// Case-insensitive search bottom sheet modal for State/District selection
+class _SearchModalContent extends StatefulWidget {
+  final String title;
+  final List<String> items;
+  final String? selectedItem;
+  final ValueChanged<String> onSelected;
+  final String hintText;
+
+  const _SearchModalContent({
+    required this.title,
+    required this.items,
+    required this.selectedItem,
+    required this.onSelected,
+    required this.hintText,
+  });
+
+  @override
+  State<_SearchModalContent> createState() => _SearchModalContentState();
+}
+
+class _SearchModalContentState extends State<_SearchModalContent> {
+  final _searchController = TextEditingController();
+  List<String> _filteredItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredItems = List.from(widget.items);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    final q = query.trim().toLowerCase();
+    setState(() {
+      if (q.isEmpty) {
+        _filteredItems = List.from(widget.items);
+      } else {
+        _filteredItems = widget.items
+            .where((item) => item.toLowerCase().contains(q))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+    final totalHeight = MediaQuery.of(context).size.height * 0.70;
+
+    return Container(
+      height: totalHeight,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B), size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Search Input Field
+                Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    autofocus: false,
+                    style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF0F172A)),
+                    decoration: InputDecoration(
+                      hintText: widget.hintText,
+                      hintStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF94A3B8)),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B), size: 20),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 16, color: Color(0xFF64748B)),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+
+          // Items List
+          Expanded(
+            child: _filteredItems.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'No matching records found',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _filteredItems.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF8FAFC)),
+                    itemBuilder: (context, index) {
+                      final item = _filteredItems[index];
+                      final isSelected = item == widget.selectedItem;
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                          title: Text(
+                            item,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected ? const Color(0xFF15803D) : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle, color: Color(0xFF15803D), size: 20)
+                              : null,
+                          onTap: () {
+                            widget.onSelected(item);
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }

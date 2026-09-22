@@ -63,8 +63,17 @@ class UserService:
             "updated_at": datetime.utcnow(),
         }
 
+        # Clean up any leftover orphan records from previous deleted accounts with this phone
+        await db.user_expenses.delete_many({"phone_number": user_data.phone_number})
+        await db.market_insights.delete_many({"phone_number": user_data.phone_number})
+        await db.pest_scans.delete_many({"$or": [{"user_id": user_data.phone_number}, {"phone_number": user_data.phone_number}]})
+
         # Insert new user document
         await db.users.insert_one(user_doc)
+
+        # Invalidate any lingering dashboard cache
+        from app.services.dashboard_service import dashboard_service
+        dashboard_service.invalidate_cache(user_data.phone_number)
 
         # Fetch the user document
         user = await db.users.find_one({"phone_number": user_data.phone_number})

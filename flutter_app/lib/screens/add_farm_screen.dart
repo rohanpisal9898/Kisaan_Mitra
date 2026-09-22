@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
-import '../utils/location_helper.dart';
+import '../services/gps_location_service.dart';
 import 'analysis_screen.dart';
 
 /// Add Your Farm screen (Step 2 of 2).
@@ -56,7 +56,24 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     final text = _areaController.text.trim();
     if (text.isEmpty) return false;
     final val = double.tryParse(text);
-    return val != null && val.isFinite && val > 0;
+    if (val == null || !val.isFinite) return false;
+    final isHectares = _areaUnit.toLowerCase().contains('hectare');
+    final minArea = isHectares ? 0.05 : 0.1;
+    final maxArea = isHectares ? 200.0 : 500.0;
+    return val >= minArea && val <= maxArea;
+  }
+
+  String get _areaErrorMessage {
+    final isHectares = _areaUnit.toLowerCase().contains('hectare');
+    final minArea = isHectares ? '0.05' : '0.1';
+    final maxArea = isHectares ? '200' : '500';
+    final unitLabel = isHectares ? _l10n.hectaresLabel : _l10n.acresLabel;
+    if (widget.language == 'hi') {
+      return 'खेत का क्षेत्रफल $minArea और $maxArea $unitLabel के बीच होना चाहिए।';
+    } else if (widget.language == 'mr') {
+      return 'शेताचे क्षेत्र $minArea आणि $maxArea $unitLabel दरम्यान असावे.';
+    }
+    return 'Farm area must be between $minArea and $maxArea $unitLabel.';
   }
 
   // State / District selection from API
@@ -78,6 +95,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     super.initState();
     _l10n = AppLocalizations(widget.language);
     _fetchStates();
+    _autoDetectLocation();
   }
 
   /// Fetch states from FastAPI → MongoDB
@@ -117,82 +135,68 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     }
   }
 
-  /// Auto Detect Location using Browser GPS → nearest district API.
+  /// Auto Detect Location using GPS Service → nearest district API.
   Future<void> _autoDetectLocation() async {
+    if (_isDetecting) return;
     setState(() => _isDetecting = true);
 
-    double lat = 20.0059;
-    double lon = 73.7897;
-
     try {
-      final coords = await getWebLocation();
-      if (coords != null) {
-        lat = coords['latitude']!;
-        lon = coords['longitude']!;
-      }
+      final res = await GpsLocationService.detectLocation();
 
-      final result = await ApiService.findNearestDistrict(lat, lon);
+      if (!mounted) return;
 
-      final state = result['state'] as String?;
-      final district = result['district'] as String?;
+      if (res.success && res.state != null && res.district != null) {
+        await _fetchDistricts(res.state!);
 
-      if (state != null) {
-        await _fetchDistricts(state);
-      }
+        if (!mounted) return;
+        setState(() {
+          _detectedLat = res.latitude;
+          _detectedLon = res.longitude;
+          _selectedState = res.state;
+          _selectedDistrict = res.district;
+          _isDetecting = false;
+        });
 
-      setState(() {
-        _detectedLat = lat;
-        _detectedLon = lon;
-        _selectedState = state;
-        _selectedDistrict = district;
-        _isDetecting = false;
-      });
-
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Location detected: $district, $state',
-            ),
+            content: Text('Location detected ✓ ${res.district}, ${res.state}'),
             backgroundColor: AppColors.primary,
+          ),
+        );
+      } else {
+        setState(() => _isDetecting = false);
+        final errorMsg = res.errorMessage ?? 'Unable to detect location automatically. Please select State & District below.';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: res.isLocationServiceDisabled
+                ? SnackBarAction(
+                    label: 'Settings',
+                    textColor: Colors.white,
+                    onPressed: () => GpsLocationService.openLocationSettings(),
+                  )
+                : res.isPermissionDeniedForever
+                    ? SnackBarAction(
+                        label: 'Settings',
+                        textColor: Colors.white,
+                        onPressed: () => GpsLocationService.openAppSettings(),
+                      )
+                    : null,
           ),
         );
       }
     } catch (e) {
-      // Fallback if browser permission denied
-      try {
-        final result = await ApiService.findNearestDistrict(lat, lon);
-        final state = result['state'] as String?;
-        final district = result['district'] as String?;
-        if (state != null) {
-          await _fetchDistricts(state);
-        }
-        setState(() {
-          _detectedLat = lat;
-          _detectedLon = lon;
-          _selectedState = state;
-          _selectedDistrict = district;
-          _isDetecting = false;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('GPS detected: $district, $state'),
-              backgroundColor: AppColors.primary,
-            ),
-          );
-        }
-      } catch (err) {
-        setState(() => _isDetecting = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to detect location. Please select State & District below.'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
+      if (!mounted) return;
+      setState(() => _isDetecting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to detect location. Please select manually below.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
@@ -306,7 +310,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                       if (_areaController.text.trim().isNotEmpty && !_isAreaValid) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'Farm area must be greater than 0.',
+                          _areaErrorMessage,
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -779,7 +783,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-              LengthLimitingTextInputFormatter(5),
+              LengthLimitingTextInputFormatter(6),
             ],
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -928,155 +932,163 @@ class _SearchModalContentState extends State<_SearchModalContent> {
 
   @override
   Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.of(context).size.height * 0.65;
+    final mediaQuery = MediaQuery.of(context);
+    final targetHeight = mediaQuery.size.height * 0.70;
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      decoration: const BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
+    return Padding(
+      padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
+      child: Container(
+        height: targetHeight,
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
 
-          // Drag handle
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
+            // Drag handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Header title + Close button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+            // Header title + Close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                  color: AppColors.textSecondary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                    color: AppColors.textSecondary,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.textSecondary,
-                  size: 20,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // Scrollable items list
-          Flexible(
-            child: _filteredItems.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      'No results found',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    itemCount: _filteredItems.length,
-                    separatorBuilder: (_, __) => const Divider(
-                      height: 1,
-                      color: AppColors.divider,
-                    ),
-                    itemBuilder: (ctx, index) {
-                      final item = _filteredItems[index];
-                      final isSelected = item == widget.selectedItem;
-
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        title: Text(
-                          item,
+            // Scrollable items list (Expanded so search box stays permanently fixed at the top)
+            Expanded(
+              child: _filteredItems.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          'No results found',
                           style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                        trailing: isSelected
-                            ? const Icon(
-                                Icons.check_circle,
-                                color: AppColors.primary,
-                                size: 20,
-                              )
-                            : null,
-                        onTap: () {
-                          widget.onSelected(item);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                  ),
-          ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
+                      itemCount: _filteredItems.length,
+                      separatorBuilder: (_, __) => const Divider(
+                        height: 1,
+                        color: AppColors.divider,
+                      ),
+                      itemBuilder: (ctx, index) {
+                        final item = _filteredItems[index];
+                        final isSelected = item == widget.selectedItem;
 
-          const SizedBox(height: 16),
-        ],
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              item,
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  )
+                                : null,
+                            onTap: () {
+                              widget.onSelected(item);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

@@ -12,7 +12,6 @@ import '../widgets/dashboard_header.dart';
 import '../widgets/weather_card.dart';
 import '../widgets/crop_stage_card.dart';
 import '../widgets/water_status_card.dart';
-import '../widgets/crop_health_card.dart';
 import '../widgets/yield_prediction_card.dart';
 import '../widgets/recommendations_card.dart';
 import '../widgets/planning_dashboard_card.dart';
@@ -22,6 +21,7 @@ import 'profile_screen.dart';
 import 'pest_detection_screen.dart';
 import 'farmer_wallet_screen.dart';
 import 'government_schemes_screen.dart';
+import 'analysis_screen.dart';
 
 class _SupportedCropItem {
   final String cropId;
@@ -92,70 +92,93 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
 
   bool _isLoading = true;
+  // ignore: unused_field
+  bool _isSyncing = false;
   String? _errorMessage;
   DashboardOverviewModel? _overviewData;
   String? _activeLanguage;
+  int _walletVersion = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final currentLang = Localizations.localeOf(context).languageCode;
     if (_activeLanguage != currentLang) {
+      final isInitial = _activeLanguage == null;
       _activeLanguage = currentLang;
+      if (!isInitial) {
+        _overviewData = null; // Clear old language recommendations & overview data immediately
+      }
       _loadDashboardData();
     }
   }
 
-  Future<void> _loadDashboardData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadDashboardData({bool forceRefresh = false}) async {
+    String? phone = widget.phoneNumber;
+    final prefs = await SharedPreferences.getInstance();
+    if (phone == null || phone.isEmpty) {
+      phone = prefs.getString('user_phone');
+    }
 
-    try {
-      String? phone = widget.phoneNumber;
-      if (phone == null || phone.isEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        phone = prefs.getString('user_phone');
-      }
+    final activeLang = _activeLanguage ?? widget.language;
+    final cacheKey = 'cached_dashboard_${phone ?? "guest"}_$activeLang';
+    final timestampKey = '${cacheKey}_timestamp';
 
-      final activeLang = _activeLanguage ?? widget.language;
-      final prefs = await SharedPreferences.getInstance();
-      final cacheKey = 'cached_dashboard_${phone ?? "guest"}';
-
-      // Load cached local data instantly if present for instant rendering
+    // 1. Try reading cached data for instant initial rendering (SWR) of the active language
+    if (!forceRefresh && _overviewData == null) {
       final cachedJsonStr = prefs.getString(cacheKey);
-      if (cachedJsonStr != null && cachedJsonStr.isNotEmpty && _overviewData == null) {
+      if (cachedJsonStr != null && cachedJsonStr.isNotEmpty) {
         try {
           final cachedMap = json.decode(cachedJsonStr);
+          final cachedModel = DashboardOverviewModel.fromJson(cachedMap);
           setState(() {
-            _overviewData = DashboardOverviewModel.fromJson(cachedMap);
+            _overviewData = cachedModel;
             _isLoading = false;
+            _errorMessage = null;
           });
         } catch (_) {}
       }
+    }
 
+    // 2. Only show full loading spinner if NO cached data is available to display
+    if (_overviewData == null) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    } else {
+      setState(() {
+        _isSyncing = true;
+      });
+    }
+
+    // 3. Background fetch fresh data from backend
+    try {
       final jsonResponse = await ApiService.fetchDashboardOverview(
         phoneNumber: phone,
         language: activeLang,
       );
       final model = DashboardOverviewModel.fromJson(jsonResponse);
 
-      // Persist updated JSON response to local storage
+      // Persist to local storage with timestamp
       await prefs.setString(cacheKey, json.encode(jsonResponse));
+      await prefs.setInt(timestampKey, DateTime.now().millisecondsSinceEpoch);
 
       if (!mounted) return;
       setState(() {
         _overviewData = model;
         _isLoading = false;
+        _isSyncing = false;
+        _errorMessage = null;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
+        _isSyncing = false;
         if (_overviewData == null) {
+          _isLoading = false;
           _errorMessage = 'Failed to load farm dashboard data.';
         }
-        _isLoading = false;
       });
     }
   }
@@ -301,7 +324,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         elevation: 0,
                       ),
                       onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
 
                         String? phone = widget.phoneNumber;
@@ -310,32 +332,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           phone = prefs.getString('user_phone');
                         }
 
-                        if (phone != null && phone.isNotEmpty) {
-                          try {
-                            final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-                            await ApiService.updateUser(phone, {
-                              'current_crop': item.crop,
-                              'sowing_date': formattedDate,
-                            });
-                            if (mounted) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text('🌾 ${l10n.switchedCropSuccess} ${item.crop}!'),
-                                  backgroundColor: const Color(0xFF15803D),
-                                ),
-                              );
-                              _loadDashboardData();
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to update crop: $e'),
-                                  backgroundColor: Colors.red.shade700,
-                                ),
-                              );
-                            }
-                          }
+                        final farmer = _overviewData?.farmer;
+                        final activeLang = _activeLanguage ?? widget.language;
+
+                        if (context.mounted) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => AnalysisScreen(
+                                language: activeLang,
+                                farmerName: farmer?.name ?? 'Farmer',
+                                phoneNumber: phone ?? '',
+                                village: farmer?.village ?? '',
+                                state: farmer?.state ?? '',
+                                district: farmer?.district ?? '',
+                                crop: item.crop,
+                                farmArea: 0.0,
+                                farmAreaUnit: 'acres',
+                                sowingDate: selectedDate,
+                                farmLocation: '${farmer?.village ?? ""}, ${farmer?.district ?? ""}',
+                                isCropSwitch: true,
+                              ),
+                            ),
+                            (route) => false,
+                          );
                         }
                       },
                       icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
@@ -576,23 +595,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _loadDashboardData,
-              color: const Color(0xFF15803D),
-              child: _buildDashboardContent(l10n),
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _loadDashboardData,
+                color: const Color(0xFF15803D),
+                child: _buildDashboardContent(l10n),
+              ),
             ),
-          ),
-          const PestDetectionScreen(),
-          FarmerWalletScreen(phoneNumber: widget.phoneNumber),
-          const GovernmentSchemesScreen(),
-        ],
-      ),
+            PestDetectionScreen(
+              onBackToHome: () {
+                setState(() {
+                  _currentIndex = 0;
+                });
+              },
+            ),
+            FarmerWalletScreen(
+              key: ValueKey('wallet_${widget.phoneNumber}_$_walletVersion'),
+              phoneNumber: widget.phoneNumber,
+            ),
+            const GovernmentSchemesScreen(),
+          ],
+        ),
 
       // Bottom Navigation Bar
       bottomNavigationBar: SizedBox(
@@ -611,7 +649,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: (index) {
-              setState(() => _currentIndex = index);
+              setState(() {
+                _currentIndex = index;
+                if (index == 2) {
+                  _walletVersion++;
+                }
+              });
               if (index == 0) {
                 _loadDashboardData();
               }
@@ -656,8 +699,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDashboardContent(AppLocalizations l10n) {
     if (_isLoading) {
@@ -755,10 +799,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            CropHealthCardWidget(health: data.cropHealth),
-            const SizedBox(height: 16),
             YieldPredictionCardWidget(yieldData: data.yieldPrediction),
-            const SizedBox(height: 22),
+            const SizedBox(height: 20),
             RecommendationsCardWidget(recommendations: data.recommendations),
             const SizedBox(height: 24),
           ],

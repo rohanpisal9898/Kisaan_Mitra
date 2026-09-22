@@ -6,7 +6,9 @@ import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
 import '../main.dart';
+import '../services/auth_session_manager.dart';
 import 'farmer_profile_screen.dart';
+import 'dashboard_screen.dart';
 
 /// Clean mobile-first farmer profile page for Kisaan Mitra.
 class ProfileScreen extends StatefulWidget {
@@ -45,18 +47,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _userPhone = prefs.getString('user_phone');
+      _userPhone = await AuthSessionManager.getUserPhone();
 
-      if (_userPhone == null || _userPhone!.isEmpty) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'No user account found. Please sign in first.';
-        });
-        return;
+      // First try validating session to get fresh profile data
+      Map<String, dynamic>? data = await ApiService.validateSession();
+      
+      // Fallback to phone-based fetch or cached data if offline
+      if (data == null && _userPhone != null && _userPhone!.isNotEmpty) {
+        data = await ApiService.getUser(_userPhone!);
       }
+      data ??= await AuthSessionManager.getCachedUserProfile();
 
-      final data = await ApiService.getUser(_userPhone!);
       if (!mounted) return;
 
       if (data != null) {
@@ -217,8 +218,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final farmAreaUnit = _userData?['farm_area_unit'];
     final sowingDate = _userData?['sowing_date'];
 
-    final locationText = [district, state].where((s) => s.isNotEmpty).join(', ');
-    final subtitleText = currentCrop.isNotEmpty
+    final locationText = [district.toString(), state.toString()]
+        .where((s) => s.trim().isNotEmpty)
+        .join(', ');
+    final subtitleText = currentCrop.toString().isNotEmpty
         ? '$currentCrop ${l10n.farmerRole}'
         : l10n.farmerRole;
 
@@ -265,7 +268,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         IconButton(
                           tooltip: l10n.navHome,
                           icon: const Icon(Icons.home_outlined, color: Colors.white),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () {
+                            if (Navigator.of(context).canPop()) {
+                              Navigator.of(context).pop();
+                            } else {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (_) => DashboardScreen(
+                                    language: currentLangCode,
+                                    phoneNumber: _userPhone,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                         ),
@@ -400,6 +416,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // 4. SIGN OUT CARD
                 _buildSignOutCard(l10n),
 
+                const SizedBox(height: 14),
+
+                // 5. DELETE ACCOUNT CARD
+                _buildDeleteAccountCard(l10n),
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -412,88 +433,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ─── STATIC INFORMATION CARD (NO CHEVRON, NOT EXPANDABLE) ─────────
   Widget _buildStaticCard({
     required IconData icon,
+    Color iconBgColor = const Color(0xFFDCFCE7),
+    Color iconColor = const Color(0xFF15803D),
     required String title,
     required List<Widget> children,
-    Color? iconBgColor,
-    Color? iconColor,
   }) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Static Header Tile (No InkWell, No Chevron)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: iconBgColor ?? const Color(0xFFB8F23D),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: iconColor ?? const Color(0xFF16834A),
-                    size: 22,
-                  ),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 14),
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-
-          // Information Content Rows
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-            child: Column(
-              children: children,
-            ),
-          ),
+          const SizedBox(height: 12),
+          ...children,
         ],
       ),
     );
   }
 
-  // ─── LANGUAGE CARD WIDGET (ONLY EXPANDABLE DROPDOWN) ───────────────
+  // ─── 3. LANGUAGE CARD (ONLY DROPDOWN) ────────────────────────────
   Widget _buildLanguageCard(AppLocalizations l10n, String currentLangCode) {
-    final currentLang = _languages.firstWhere(
+    final currentLangMap = _languages.firstWhere(
       (l) => l['code'] == currentLangCode,
       orElse: () => _languages.first,
     );
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -511,16 +520,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFB8F23D),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.language,
-                      color: Color(0xFF16834A),
-                      size: 22,
+                      color: Color(0xFF2563EB),
+                      size: 20,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -529,82 +538,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.languageCard,
+                          'Preferred Language',
                           style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          currentLang['name']!,
+                          '${currentLangMap['name']} (${currentLangMap['native']})',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Icon(
                     _isLanguageExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     color: AppColors.textSecondary,
-                    size: 24,
+                    size: 20,
                   ),
                 ],
               ),
             ),
           ),
-
-          // Expanded language selection options
           if (_isLanguageExpanded) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+            const Divider(height: 1, color: AppColors.divider),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               child: Column(
                 children: _languages.map((lang) {
                   final isSelected = lang['code'] == currentLangCode;
-                  return Column(
-                    children: [
-                      const Divider(height: 1, color: AppColors.divider),
-                      InkWell(
-                        onTap: () => _changeLanguage(lang['code']!),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                lang['native']!,
-                                style: GoogleFonts.inter(
-                                  fontSize: 15,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? AppColors.primaryDark
-                                      : AppColors.textPrimary,
-                                ),
-                              ),
-                              if (isSelected)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                            ],
-                          ),
-                        ),
+                  return InkWell(
+                    onTap: () => _changeLanguage(lang['code']!),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
                       ),
-                    ],
+                      margin: const EdgeInsets.symmetric(vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.chipBg
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${lang['name']} (${lang['native']})',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.chipText
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(
+                              Icons.check,
+                              color: AppColors.primary,
+                              size: 18,
+                            ),
+                        ],
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
@@ -615,18 +626,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ─── SIGN OUT CARD & DIALOG ───────────────────────────────────────
+  // ─── 4. SIGN OUT CARD ────────────────────────────────────────────
   Widget _buildSignOutCard(AppLocalizations l10n) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -664,6 +676,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Icon(
                 Icons.chevron_right,
                 color: AppColors.textSecondary,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── 5. DELETE ACCOUNT CARD ──────────────────────────────────────
+  Widget _buildDeleteAccountCard(AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFECACA), width: 1),
+      ),
+      child: InkWell(
+        onTap: () => _showDeleteAccountConfirmationDialog(l10n),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.delete_forever_outlined,
+                  color: Color(0xFFDC2626),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'Delete Account',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFDC2626),
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFFDC2626),
                 size: 22,
               ),
             ],
@@ -735,16 +799,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showDeleteAccountConfirmationDialog(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Delete Account?',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFFDC2626),
+            ),
+          ),
+          content: Text(
+            'This action is permanent and will delete all your farm data, scan history, and account records. Are you sure?',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                l10n.cancelBtn,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _handleDeleteAccount();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Delete Permanently',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleSignOut() async {
     final currentLangCode = Localizations.localeOf(context).languageCode;
-    final prefs = await SharedPreferences.getInstance();
-
-    // Clear session token / user phone number
-    await prefs.remove('user_phone');
+    await AuthSessionManager.clearSession();
 
     if (!mounted) return;
 
     // Navigate to Login screen and remove back stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => FarmerProfileScreen(
+          language: currentLangCode,
+          isSignInMode: true,
+        ),
+      ),
+      (route) => false,
+    );
+  }
+
+  Future<void> _handleDeleteAccount() async {
+    final currentLangCode = Localizations.localeOf(context).languageCode;
+    try {
+      await ApiService.deleteAccount();
+    } catch (e) {
+      debugPrint('[DELETE ACCOUNT ERROR] $e');
+    }
+    await AuthSessionManager.clearSession();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Your account and data have been permanently deleted.'),
+        backgroundColor: Color(0xFFDC2626),
+      ),
+    );
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => FarmerProfileScreen(

@@ -1,7 +1,30 @@
 import math
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import date, datetime
 from typing import Optional, List
+
+
+def _normalize_unit(v: str) -> str:
+    normalized = v.strip().lower()
+    if normalized in {"acre", "acres", "ac"}:
+        return "acres"
+    if normalized in {"hectare", "hectares", "ha"}:
+        return "hectares"
+    raise ValueError("Farm area unit must be acres or hectares")
+
+
+def _validate_area_bounds_helper(area: float, unit: str):
+    if not math.isfinite(area):
+        raise ValueError("Farm area must be a valid finite number")
+    if unit == "hectares":
+        min_area, max_area = 0.05, 200.0
+    else:
+        min_area, max_area = 0.1, 500.0
+
+    if not (min_area <= area <= max_area):
+        raise ValueError(
+            f"Farm area must be between {min_area} and {max_area} {unit}"
+        )
 
 
 class UserRegisterRequest(BaseModel):
@@ -20,17 +43,28 @@ class UserRegisterRequest(BaseModel):
 
     # Farm details (Step 2)
     current_crop: Optional[str] = Field(None, description="Current crop being grown (None if Not Sown Yet)")
-    farm_area: float = Field(..., gt=0, description="Farm area must be finite and > 0")
+    farm_area: float = Field(..., description="Farm area value")
     farm_area_unit: str = Field("acres", description="Unit: acres or hectares")
     sowing_date: Optional[date] = Field(None, description="Date when crop was sown (None if Not Sown Yet)")
     farm_location: str = Field("", description="Farm location / landmark description")
 
     @field_validator("farm_area")
     @classmethod
-    def validate_farm_area(cls, v: float) -> float:
-        if not math.isfinite(v) or v <= 0:
-            raise ValueError("Farm area must be a finite number greater than 0")
+    def validate_finite_area(cls, v: float) -> float:
+        if not math.isfinite(v):
+            raise ValueError("Farm area must be a valid finite number")
         return v
+
+    @field_validator("farm_area_unit")
+    @classmethod
+    def validate_area_unit(cls, v: str) -> str:
+        return _normalize_unit(v)
+
+    @model_validator(mode="after")
+    def validate_area_bounds(self):
+        _validate_area_bounds_helper(self.farm_area, self.farm_area_unit)
+        self.farm_area = round(self.farm_area, 2)
+        return self
 
 
 class UserLoginRequest(BaseModel):
@@ -76,8 +110,43 @@ class UserUpdateRequest(BaseModel):
 
     @field_validator("farm_area")
     @classmethod
-    def validate_farm_area_opt(cls, v: Optional[float]) -> Optional[float]:
+    def validate_finite_area_opt(cls, v: Optional[float]) -> Optional[float]:
         if v is not None:
-            if not math.isfinite(v) or v <= 0:
-                raise ValueError("Farm area must be a finite number greater than 0")
+            if not math.isfinite(v):
+                raise ValueError("Farm area must be a valid finite number")
         return v
+
+    @field_validator("farm_area_unit")
+    @classmethod
+    def validate_area_unit_opt(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return _normalize_unit(v)
+        return v
+
+    @model_validator(mode="after")
+    def validate_area_bounds_opt(self):
+        if self.farm_area is not None:
+            unit = self.farm_area_unit or "acres"
+            _validate_area_bounds_helper(self.farm_area, unit)
+            self.farm_area = round(self.farm_area, 2)
+        return self
+
+
+class AuthTokenResponse(BaseModel):
+    """Response model returning authenticated user and JWT session tokens."""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class RefreshTokenRequest(BaseModel):
+    """Request model to refresh an expired access token."""
+    refresh_token: str
+
+
+class RefreshTokenResponse(BaseModel):
+    """Response model for refreshed tokens."""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"

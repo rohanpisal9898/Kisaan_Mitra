@@ -1,12 +1,100 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_session_manager.dart';
+import '../services/api_service.dart';
+import '../main.dart';
 import 'language_screen.dart';
+import 'dashboard_screen.dart';
 
 /// Splash / Welcome screen.
-/// Shows hero image with "Farm Smarter. Harvest Better." and Get Started button.
-class SplashScreen extends StatelessWidget {
+/// Automatically restores active authenticated sessions instantly on startup.
+/// Shows hero image with "Farm Smarter. Harvest Better." and Get Started button for new users.
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  bool _isCheckingSession = true;
+
+  @override
+  void initState() {
+    super.initState();
+    AuthSessionManager().initialize();
+    _checkExistingSession();
+  }
+
+  Future<void> _checkExistingSession() async {
+    try {
+      final token = await AuthSessionManager.getAccessToken();
+      final cachedUser = await AuthSessionManager.getCachedUserProfile();
+
+      // If credentials exist locally, enter the app immediately using the cached profile
+      if (token != null && token.isNotEmpty && cachedUser != null) {
+        final lang = cachedUser['language']?.toString() ?? 'en';
+        final phone = cachedUser['phone_number']?.toString();
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('language', lang);
+        if (phone != null) {
+          await prefs.setString('user_phone', phone);
+        }
+
+        // Fire asynchronous background session validation without delaying UI
+        unawaited(_validateSessionInBackground());
+
+        if (mounted) {
+          KisaanMitraApp.setLocale(context, Locale(lang));
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => DashboardScreen(
+                language: lang,
+                phoneNumber: phone,
+              ),
+            ),
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('[SPLASH SESSION RESTORATION ERROR] $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _isCheckingSession = false;
+      });
+    }
+  }
+
+  Future<void> _validateSessionInBackground() async {
+    try {
+      final freshUser = await ApiService.validateSession();
+      if (freshUser != null) {
+        final token = await AuthSessionManager.getAccessToken();
+        final rToken = await AuthSessionManager.getRefreshToken();
+        if (token != null && rToken != null) {
+          await AuthSessionManager.saveSession(
+            accessToken: token,
+            refreshToken: rToken,
+            user: freshUser,
+          );
+        }
+      }
+    } catch (e) {
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('401') || errStr.contains('unauthorized') || errStr.contains('user_not_found')) {
+        debugPrint('[BACKGROUND SESSION VALIDATION] Revoked session. Clearing credentials.');
+        await AuthSessionManager.clearSession();
+      }
+      // Temporary network error / offline: do not log user out
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +124,7 @@ class SplashScreen extends StatelessWidget {
             ),
           ),
 
-          // Full-screen farmer/farm photography. Cover preserves the photo's
-          // aspect ratio while filling every mobile screen size.
+          // Full-screen farmer/farm photography.
           Positioned.fill(
             child: Image.asset(
               'assets/images/farmer_hero.jpg',
@@ -93,9 +180,6 @@ class SplashScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-
-                  // The reference-matched hero asset already carries the
-                  // approved logo/name at this position.
                   const SizedBox(height: 40),
 
                   const Spacer(),
@@ -124,42 +208,53 @@ class SplashScreen extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // Get Started button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const LanguageScreen(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  // Get Started button or Loading Spinner
+                  if (_isCheckingSession)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                          strokeWidth: 3,
                         ),
-                        elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Get Started',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LanguageScreen(),
                             ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward, size: 20),
-                        ],
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Get Started',
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward, size: 20),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 40),
                 ],

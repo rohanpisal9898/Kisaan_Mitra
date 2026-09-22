@@ -702,41 +702,46 @@ class WalletService:
         return results
 
     async def refresh_gemini_market_insight_async(
-        self, db: AsyncIOMotorDatabase, phone_number: str
+        self, db: AsyncIOMotorDatabase, phone_number: str, language: str = "English", force: bool = False
     ):
         """
-        Asynchronous background task triggered on successful login/registration.
+        Asynchronous background task triggered on successful login/registration or language switch.
         Fetches Mandi + MSP + Farmer context from MongoDB, calls Gemini API,
+        Calculates and refreshes Gemini market insight for the farmer's active crop,
         and upserts the generated market insight into MongoDB `market_insights` collection.
-        Enforces a 5-minute cooldown (300s) per farmer to prevent duplicate API requests.
-        Preserves previous valid insight if Gemini call fails.
+        Enforces a 5-minute cooldown (bypassed if language changed or forced).
         """
-        if db is None or not phone_number or phone_number == "guest":
+        now = datetime.now()
+        now_iso = now.isoformat()
+
+        # 1. Fetch user profile
+        user = await db.users.find_one({"phone_number": phone_number})
+        if not user:
+            print(f"[WARN] User not found for phone {phone_number}. Skipping market insight refresh.")
             return
 
-        now_dt = datetime.now()
-        now_iso = now_dt.isoformat()
+        crop = user.get("current_crop", "Soyabean")
+        state = user.get("state", "Maharashtra")
+        district = user.get("district", "Nashik")
 
-        # 1. Fetch user doc & market snapshots from MongoDB Atlas
-        user_doc = await db.users.find_one({"phone_number": phone_number})
-        if not user_doc:
-            return
+        # Language normalization
+        lang_str = str(language).lower().strip()
+        is_hi = "hi" in lang_str or "hindi" in lang_str or "हिं" in lang_str
+        is_mr = "mr" in lang_str or "marathi" in lang_str or "मरा" in lang_str
+        lang_code = "hi" if is_hi else ("mr" if is_mr else "en")
 
-        state = user_doc.get("state", "Maharashtra")
-        district = user_doc.get("district", "Nashik")
-        crop = user_doc.get("current_crop", "Soyabean")
-
-        # Check 5-minute cooldown
-        existing_insight = await db.market_insights.find_one({"phone_number": phone_number})
-        if existing_insight and existing_insight.get("generated_at"):
+        # 5-minute cooldown check (bypass if language changed or forced)
+        existing = await db.market_insights.find_one({"phone_number": phone_number})
+        if not force and existing and existing.get("language") == lang_code and existing.get("generated_at"):
             try:
-                g_dt = datetime.fromisoformat(existing_insight["generated_at"])
-                if (now_dt - g_dt).total_seconds() < 300:
-                    print(f"[GEMINI REFRESH SKIPPED] Cooldown active for farmer {phone_number}")
+                gen_time = datetime.fromisoformat(existing["generated_at"])
+                if (now - gen_time).total_seconds() < 300:
+                    print(f"[INFO] Market insight cooldown active for {phone_number} ({lang_code}). Skipping Gemini call.")
                     return
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[WARN] Error parsing generated_at: {e}")
 
+        # Fetch mandi and MSP snapshots
         mandi_info = await self.get_mandi_price_with_fallback(db, state, crop, district)
         msp_info = await self.get_msp_price_from_db(db, crop)
 
@@ -745,18 +750,44 @@ class WalletService:
         ceiling_price = mandi_info.get("ceiling_price", 5200.0)
         msp_price = msp_info.get("msp_price", 4892.0)
 
+        # Language normalization
+        lang_str = str(language).lower().strip()
+        is_hi = "hi" in lang_str or "hindi" in lang_str or "हिं" in lang_str
+        is_mr = "mr" in lang_str or "marathi" in lang_str or "मरा" in lang_str
+        lang_name = "Hindi (हिंदी)" if is_hi else ("Marathi (मराठी)" if is_mr else "English")
+
+        crop_hi_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "मूंगफली", "Mustard": "सरसों", "Sunflower": "सूरजमुखी", "Sesame": "तिल", "Linseed": "अलसी", "Castor": "अरंडी"}
+        crop_mr_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "भुईमूग", "Mustard": "मोहरी", "Sunflower": "सूर्यफूल", "Sesame": "तीळ", "Linseed": "जवस", "Castor": "एरंडी"}
+        display_crop = crop_hi_map.get(crop, crop) if is_hi else (crop_mr_map.get(crop, crop) if is_mr else crop)
+
+        if is_hi:
+            insight_title = "🌱 बाज़ार विश्लेषण"
+            insight_text = (
+                f"{state} में, {display_crop} का मंडी बाज़ार भाव ₹{int(modal_price):,}/क्विंटल (सीमा ₹{int(floor_price):,} - ₹{int(ceiling_price):,}) चल रहा है, "
+                f"जो सरकारी एमएसपी ₹{int(msp_price):,}/क्विंटल की तुलना में है। अपनी फसल बेचने से पहले स्थानीय मंडी आवक पर नज़र रखें।"
+            )
+        elif is_mr:
+            insight_title = "🌱 बाजार माहिती"
+            insight_text = (
+                f"{state} मध्ये, {display_crop} चा बाजारभाव ₹{int(modal_price):,}/क्विंटल (कक्षा ₹{int(floor_price):,} - ₹{int(ceiling_price):,}) आहे, "
+                f"जो शासकीय हमीभाव ₹{int(msp_price):,}/क्विंटल च्या तुलनेत आहे. विक्रीपूर्वी स्थानिक बाजार आवकेची पाहणी करा."
+            )
+        else:
+            insight_title = "🌱 Market Insight"
+            insight_text = (
+                f"In {state}, {crop} is trading at a market price of ₹{int(modal_price):,}/quintal "
+                f"(ranging from ₹{int(floor_price):,} to ₹{int(ceiling_price):,}), which is compared to government MSP of ₹{int(msp_price):,}/quintal. "
+                f"Monitor local market arrivals before selling."
+            )
+
         # 2. Call Gemini Flash API for fresh 2-sentence market insight
         api_key = settings.gemini_api_key
-        insight_text = (
-            f"{crop} mandi market price in {district}, {state} is currently hovering around ₹{int(modal_price):,}/quintal "
-            f"against the official MSP of ₹{int(msp_price):,}/quintal. Monitor local market arrivals before selling."
-        )
-
         if api_key and api_key != "your_gemini_api_key_here":
             prompt = (
-                f"You are an agricultural advisor for Indian farmers. Summarize this market price and MSP data in EXACTLY 1 to 2 short sentences.\n"
+                f"You are an agricultural market advisor for Indian farmers. Summarize this market price and MSP data in EXACTLY 1 to 2 short sentences.\n"
+                f"CRITICAL REQUIREMENT: Write the entire response in {lang_name} (using native Devanagari script for Hindi/Marathi).\n"
                 f"DO NOT invent any prices or numbers. Use ONLY these given numbers:\n"
-                f"Crop: {crop}\nState: {state}\nMarket Price: ₹{modal_price}/quintal (Range: ₹{floor_price} - ₹{ceiling_price})\n"
+                f"Crop: {display_crop}\nState: {state}\nMarket Price: ₹{modal_price}/quintal (Range: ₹{floor_price} - ₹{ceiling_price})\n"
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
             model_names = [
@@ -784,8 +815,14 @@ class WalletService:
                                 if parts and "text" in parts[0]:
                                     text = parts[0]["text"].strip()
                                     if text:
-                                        insight_text = text
-                                        break
+                                        if is_hi or is_mr:
+                                            has_devanagari = any(0x0900 <= ord(c) <= 0x097F for c in text)
+                                            if has_devanagari:
+                                                insight_text = text
+                                                break
+                                        else:
+                                            insight_text = text
+                                            break
                 except Exception as e:
                     print(f"[GEMINI REFRESH ERROR] {model_name} exception: {e}")
                     continue
@@ -795,7 +832,8 @@ class WalletService:
             "phone_number": phone_number,
             "crop": crop,
             "state": state,
-            "insight_title": "🌱 Market Insight",
+            "language": lang_code,
+            "insight_title": insight_title,
             "insight_text": insight_text,
             "market_data_snapshot": mandi_info,
             "msp_snapshot": msp_info,
@@ -805,25 +843,39 @@ class WalletService:
         }
 
         await db.market_insights.update_one(
-            {"phone_number": phone_number},
+            {"phone_number": phone_number, "language": lang_code},
             {"$set": insight_doc},
             upsert=True,
         )
-        print(f"[OK] Refreshed & Saved MarketInsight in MongoDB for farmer {phone_number}")
+        # Also update the primary phone document for backwards compatibility
+        await db.market_insights.update_one(
+            {"phone_number": phone_number, "language": {"$exists": False}},
+            {"$set": insight_doc},
+            upsert=False,
+        )
+        print(f"[OK] Refreshed & Saved MarketInsight in MongoDB for farmer {phone_number} ({lang_name})")
 
     async def get_wallet_overview(
         self,
         db: AsyncIOMotorDatabase,
         phone_number: Optional[str] = None,
+        language: str = "English",
     ) -> Dict[str, Any]:
         """
         Orchestrates complete Farmer Wallet overview reading EXCLUSIVELY from MongoDB Atlas:
-          Farmer Profile (users) -> Yield Prediction (CatBoost) -> Mandi (mandi_prices) -> MSP (msp_prices) -> Expenses (user_expenses) -> Insights (market_insights)
-        Opening wallet page DOES NOT call Gemini.
+        1. Reads farmer profile (crop, farm_area, farm_area_unit, district, state)
+        2. Queries user's saved expenses from `user_expenses` collection in MongoDB Atlas
+        3. If no custom expenses, seeds default agricultural expenses from MongoDB `crop_costs`
+        4. Queries real-time mandi prices from MongoDB `mandi_prices`
+        5. Queries MSP benchmarks from MongoDB `msp_benchmarks`
+        6. Reads stored Gemini Market Insights from MongoDB `market_insights`
+        7. Recalculates profit, risk level, ROI, and financial shield dynamically
         """
+        # 1. Fetch Farmer User Document
         user_doc = None
-        if db is not None and phone_number and phone_number.strip():
-            user_doc = await db.users.find_one({"phone_number": phone_number.strip()})
+        phone = phone_number.strip() if phone_number and phone_number.strip() else "guest"
+        if db is not None and phone != "guest":
+            user_doc = await db.users.find_one({"phone_number": phone})
         if not user_doc and db is not None:
             user_doc = await db.users.find_one({}, sort=[("updated_at", -1)])
 
@@ -898,7 +950,9 @@ class WalletService:
         yield_low = float(yield_res.get("yield_lower", 0.0))
         yield_upp = float(yield_res.get("yield_upper", 0.0))
 
-        modal_price = mandi_info.get("modal_price", 0.0)
+        modal_price = float(mandi_info.get("modal_price", 0.0) or 0.0)
+        floor_price = float(mandi_info.get("floor_price") or round(modal_price * 0.92, 2))
+        ceiling_price = float(mandi_info.get("ceiling_price") or round(modal_price * 1.08, 2))
         has_market_price = mandi_info.get("available", False) and modal_price > 0
 
         # Selling price per tonne = Mandi modal price per quintal * 10
@@ -972,39 +1026,85 @@ class WalletService:
             prefetched_msp=msp_info,
         )
 
-        # 6. Read Stored Gemini Insight directly from MongoDB `market_insights` (Zero Gemini API call)
+        # 6. Read Stored Gemini Insight directly from MongoDB `market_insights` or compute localized snapshot
+        lang_str = str(language).lower().strip()
+        is_hi = "hi" in lang_str or "hindi" in lang_str or "हिं" in lang_str
+        is_mr = "mr" in lang_str or "marathi" in lang_str or "मरा" in lang_str
+        target_lang_code = "hi" if is_hi else ("mr" if is_mr else "en")
+
+        crop_hi_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "मूंगफली", "Mustard": "सरसों", "Sunflower": "सूरजमुखी", "Sesame": "तिल", "Linseed": "अलसी", "Castor": "अरंडी"}
+        crop_mr_map = {"Soybean": "सोयाबीन", "Soyabean": "सोयाबीन", "Groundnut": "भुईमूग", "Mustard": "मोहरी", "Sunflower": "सूर्यफूल", "Sesame": "तीळ", "Linseed": "जवस", "Castor": "एरंडी"}
+        display_crop = crop_hi_map.get(lookup_crop, lookup_crop) if is_hi else (crop_mr_map.get(lookup_crop, lookup_crop) if is_mr else lookup_crop)
+
+        target_title = "🌱 बाज़ार विश्लेषण" if is_hi else ("🌱 बाजार माहिती" if is_mr else "🌱 Market Insight")
+        msp_val = int(msp_info.get("msp_price", 0))
+
+        if is_hi:
+            fallback_text = (
+                f"{state} में, {display_crop} का मंडी बाज़ार भाव ₹{int(modal_price):,}/क्विंटल (सीमा ₹{int(floor_price):,} - ₹{int(ceiling_price):,}) चल रहा है, "
+                f"जो सरकारी एमएसपी ₹{msp_val:,}/क्विंटल की तुलना में है।"
+            )
+        elif is_mr:
+            fallback_text = (
+                f"{state} मध्ये, {display_crop} चा बाजारभाव ₹{int(modal_price):,}/क्विंटल (कक्षा ₹{int(floor_price):,} - ₹{int(ceiling_price):,}) आहे, "
+                f"जो शासकीय हमीभाव ₹{msp_val:,}/क्विंटल च्या तुलनेत आहे."
+            )
+        else:
+            fallback_text = (
+                f"In {state}, {lookup_crop} is trading at a market price of ₹{int(modal_price):,}/quintal "
+                f"(ranging from ₹{int(floor_price):,} to ₹{int(ceiling_price):,}), which is compared to government MSP of ₹{msp_val:,}/quintal."
+            )
+
         insight_res = None
         if current_crop and db is not None and phone != "guest":
-            insight_doc = await db.market_insights.find_one({"phone_number": phone})
+            # 1. First attempt to find language-specific market insight document
+            insight_doc = await db.market_insights.find_one({"phone_number": phone, "language": target_lang_code})
+            if not insight_doc:
+                # Fallback to single phone document if exists
+                insight_doc = await db.market_insights.find_one({"phone_number": phone})
+
             if insight_doc:
                 gen_at = insight_doc.get("generated_at")
-                cooldown_sec = 0
-                if gen_at:
-                    try:
-                        g_dt = datetime.fromisoformat(gen_at)
-                        elapsed = (datetime.now() - g_dt).total_seconds()
-                        cooldown_sec = max(0, int(300 - elapsed))
-                    except:
-                        pass
+                doc_lang = str(insight_doc.get("language", "en")).lower().strip()
+                doc_text = insight_doc.get("insight_text", "")
 
-                insight_res = {
-                    "title": insight_doc.get("insight_title", "🌱 Market Insight"),
-                    "content": insight_doc.get("insight_text", ""),
-                    "available": True,
-                    "generated_at": gen_at,
-                    "data_source": insight_doc.get("data_source", "MongoDB Atlas & Gemini Intelligence"),
-                    "is_updating": False,
-                    "cooldown_seconds_remaining": cooldown_sec,
-                }
+                # Strict language validation
+                has_devanagari = any(0x0900 <= ord(c) <= 0x097F for c in doc_text)
+                if target_lang_code == "en":
+                    lang_matches = (doc_lang == "en") and (not has_devanagari)
+                elif target_lang_code == "hi":
+                    lang_matches = (doc_lang == "hi") and has_devanagari
+                elif target_lang_code == "mr":
+                    lang_matches = (doc_lang == "mr") and has_devanagari
+                else:
+                    lang_matches = doc_lang == target_lang_code
+
+                if lang_matches:
+                    cooldown_sec = 0
+                    if gen_at:
+                        try:
+                            g_dt = datetime.fromisoformat(gen_at)
+                            elapsed = (datetime.now() - g_dt).total_seconds()
+                            cooldown_sec = max(0, int(300 - elapsed))
+                        except:
+                            pass
+
+                    insight_res = {
+                        "title": insight_doc.get("insight_title", target_title),
+                        "content": doc_text,
+                        "available": True,
+                        "generated_at": gen_at,
+                        "data_source": insight_doc.get("data_source", "MongoDB Atlas & Gemini Intelligence"),
+                        "is_updating": False,
+                        "cooldown_seconds_remaining": cooldown_sec,
+                    }
+                else:
+                    # Language changed or mismatched: trigger async refresh in background for new language
+                    asyncio.create_task(self.refresh_gemini_market_insight_async(db, phone, language=language, force=True))
 
         if current_crop and not insight_res:
-            fallback_text = (
-                f"{lookup_crop} market price in {state} averages ₹{int(modal_price):,}/quintal "
-                f"against official MSP of ₹{int(msp_info.get('msp_price', 0)):,}/quintal. "
-                f"Sign in to generate an AI market insight."
-            )
             insight_res = {
-                "title": "🌱 Market Insight",
+                "title": target_title,
                 "content": fallback_text,
                 "available": True,
                 "generated_at": datetime.now().isoformat(),

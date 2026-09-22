@@ -163,7 +163,7 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
 
                         // 2. TOP DIAGNOSIS CARD (User Photo Thumbnail + Pest Name + Scientific Name + Severity)
                         Container(
-                          height: 140,
+                          constraints: const BoxConstraints(minHeight: 120),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFFBF5), // Warm pale peach tint
@@ -178,14 +178,14 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
                             ],
                           ),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // USER PHOTO THUMBNAIL (Fills 116px x 116px container with BoxFit.cover)
+                              // USER PHOTO THUMBNAIL
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(14),
                                 child: SizedBox(
-                                  width: 116,
-                                  height: 116,
+                                  width: 96,
+                                  height: 96,
                                   child: _buildUserThumbnailImage(),
                                 ),
                               ),
@@ -196,15 +196,14 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
                                       pestName,
                                       style: GoogleFonts.dmSans(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: -0.3,
-                                        height: 1.2,
+                                        height: 1.25,
                                         color: const Color(0xFF0F172A),
                                       ),
                                     ),
@@ -212,7 +211,7 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
                                     Text(
                                       scientificName,
                                       style: GoogleFonts.dmSans(
-                                        fontSize: 13.5,
+                                        fontSize: 13,
                                         fontStyle: FontStyle.italic,
                                         fontWeight: FontWeight.w400,
                                         letterSpacing: -0.1,
@@ -220,7 +219,7 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
                                         color: const Color(0xFF64748B),
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
+                                    const SizedBox(height: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
@@ -322,49 +321,48 @@ class _PestDiagnosisReportWidgetState extends State<PestDiagnosisReportWidget> {
 
                         const SizedBox(height: 28),
 
-                        // 5. DOWNLOAD REPORT PRIMARY BUTTON & VIEW TREATMENT GUIDE BUTTON
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  side: const BorderSide(color: Color(0xFF15803D), width: 1.5),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                onPressed: _handleDownloadPdf,
-                                icon: const Icon(Icons.file_download_outlined, color: Color(0xFF15803D)),
-                                label: Text(
-                                  l10n.downloadReport,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF15803D),
-                                  ),
-                                ),
+                        // 5. ACTION BUTTONS: VIEW TREATMENT GUIDE (PRIMARY) & DOWNLOAD REPORT (SECONDARY)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF15803D),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: widget.onViewTreatmentGuide,
+                            icon: const Icon(Icons.menu_book_outlined, color: Colors.white, size: 20),
+                            label: Text(
+                              l10n.viewTreatmentGuide,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF15803D),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                onPressed: widget.onViewTreatmentGuide,
-                                child: Text(
-                                  l10n.viewTreatmentGuide,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              side: const BorderSide(color: Color(0xFF15803D), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: _handleDownloadPdf,
+                            icon: const Icon(Icons.file_download_outlined, color: Color(0xFF15803D), size: 20),
+                            label: Text(
+                              l10n.downloadReport,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF15803D),
                               ),
                             ),
-                          ],
+                          ),
                         ),
 
                         const SizedBox(height: 28),

@@ -1,3 +1,19 @@
+import warnings
+import importlib.metadata
+
+# Suppress noisy external deprecation and EOL FutureWarnings for clean console logs
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*Python version 3.9.*")
+
+# Compatibility shim for Python < 3.10 importlib.metadata
+if not hasattr(importlib.metadata, "packages_distributions"):
+    try:
+        import importlib_metadata  # type: ignore
+        importlib.metadata.packages_distributions = importlib_metadata.packages_distributions
+    except Exception:
+        importlib.metadata.packages_distributions = lambda: {}
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import connect_to_mongo, close_mongo_connection
@@ -20,11 +36,14 @@ app.add_middleware(
 )
 
 
+from app.utils.http_client import get_http_client, close_http_client
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
     await connect_to_mongo()
+    get_http_client()
     try:
         model_loader.load_models()
     except Exception as e:
@@ -38,6 +57,7 @@ async def startup_event():
 async def shutdown_event():
     """Cleanup on shutdown."""
     await close_mongo_connection()
+    await close_http_client()
     print("Kisaan Mitra Backend Stopped")
 
 

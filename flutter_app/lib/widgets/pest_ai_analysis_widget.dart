@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/api_service.dart';
-import '../theme/app_theme.dart';
 
 /// Pest Detection Page 2 - AI Analysis Screen.
 /// Strictly matches the 2nd phone screen in the reference image ("2. AI Analysis").
@@ -41,6 +40,7 @@ class _PestAiAnalysisWidgetState extends State<PestAiAnalysisWidget>
   late Animation<double> _progressAnimation;
 
   double _currentProgress = 0.05;
+  // ignore: unused_field
   bool _isUploading = true;
   bool _hasError = false;
   String? _errorMessage;

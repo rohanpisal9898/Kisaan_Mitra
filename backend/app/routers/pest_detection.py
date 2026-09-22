@@ -4,10 +4,13 @@ import base64
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from app.database import get_database
 from app.models.pest_scan import PestScanJsonRequest, PestScanCreateResponse
 from app.integrations.gemini import get_gemini_pest_questions, get_gemini_pest_diagnosis, validate_crop_image
+
+from app.utils.auth import get_current_user, get_optional_current_user
+from app.models.user import UserResponse
 
 router = APIRouter(
     prefix="/api/v1/pest-detection",
@@ -53,14 +56,14 @@ async def validate_pest_image_endpoint(body: PestValidationRequest):
     response_model=PestScanCreateResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Upload image via JSON Base64 and create new pest scan record in MongoDB",
-
 )
-async def create_pest_scan(body: PestScanJsonRequest):
+async def create_pest_scan(
+    body: PestScanJsonRequest,
+    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+):
     """
-    Creates a persistent pest scan record in MongoDB and saves the uploaded image.
-    Accepts JSON payload with Base64 encoded image string.
-    Source must be either 'camera' or 'gallery'.
-    Generates dynamic Gemini Yes/No questions.
+    Creates a persistent pest scan record in MongoDB associated with the authenticated user.
+    Never trusts client-supplied user IDs for authorization.
     """
     source = body.source if body.source in ["camera", "gallery"] else "camera"
 
@@ -109,7 +112,6 @@ async def create_pest_scan(body: PestScanJsonRequest):
         )
 
     image_url = f"/uploads/pest_scans/{safe_filename}"
-    # Validate image relevance before generating scan record or questions
     requested_lang = body.language or "English"
     val = await validate_crop_image(image_base64=raw_b64, language=requested_lang)
     if not val.get("is_valid_for_pest_detection", True):
@@ -124,9 +126,12 @@ async def create_pest_scan(body: PestScanJsonRequest):
 
     created_at = datetime.utcnow()
 
+    # Bind strictly to authenticated user identity
+    authenticated_user_id = current_user.phone_number if current_user else (body.user_id or "guest")
+
     scan_doc = {
         "scan_id": scan_id,
-        "user_id": body.user_id or "guest",
+        "user_id": authenticated_user_id,
         "image_reference": save_path,
         "image_url": image_url,
         "source": source,
@@ -160,7 +165,10 @@ class PestDiagnosisRequest(BaseModel):
     "/diagnosis",
     summary="Generate dynamic AI Diagnosis Report based on scan image and 5 Yes/No answers",
 )
-async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
+async def generate_pest_diagnosis_endpoint(
+    body: PestDiagnosisRequest,
+    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+):
     """
     Generates dynamic Diagnosis Report details using Gemini integration,
     and persists full diagnosis results to MongoDB scan record.
@@ -176,7 +184,6 @@ async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
     now = datetime.utcnow()
 
     db = await get_database()
-    # Update existing scan record if present or create record
     update_data = {
         "diagnosis": report,
         "answers": body.answers,
@@ -184,7 +191,10 @@ async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
         "status": "completed",
         "updated_at": now,
     }
-    if body.user_id:
+
+    if current_user:
+        update_data["user_id"] = current_user.phone_number
+    elif body.user_id:
         update_data["user_id"] = body.user_id
 
     result = await db.pest_scans.find_one_and_update(
@@ -205,18 +215,34 @@ async def generate_pest_diagnosis_endpoint(body: PestDiagnosisRequest):
 
 @router.get(
     "/history",
-    summary="Fetch past pest scan reports for user",
+    summary="Fetch past pest scan reports for the authenticated user",
 )
-async def get_pest_history_endpoint(user_id: Optional[str] = "guest", limit: int = 50):
+async def get_pest_history_endpoint(
+    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+    user_id: Optional[str] = None,
+    limit: int = 50,
+):
     """
-    Returns list of saved pest scan reports for a given user sorted by timestamp descending.
+    Returns list of saved pest scan reports strictly filtered by the authenticated user's ID.
+    User A can NEVER see User B's history.
     """
     db = await get_database()
-    query = {}
-    if user_id and user_id != "all":
-        query["user_id"] = user_id
+    
+    # Derive identity strictly from token when authenticated
+    if current_user:
+        query_user_id = current_user.phone_number
+    elif user_id and user_id not in ["guest", "all", ""]:
+        # Fallback for unauthenticated legacy queries with explicit user phone
+        query_user_id = user_id
+    else:
+        # If not authenticated and no valid ID, return empty list (prevents leaking all/guest scans)
+        return {
+            "status": "success",
+            "count": 0,
+            "reports": [],
+        }
 
-    cursor = db.pest_scans.find(query).sort("created_at", -1).limit(limit)
+    cursor = db.pest_scans.find({"user_id": query_user_id}).sort("created_at", -1).limit(limit)
     scans = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
@@ -237,9 +263,13 @@ async def get_pest_history_endpoint(user_id: Optional[str] = "guest", limit: int
     "/scans/{scan_id}",
     summary="Fetch single pest scan report details by scan ID",
 )
-async def get_pest_scan_by_id_endpoint(scan_id: str):
+async def get_pest_scan_by_id_endpoint(
+    scan_id: str,
+    current_user: Optional[UserResponse] = Depends(get_optional_current_user),
+):
     """
     Returns full scan record and diagnosis data for a given scan_id.
+    Prevents cross-user data exposure.
     """
     db = await get_database()
     doc = await db.pest_scans.find_one({"scan_id": scan_id})
@@ -247,6 +277,13 @@ async def get_pest_scan_by_id_endpoint(scan_id: str):
         raise HTTPException(
             status_code=404,
             detail=f"Pest scan report with ID {scan_id} not found",
+        )
+
+    # Ownership check if authenticated
+    if current_user and doc.get("user_id") and doc.get("user_id") not in ["guest", current_user.phone_number, str(current_user.id)]:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to view this pest scan report",
         )
 
     doc["_id"] = str(doc["_id"])

@@ -27,11 +27,22 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   String? _userPhone;
   String? _editingExpenseId;
   TextEditingController? _expenseEditorController;
+  String? _activeLanguage;
 
   @override
   void initState() {
     super.initState();
     _loadWalletData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLang = Localizations.localeOf(context).languageCode;
+    if (_activeLanguage != currentLang) {
+      _activeLanguage = currentLang;
+      _loadWalletData();
+    }
   }
 
   Future<void> _loadWalletData() async {
@@ -48,7 +59,18 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
       }
       _userPhone = phone;
 
-      final jsonResponse = await ApiService.fetchWalletOverview(phoneNumber: phone);
+      String activeLang = _activeLanguage ?? 'en';
+      if (mounted) {
+        try {
+          activeLang = Localizations.localeOf(context).languageCode;
+          _activeLanguage = activeLang;
+        } catch (_) {}
+      }
+
+      final jsonResponse = await ApiService.fetchWalletOverview(
+        phoneNumber: phone,
+        language: activeLang,
+      );
       final model = WalletOverviewModel.fromJson(jsonResponse);
 
       if (!mounted) return;
@@ -480,13 +502,13 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
     final cat = item.category.toLowerCase().trim();
     final lbl = item.label.toLowerCase().trim();
 
-    if (cat.contains('seed') || lbl.contains('seed')) return l10n.seeds;
-    if (cat.contains('fert') || lbl.contains('fert')) return l10n.fertilizer;
-    if (cat.contains('labour') || cat.contains('labor') || lbl.contains('labour') || lbl.contains('labor')) return l10n.labour;
-    if (cat.contains('machin') || lbl.contains('machin')) return l10n.machinery;
-    if (cat.contains('irrig') || lbl.contains('irrig')) return l10n.irrigation;
-    if (cat.contains('pest') || cat.contains('insect') || lbl.contains('pest') || lbl.contains('insect')) return l10n.pestControl;
-    if ((cat == 'other' || cat.isEmpty) && (lbl == 'other' || lbl.isEmpty || item.label == 'Other')) return l10n.other;
+    if (cat.contains('seed') || lbl.contains('seed') || lbl.contains('बीज') || lbl.contains('बियाणे')) return l10n.seeds;
+    if (cat.contains('fert') || lbl.contains('fert') || lbl.contains('खाद') || lbl.contains('उर्वरक') || lbl.contains('खत')) return l10n.fertilizer;
+    if (cat.contains('labour') || cat.contains('labor') || lbl.contains('labour') || lbl.contains('labor') || lbl.contains('मजदूर') || lbl.contains('मजुर')) return l10n.labour;
+    if (cat.contains('machin') || lbl.contains('machin') || lbl.contains('मशीन') || lbl.contains('यंत्र')) return l10n.machinery;
+    if (cat.contains('irrig') || lbl.contains('irrig') || lbl.contains('सिंचाई') || lbl.contains('सिंचन') || lbl.contains('पाणी')) return l10n.irrigation;
+    if (cat.contains('pest') || cat.contains('insect') || lbl.contains('pest') || lbl.contains('insect') || lbl.contains('कीट') || lbl.contains('कीड') || lbl.contains('दवा')) return l10n.pestControl;
+    if ((cat == 'other' || cat.isEmpty) && (lbl == 'other' || lbl.isEmpty || item.label == 'Other' || lbl.contains('अन्य') || lbl.contains('इतर'))) return l10n.other;
 
     return item.label;
   }
@@ -989,7 +1011,7 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: data.expenses.length,
-            separatorBuilder: (_, __) => const Divider(height: 12, color: Color(0xFFF1F5F9)),
+            separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (context, index) {
               final item = data.expenses[index];
               return _buildExpenseRow(item, l10n);
@@ -1099,115 +1121,160 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
 
   Widget _buildExpenseRow(ExpenseItemModel item, AppLocalizations l10n) {
     final isEditing = _editingExpenseId == item.id && _expenseEditorController != null;
+    final labelText = _getLocalizedExpenseLabel(l10n, item);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(_getCategoryIcon(item.category), size: 18, color: const Color(0xFF64748B)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              _getLocalizedExpenseLabel(l10n, item),
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
-              ),
+          // Category Icon Badge
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFDCFCE7)),
+            ),
+            child: Icon(
+              _getCategoryIcon(item.category),
+              size: 16,
+              color: const Color(0xFF15803D),
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isEditing)
-                SizedBox(
-                  width: 82,
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      if (!hasFocus) _commitExpenseEdit();
-                    },
-                    child: TextField(
-                      controller: _expenseEditorController,
-                      autofocus: true,
-                      textAlign: TextAlign.end,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: false),
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      onSubmitted: (_) => _commitExpenseEdit(),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
-                      ),
-                      decoration: const InputDecoration(
-                        prefixText: '₹ ',
-                        isDense: true,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                      ),
-                    ),
+          const SizedBox(width: 8),
+
+          // Left Stack: Expense Name (Line 1) + Amount / Inline Editor (Line 2)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Expense Name - Truncate with ellipsis if exceptionally long
+                Text(
+                  labelText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
                   ),
-                )
-              else
-                GestureDetector(
-                  onTap: () => _startExpenseEdit(item),
-                  child: SizedBox(
-                    width: 82,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          _formatIndianCurrency(item.amount),
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                ),
+                const SizedBox(height: 2),
+
+                // Amount Display with tap-to-edit
+                if (isEditing)
+                  SizedBox(
+                    height: 26,
+                    child: Focus(
+                      onFocusChange: (hasFocus) {
+                        if (!hasFocus) _commitExpenseEdit();
+                      },
+                      child: TextField(
+                        controller: _expenseEditorController,
+                        autofocus: true,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        onSubmitted: (_) => _commitExpenseEdit(),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                        decoration: InputDecoration(
+                          prefixText: '₹ ',
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(color: Color(0xFF15803D), width: 1.5),
                           ),
                         ),
                       ),
                     ),
+                  )
+                else
+                  GestureDetector(
+                    onTap: () => _startExpenseEdit(item),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _formatIndianCurrency(item.amount),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF15803D),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(
+                          Icons.edit_outlined,
+                          size: 12,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // Right Controls: Compact Stepper [- / +] & Delete Trash
+          Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () => _adjustExpense(item, -500.0),
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    child: Icon(Icons.remove, size: 14, color: Color(0xFF15803D)),
                   ),
                 ),
-              const SizedBox(width: 8),
-
-              // Decrement Button (-)
-              InkWell(
-                onTap: () => _adjustExpense(item, -500.0),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
+                Container(width: 1, height: 14, color: const Color(0xFFE2E8F0)),
+                InkWell(
+                  onTap: () => _adjustExpense(item, 500.0),
+                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    child: Icon(Icons.add, size: 14, color: Color(0xFF15803D)),
                   ),
-                  child: const Icon(Icons.remove, size: 18, color: Color(0xFF15803D)),
                 ),
-              ),
-              const SizedBox(width: 6),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
 
-              // Increment Button (+)
-              InkWell(
-                onTap: () => _adjustExpense(item, 500.0),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.add, size: 18, color: Color(0xFF15803D)),
-                ),
-              ),
-              const SizedBox(width: 4),
-
-              // Delete Button (RED ICON)
-              IconButton(
-                onPressed: () => _deleteExpense(item),
-                icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFDC2626)),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-              ),
-            ],
+          // Delete Button
+          InkWell(
+            onTap: () => _deleteExpense(item),
+            borderRadius: BorderRadius.circular(6),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFDC2626)),
+            ),
           ),
         ],
       ),

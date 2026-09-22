@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
+import 'auth_session_manager.dart';
 
 /// Local & Remote Pest Report History Manager.
-/// Ensures diagnosis reports and image references remain accessible after app restarts.
+/// Ensures diagnosis reports and image references are user-isolated and persist across app restarts.
 class PestHistoryService {
-  static const String _storageKey = 'pest_report_history_v1';
+  static Future<String> _getStorageKey() async {
+    final phone = await AuthSessionManager.getUserPhone() ?? 'guest';
+    return 'pest_report_history_v2_$phone';
+  }
 
-  /// Saves a scan report record locally and attempts backend sync.
+  /// Saves a scan report record locally for the current user and attempts backend sync.
   static Future<void> saveReport(Map<String, dynamic> scanDoc) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -26,21 +30,21 @@ class PestHistoryService {
         reports = reports.sublist(0, 50);
       }
 
+      final storageKey = await _getStorageKey();
       final String jsonStr = jsonEncode(reports);
-      await prefs.setString(_storageKey, jsonStr);
+      await prefs.setString(storageKey, jsonStr);
     } catch (e) {
       print('[PEST HISTORY SAVE ERROR] $e');
     }
   }
 
-  /// Retrieves local saved reports, merging with remote backend reports when online.
-  static Future<List<Map<String, dynamic>>> getReports({String userId = 'guest'}) async {
+  /// Retrieves local saved reports for the authenticated user, merging with remote backend reports.
+  static Future<List<Map<String, dynamic>>> getReports() async {
     List<Map<String, dynamic>> localReports = await getLocalReports();
 
     try {
-      final remoteReports = await ApiService.fetchPestHistory(userId: userId);
+      final remoteReports = await ApiService.fetchPestHistory();
       if (remoteReports.isNotEmpty) {
-        // Merge remote with local avoiding duplicates
         final Set<String> existingIds = localReports.map((e) => e['scan_id']?.toString() ?? '').toSet();
         for (var remote in remoteReports) {
           final String rId = remote['scan_id']?.toString() ?? '';
@@ -56,11 +60,12 @@ class PestHistoryService {
     return localReports;
   }
 
-  /// Retrieves local reports from SharedPreferences.
+  /// Retrieves local reports from SharedPreferences for current user.
   static Future<List<Map<String, dynamic>>> getLocalReports() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? jsonStr = prefs.getString(_storageKey);
+      final storageKey = await _getStorageKey();
+      final String? jsonStr = prefs.getString(storageKey);
       if (jsonStr != null && jsonStr.isNotEmpty) {
         final List decoded = jsonDecode(jsonStr);
         return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();

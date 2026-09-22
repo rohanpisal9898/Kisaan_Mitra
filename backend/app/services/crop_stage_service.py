@@ -28,16 +28,25 @@ STAGE_MAP = {
 class CropStageService:
     """Calculates crop growth stage from sowing date and crop profile."""
 
+    def __init__(self):
+        self._crop_profiles_cache: Dict[str, Dict[str, Any]] = {}
+
     async def get_crop_profile(
         self, db: AsyncIOMotorDatabase, crop_id: str
     ) -> Optional[Dict[str, Any]]:
         normalized = self._normalize_crop_id(crop_id)
+        if normalized in self._crop_profiles_cache:
+            return self._crop_profiles_cache[normalized]
+
         if db is not None:
             profile = await db.crop_profiles.find_one({"crop_id": normalized})
             if profile:
+                self._crop_profiles_cache[normalized] = profile
                 return profile
         
-        return self._fallback_crop_profile(normalized)
+        fallback = self._fallback_crop_profile(normalized)
+        self._crop_profiles_cache[normalized] = fallback
+        return fallback
 
     def _fallback_crop_profile(self, crop_id: str) -> Dict[str, Any]:
         """Agronomic stage durations for all 9 oilseed crops"""

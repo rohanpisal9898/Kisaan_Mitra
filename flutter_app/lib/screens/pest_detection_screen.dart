@@ -19,7 +19,12 @@ import '../widgets/pest_treatment_guide_widget.dart';
 /// Strictly matches the visual layout, dark green crop background, floating action panel,
 /// camera permission handling, and typography of the reference image.
 class PestDetectionScreen extends StatefulWidget {
-  const PestDetectionScreen({super.key});
+  final VoidCallback? onBackToHome;
+
+  const PestDetectionScreen({
+    super.key,
+    this.onBackToHome,
+  });
 
   @override
   State<PestDetectionScreen> createState() => _PestDetectionScreenState();
@@ -32,6 +37,7 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
   String _selectedSource = 'camera';
   Map<String, dynamic>? _scanResult;
   List<Map<String, dynamic>> _questions = [];
+  // ignore: unused_field
   Map<String, String> _userAnswers = {};
   Map<String, dynamic>? _diagnosisData;
   bool _isUploading = false;
@@ -468,89 +474,105 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
 
     final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Main Scrollable Area with Dark Photographic Background Top + White Upload Panel
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                // TOP HERO SECTION (Full Photographic Dark Leaf Background)
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(minHeight: 380),
-                  child: Stack(
-                    children: [
-                      // 1. Photographic Dark Green Leaf Background Image
-                      Positioned.fill(
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop',
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: const Color(0xFF14532D),
-                          ),
-                        ),
-                      ),
-
-                      // 2. Dark Overlay for readability
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.55),
-                                Colors.black.withOpacity(0.40),
-                                Colors.black.withOpacity(0.65),
-                              ],
+    return PopScope(
+      canPop: _currentPage == 0 && widget.onBackToHome == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentPage > 0) {
+          setState(() {
+            _currentPage -= 1;
+          });
+        } else if (widget.onBackToHome != null) {
+          widget.onBackToHome!();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            // Main Scrollable Area with Dark Photographic Background Top + White Upload Panel
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  // TOP HERO SECTION (Full Photographic Dark Leaf Background)
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 380),
+                    child: Stack(
+                      children: [
+                        // 1. Photographic Dark Green Leaf Background Image
+                        Positioned.fill(
+                          child: Image.network(
+                            'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop',
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: const Color(0xFF14532D),
                             ),
                           ),
                         ),
-                      ),
 
-                      // 3. Top Navigation & Hero Text Content
-                      SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top Bar: Back Arrow + "Pest Detection"
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        icon: const Icon(
-                                          Icons.arrow_back,
-                                          color: Colors.white,
-                                          size: 24,
+                        // 2. Dark Overlay for readability
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.55),
+                                  Colors.black.withOpacity(0.40),
+                                  Colors.black.withOpacity(0.65),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 3. Top Navigation & Hero Text Content
+                        SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top Bar: Back Arrow + "Pest Detection"
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          icon: const Icon(
+                                            Icons.arrow_back,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          onPressed: () {
+                                            if (_currentPage > 0) {
+                                              setState(() => _currentPage -= 1);
+                                            } else if (widget.onBackToHome != null) {
+                                              widget.onBackToHome!();
+                                            } else if (Navigator.canPop(context)) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
                                         ),
-                                        onPressed: () {
-                                          if (Navigator.canPop(context)) {
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Text(
-                                        l10n.pestDetectionTitle,
-                                        style: GoogleFonts.dmSans(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.1,
+                                        const SizedBox(width: 14),
+                                        Text(
+                                          l10n.pestDetectionTitle,
+                                          style: GoogleFonts.dmSans(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.1,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
                                   IconButton(
                                     icon: const Icon(Icons.history, color: Colors.white, size: 24),
                                     onPressed: () {
@@ -874,7 +896,8 @@ class _PestDetectionScreenState extends State<PestDetectionScreen> {
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
