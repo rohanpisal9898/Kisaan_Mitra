@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     gemini_total_timeout: float = 6.0
     dashboard_cache_ttl_seconds: int = 180  # 3 minutes in-memory TTL
 
+    # Render & Self-Ping Configuration (Prevents Free-Tier Sleep)
+    render_external_url: str = ""
+    self_ping_interval_seconds: int = 600  # Ping every 10 minutes (Render sleeps at 15m)
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env", "../.env"),
         case_sensitive=False,
