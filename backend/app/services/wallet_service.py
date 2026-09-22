@@ -50,6 +50,17 @@ def _format_indian_currency(val: float) -> str:
 
 
 class WalletService:
+    def __init__(self):
+        self._overview_cache: Dict[str, Tuple[Dict[str, Any], datetime]] = {}
+
+    def invalidate_cache(self, phone_number: Optional[str] = None):
+        """Invalidate in-memory wallet overview cache for a user or entirely."""
+        if phone_number:
+            p_str = phone_number.strip()
+            self._overview_cache = {k: v for k, v in self._overview_cache.items() if not k.startswith(f"wallet:{p_str}:")}
+        else:
+            self._overview_cache.clear()
+
     def _normalize_crop_name(self, raw_crop: str) -> str:
         """Standardizes crop names across MongoDB collections."""
         c = (raw_crop or "").strip().lower()
@@ -895,6 +906,18 @@ class WalletService:
         else:
             farm_area_ha = farm_area
 
+        # In-memory TTL Cache Check for lightning-fast wallet load
+        lang_str = str(language).lower().strip()
+        is_hi = "hi" in lang_str or "hindi" in lang_str or "हिं" in lang_str
+        is_mr = "mr" in lang_str or "marathi" in lang_str or "मरा" in lang_str
+        target_lang_code = "hi" if is_hi else ("mr" if is_mr else "en")
+
+        cache_key = f"wallet:{phone}:{current_crop}:{state}:{district}:{round(farm_area_ha, 2)}:{target_lang_code}"
+        if cache_key in self._overview_cache:
+            cached_resp, cached_time = self._overview_cache[cache_key]
+            if (datetime.utcnow() - cached_time).total_seconds() < settings.dashboard_cache_ttl_seconds:
+                return cached_resp
+
         # 1. CatBoost Yield Prediction Integration
         farm_context = {
             "state": state,
@@ -1134,6 +1157,10 @@ class WalletService:
             "data_freshness_note": f"Market Data: {mandi_info.get('data_source', 'Gemini AI / MongoDB')}",
         }
 
+        # Cache in memory
+        self._overview_cache[cache_key] = (overview_res, datetime.utcnow())
+        return overview_res
+
     async def update_user_expenses(
         self, db: AsyncIOMotorDatabase, phone_number: str, expenses: List[Dict[str, Any]]
     ):
@@ -1144,6 +1171,8 @@ class WalletService:
                 {"$set": {"phone_number": phone_number, "expenses": expenses, "updated_at": datetime.now().isoformat()}},
                 upsert=True,
             )
+            # Invalidate in-memory cache so fresh recalculated numbers show immediately
+            self.invalidate_cache(phone_number)
 
 
     def _default_user_doc(self, phone_number: Optional[str] = None) -> Dict[str, Any]:

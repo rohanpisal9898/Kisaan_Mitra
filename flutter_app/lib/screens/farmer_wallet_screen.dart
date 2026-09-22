@@ -39,7 +39,9 @@ class _FarmerWalletScreenState extends State<FarmerWalletScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final currentLang = Localizations.localeOf(context).languageCode;
-    if (_activeLanguage != currentLang) {
+    if (_activeLanguage == null) {
+      _activeLanguage = currentLang;
+    } else if (_activeLanguage != currentLang) {
       _activeLanguage = currentLang;
       _loadWalletData();
     }
