@@ -4,11 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'api_service.dart';
 
-/// Result object containing location coordinates, resolved State/District, and error states.
+/// Result object containing location coordinates, resolved State/District, accuracy, and error states.
 class GpsLocationResult {
   final bool success;
   final double? latitude;
   final double? longitude;
+  final double? accuracy;
   final String? state;
   final String? district;
   final String? errorMessage;
@@ -20,6 +21,7 @@ class GpsLocationResult {
     required this.success,
     this.latitude,
     this.longitude,
+    this.accuracy,
     this.state,
     this.district,
     this.errorMessage,
@@ -31,6 +33,7 @@ class GpsLocationResult {
   factory GpsLocationResult.success({
     required double latitude,
     required double longitude,
+    double? accuracy,
     required String state,
     required String district,
   }) {
@@ -38,6 +41,7 @@ class GpsLocationResult {
       success: true,
       latitude: latitude,
       longitude: longitude,
+      accuracy: accuracy,
       state: state,
       district: district,
     );
@@ -60,8 +64,10 @@ class GpsLocationResult {
 }
 
 /// Robust GPS Location Service for Android (Release/Debug), iOS, and Web.
-/// Handles Android 12+ precise/approximate permissions, location service toggles,
-/// timeouts, and State/District resolution through the existing backend endpoint.
+/// Implements 3-tier fallback architecture:
+/// Tier 1: Fused High-Accuracy Position (Fast)
+/// Tier 2: Android Native LocationManager (forceLocationManager: true)
+/// Tier 3: Last Known Position (Instant Cached OS Location)
 class GpsLocationService {
   /// Request GPS position and resolve State & District via backend.
   static Future<GpsLocationResult> detectLocation() async {
@@ -94,29 +100,52 @@ class GpsLocationService {
         );
       }
 
-      // 3. Obtain current coordinates (with timeout & fallback to last known position)
+      // 3. Obtain coordinates using Multi-Tier Fallback Strategy
       Position? position;
+
+      // Tier 1: Try high-accuracy Fused Location Provider (5-second timeout)
       try {
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 10),
+          timeLimit: const Duration(seconds: 5),
         );
-      } on TimeoutException {
-        debugPrint('[GPS Service] getCurrentPosition timed out, attempting getLastKnownPosition fallback');
-        position = await Geolocator.getLastKnownPosition();
       } catch (e) {
-        debugPrint('[GPS Service] getCurrentPosition error: $e, attempting getLastKnownPosition');
-        position = await Geolocator.getLastKnownPosition();
+        debugPrint('[GPS Service] Tier 1 (Fused) failed or timed out: $e');
+      }
+
+      // Tier 2: If Tier 1 failed, fallback to native LocationManager (forceAndroidLocationManager: true)
+      if (position == null && defaultTargetPlatform == TargetPlatform.android) {
+        try {
+          debugPrint('[GPS Service] Attempting Tier 2: Android Native LocationManager fallback');
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+            forceAndroidLocationManager: true,
+            timeLimit: const Duration(seconds: 4),
+          );
+        } catch (e) {
+          debugPrint('[GPS Service] Tier 2 (Native LocationManager) failed: $e');
+        }
+      }
+
+      // Tier 3: Fallback to last known position (cached OS location)
+      if (position == null) {
+        try {
+          debugPrint('[GPS Service] Attempting Tier 3: getLastKnownPosition fallback');
+          position = await Geolocator.getLastKnownPosition();
+        } catch (e) {
+          debugPrint('[GPS Service] Tier 3 (LastKnown) failed: $e');
+        }
       }
 
       if (position == null) {
         return GpsLocationResult.failure(
-          errorMessage: 'Unable to acquire GPS signal. Please check your connection or select manually.',
+          errorMessage: 'Unable to acquire location signal. Please ensure location is enabled or select manually.',
         );
       }
 
       final lat = position.latitude;
       final lon = position.longitude;
+      final accuracy = position.accuracy;
 
       // 4. Resolve State and District using backend location API
       final Map<String, dynamic> result = await ApiService.findNearestDistrict(lat, lon);
@@ -132,6 +161,7 @@ class GpsLocationService {
       return GpsLocationResult.success(
         latitude: lat,
         longitude: lon,
+        accuracy: accuracy,
         state: state,
         district: district,
       );

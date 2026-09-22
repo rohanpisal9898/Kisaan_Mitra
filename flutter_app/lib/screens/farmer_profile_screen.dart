@@ -41,6 +41,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   // ─── Sign-In GPS Location State ──────────────────────────────
   String? _signInState;
   String? _signInDistrict;
+  double? _detectedLat;
+  double? _detectedLon;
+  double? _detectedAccuracy;
   List<String> _states = [];
   List<String> _districts = [];
   bool _loadingStates = false;
@@ -124,6 +127,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       setState(() {
         _signInState = res.state;
         _signInDistrict = res.district;
+        _detectedLat = res.latitude;
+        _detectedLon = res.longitude;
+        _detectedAccuracy = res.accuracy;
         _locationDetectedSuccess = true;
         _isDetectingLocation = false;
         _locationStatusMessage = 'Location detected ✓';
@@ -528,6 +534,10 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     }
 
     if (_locationDetectedSuccess && _signInState != null && _signInDistrict != null) {
+      final accuracyStr = _detectedAccuracy != null ? ' (±${_detectedAccuracy!.toStringAsFixed(0)}m)' : '';
+      final coordsTooltip = (_detectedLat != null && _detectedLon != null)
+          ? 'GPS: ${_detectedLat!.toStringAsFixed(4)}, ${_detectedLon!.toStringAsFixed(4)}$accuracyStr'
+          : 'GPS Location Active';
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
@@ -537,14 +547,17 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Color(0xFF15803D), size: 20),
+            Tooltip(
+              message: coordsTooltip,
+              child: const Icon(Icons.check_circle_rounded, color: Color(0xFF15803D), size: 20),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Location detected ✓',
+                    'Location detected ✓$accuracyStr',
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
