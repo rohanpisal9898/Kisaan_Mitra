@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
 
@@ -63,6 +63,7 @@ class SellingPriceInfo(BaseModel):
 
 
 class YieldSummary(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     predicted: float = 0.0
     lower: float = 0.0
     upper: float = 0.0

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
 class FarmerInfo(BaseModel):
@@ -56,6 +56,7 @@ class CropHealthInfo(BaseModel):
     benchmark_metadata: Dict[str, Any] = {}
 
 class YieldPredictionInfo(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     predicted: float = 3.4
     lower: float = 3.1
     upper: float = 3.7

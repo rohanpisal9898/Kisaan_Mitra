@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env", "../.env"),
         case_sensitive=False,
-        extra="ignore"
+        extra="ignore",
+        protected_namespaces=()
     )
 
 
