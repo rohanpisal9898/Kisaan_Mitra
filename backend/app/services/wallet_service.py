@@ -178,11 +178,9 @@ class WalletService:
         crop_norm_req = self._normalize_crop_name(crop)
 
         model_names = [
-            "gemini-2.5-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-3.6-flash",
-            "gemini-3.6-flash-lite",
-            "gemini-3.6-lite",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
         ]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
@@ -791,11 +789,9 @@ class WalletService:
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
             model_names = [
-                "gemini-2.5-flash",
-                "gemini-3.5-flash-lite",
-                "gemini-3.6-flash",
-                "gemini-3.6-flash-lite",
-                "gemini-3.6-lite",
+                "gemini-2.0-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
             ]
             for model_name in model_names:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -843,15 +839,9 @@ class WalletService:
         }
 
         await db.market_insights.update_one(
-            {"phone_number": phone_number, "language": lang_code},
+            {"phone_number": phone_number},
             {"$set": insight_doc},
             upsert=True,
-        )
-        # Also update the primary phone document for backwards compatibility
-        await db.market_insights.update_one(
-            {"phone_number": phone_number, "language": {"$exists": False}},
-            {"$set": insight_doc},
-            upsert=False,
         )
         print(f"[OK] Refreshed & Saved MarketInsight in MongoDB for farmer {phone_number} ({lang_name})")
 
