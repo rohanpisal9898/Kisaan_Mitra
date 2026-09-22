@@ -125,8 +125,8 @@ async def get_gemini_recommendations(
         full_lang = "English"
 
     model_names = [
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
 
     context_str = json.dumps(farm_context, indent=2, default=str)
@@ -302,8 +302,8 @@ async def get_gemini_pest_questions(
     )
 
     model_names = [
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
 
     for model_name in model_names:
@@ -537,8 +537,8 @@ async def get_gemini_pest_diagnosis(
     )
 
     model_names = [
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
 
     for model_name in model_names:
@@ -638,8 +638,8 @@ async def get_gemini_government_schemes(
     )
 
     model_names = [
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
 
     for model_name in model_names:
@@ -759,8 +759,8 @@ async def validate_crop_image(
     clean_b64 = image_base64.split(",", 1)[1] if "," in image_base64 else image_base64
 
     model_names = [
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
 
     for model_name in model_names:

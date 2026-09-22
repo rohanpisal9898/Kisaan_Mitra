@@ -189,8 +189,8 @@ class WalletService:
         crop_norm_req = self._normalize_crop_name(crop)
 
         model_names = [
+            "gemini-3.5-flash-lite",
             "gemini-3.1-flash-lite",
-            "gemini-3.6-flash",
         ]
         prompt = (
             f"You are an Indian APMC agricultural market expert.\n"
@@ -222,7 +222,7 @@ class WalletService:
                 }
             }
             try:
-                async with httpx.AsyncClient(timeout=2.5) as client:
+                async with httpx.AsyncClient(timeout=3.5) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code == 200:
                         res_json = resp.json()
@@ -254,7 +254,7 @@ class WalletService:
                                         print(f"[MARKET GEMINI] Live district market price fetched: {crop_norm_req} | {district} | {state} | Rs. {modal}/quintal")
                                         return parsed
             except Exception as e:
-                print(f"[MARKET GEMINI] Exception for model {model}: {e}")
+                print(f"[MARKET GEMINI] Exception for model {model}: {type(e).__name__} - {e}")
                 continue
 
         return None
@@ -799,8 +799,8 @@ class WalletService:
                 f"Government MSP Price: ₹{msp_price}/quintal\n\nReturn plain text."
             )
             model_names = [
+                "gemini-3.5-flash-lite",
                 "gemini-3.1-flash-lite",
-                "gemini-3.6-flash",
             ]
             for model_name in model_names:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
