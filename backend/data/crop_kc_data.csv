@@ -1,0 +1,37 @@
+crop_id,crop_name,total_growth_duration_days,sowing_window,stage_key,stage_name,stage_duration_days,start_day_after_sowing,end_day_after_sowing,kc_start,kc_end,kc_behavior,kc_status,kc_confidence
+groundnut,Groundnut,120,June – July,initial,Early Growth (Initial),25,1,25,0.40,0.40,Constant,established,high
+groundnut,Groundnut,120,June – July,development,Vegetative Growth (Development),35,26,60,0.40,1.15,Linear Interpolation,established,high
+groundnut,Groundnut,120,June – July,mid_season,Flowering (Mid-Season),40,61,100,1.15,1.15,Constant,established,high
+groundnut,Groundnut,120,June – July,late_season,Maturity (Late-Season),20,101,120,1.15,0.60,Linear Interpolation,established,high
+soybean,Soybean,104,June – July,initial,Early Growth (Initial),16,1,16,0.35,0.35,Constant,established,high
+soybean,Soybean,104,June – July,development,Vegetative Growth (Development),28,17,44,0.35,1.15,Linear Interpolation,established,high
+soybean,Soybean,104,June – July,mid_season,Flowering (Mid-Season),40,45,84,1.15,1.15,Constant,established,high
+soybean,Soybean,104,June – July,late_season,Maturity (Late-Season),20,85,104,1.15,0.50,Linear Interpolation,established,high
+castor,Castor,150,July – August,initial,Early Growth (Initial),25,1,25,0.35,0.35,Constant,established,high
+castor,Castor,150,July – August,development,Vegetative Growth (Development),40,26,65,0.35,1.15,Linear Interpolation,established,high
+castor,Castor,150,July – August,mid_season,Flowering (Mid-Season),55,66,120,1.15,1.15,Constant,established,high
+castor,Castor,150,July – August,late_season,Maturity (Late-Season),30,121,150,1.15,0.55,Linear Interpolation,established,high
+sunflower,Sunflower,120,June – July,initial,Early Growth (Initial),20,1,20,0.35,0.35,Constant,established,high
+sunflower,Sunflower,120,June – July,development,Vegetative Growth (Development),35,21,55,0.35,1.15,Linear Interpolation,established,high
+sunflower,Sunflower,120,June – July,mid_season,Flowering (Mid-Season),45,56,100,1.15,1.15,Constant,established,high
+sunflower,Sunflower,120,June – July,late_season,Maturity (Late-Season),20,101,120,1.15,0.35,Linear Interpolation,established,high
+sesame,Sesame,100,June – July,initial,Early Growth (Initial),20,1,20,0.35,0.35,Constant,established,high
+sesame,Sesame,100,June – July,development,Vegetative Growth (Development),25,21,45,0.35,1.10,Linear Interpolation,established,high
+sesame,Sesame,100,June – July,mid_season,Flowering (Mid-Season),35,46,80,1.10,1.10,Constant,established,high
+sesame,Sesame,100,June – July,late_season,Maturity (Late-Season),20,81,100,1.10,0.25,Linear Interpolation,established,high
+rapeseed_mustard,Rapeseed & Mustard,130,October – November,initial,Early Growth (Initial),20,1,20,0.35,0.35,Constant,established,high
+rapeseed_mustard,Rapeseed & Mustard,130,October – November,development,Vegetative Growth (Development),35,21,55,0.35,1.10,Linear Interpolation,established,high
+rapeseed_mustard,Rapeseed & Mustard,130,October – November,mid_season,Flowering (Mid-Season),50,56,105,1.10,1.10,Constant,established,high
+rapeseed_mustard,Rapeseed & Mustard,130,October – November,late_season,Maturity (Late-Season),25,106,130,1.10,0.35,Linear Interpolation,established,high
+linseed,Linseed,140,October – November,initial,Early Growth (Initial),25,1,25,0.35,0.35,Constant,established,high
+linseed,Linseed,140,October – November,development,Vegetative Growth (Development),35,26,60,0.35,1.10,Linear Interpolation,established,high
+linseed,Linseed,140,October – November,mid_season,Flowering (Mid-Season),50,61,110,1.10,1.10,Constant,established,high
+linseed,Linseed,140,October – November,late_season,Maturity (Late-Season),30,111,140,1.10,0.25,Linear Interpolation,established,high
+safflower,Safflower,140,September – October,initial,Early Growth (Initial),25,1,25,0.35,0.35,Constant,established,high
+safflower,Safflower,140,September – October,development,Vegetative Growth (Development),35,26,60,0.35,1.10,Linear Interpolation,established,high
+safflower,Safflower,140,September – October,mid_season,Flowering (Mid-Season),50,61,110,1.10,1.10,Constant,established,high
+safflower,Safflower,140,September – October,late_season,Maturity (Late-Season),30,111,140,1.10,0.25,Linear Interpolation,established,high
+niger,Niger Seed,110,June – July,initial,Early Growth (Initial),20,1,20,0.35,0.35,Constant,provisional_proxy,low
+niger,Niger Seed,110,June – July,development,Vegetative Growth (Development),30,21,50,0.35,1.05,Linear Interpolation,provisional_proxy,low
+niger,Niger Seed,110,June – July,mid_season,Flowering (Mid-Season),40,51,90,1.05,1.05,Constant,provisional_proxy,low
+niger,Niger Seed,110,June – July,late_season,Maturity (Late-Season),20,91,110,1.05,0.30,Linear Interpolation,provisional_proxy,low
