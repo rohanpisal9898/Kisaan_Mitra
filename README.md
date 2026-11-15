@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 ## Project Overview
 
 **Kisaan Mitra v2.0** - AI-Driven Yield Optimization Platform for Indian Farmers.
